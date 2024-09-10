@@ -27,15 +27,16 @@ Please see [https://pypi.org/project/excel-list-transform](https://pypi.org/proj
 ## What it does
 
 This small python application:
- * reads data (that is a list with columns) from an excel file or from a comma separate values (CSV) file.
- * splits columns in the list (like creating "first name" and "last name" columns from "name" column)
- * merges columns in the list (like creating "name" column from "first name" and "last name" columns)
- * removes columns in the list
- * reorders columns in the list
- * renames columns in the list
- * inserts columns in the list
- * rewrites columns in the list (like transforming telephone numbers from local/national format to international format)
- * writest the resulting data (that is a list with columns) to an excel file or to a comma separate values (CSV) file.
+
+* reads data (that is a list with columns) from an excel file or from a comma separate values (CSV) file.
+* splits columns in the list (like creating "first name" and "last name" columns from "name" column)
+* merges columns in the list (like creating "name" column from "first name" and "last name" columns)
+* removes columns in the list
+* reorders columns in the list
+* renames columns in the list
+* inserts columns in the list
+* rewrites columns in the list (like transforming telephone numbers from local/national format to international format)
+* writest the resulting data (that is a list with columns) to an excel file or to a comma separate values (CSV) file.
 
 How this is done is governed by a configuration file. The application can create a number of example configuration files with accompanying description text files.
 
@@ -62,12 +63,13 @@ The internal APIs in this package are not guaranteed to be stable. They can chan
 ### Building application
 
 There are 3 scripts for building the application
- * setup_build_environment.zsh
- Run this script first to get the environment set up for building
- * doBuild.zsh
- Run this script to build an installation package (.whl) and to run the tests on it in a venv (virtual environment).
- * clean.zsh
- Deletes all files that was produced by the build to start over from a clean state.
+
+* setup_build_environment.zsh
+  Run this script first to get the environment set up for building
+* doBuild.zsh
+  Run this script to build an installation package (.whl) and to run the tests on it in a venv (virtual environment).
+* clean.zsh
+  Deletes all files that was produced by the build to start over from a clean state.
 
 The "testing" includes pytest, pylint, flake8 and mypy.
 

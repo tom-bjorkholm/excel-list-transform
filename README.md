@@ -36,7 +36,7 @@ This small python application:
 * renames columns in the list
 * inserts columns in the list
 * rewrites columns in the list (like transforming telephone numbers from local/national format to international format)
-* writest the resulting data (that is a list with columns) to an excel file or to a comma separate values (CSV) file.
+* writes the resulting data (that is a list with columns) to an excel file or to a comma separate values (CSV) file.
 
 How this is done is governed by a configuration file. The application can create a number of example configuration files with accompanying description text files.
 

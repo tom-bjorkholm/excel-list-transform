@@ -11,9 +11,11 @@ import sys
 import csv
 from typing import Any, Optional, Type, TypeVar, Mapping, NamedTuple, Callable
 from enum import Enum, IntEnum
+from tempfile import TemporaryFile
 from excel_list_transform.str_to_enum import string_to_enum_best_match
 from excel_list_transform.config_enums import RewriteKind
 from excel_list_transform.file_must_exist import file_must_exist
+from excel_list_transform.commontypes import JsonType
 
 
 Keya = TypeVar('Keya', str, Enum, RewriteKind)
@@ -151,6 +153,21 @@ class Config():
                     ret[key] = parse_c.func(value, **parse_c.args)
         return ret
 
+    def _def_vals_for_optional(self) -> dict[str, JsonType]:
+        """Get default values for optional config parameters.
+
+        Derived class shall override this method if it has
+        optional config parameters.
+        """
+        return {}
+
+    def _add_optional_configs(self, json_data: dict[str, JsonType]) -> None:
+        """Add optional config parameters to json data as needed."""
+        defval = self._def_vals_for_optional()
+        for key, value in defval.items():
+            if key not in json_data:
+                json_data[key] = value
+
     def parse_json(self, from_json_text: str,
                    ok_to_use_defaults: bool = False) -> None:
         """Parse a string of JSON data and set self to that."""
@@ -171,6 +188,7 @@ class Config():
             if isinstance(exc, json.JSONDecodeError):
                 raise ConfigBadJson(msg=msg, doc=exc.doc, pos=exc.pos) from exc
             raise ConfigBadJson(msg=msg, doc='', pos=0) from exc
+        self._add_optional_configs(data)
         self_keys = [i for i in vars(self).keys() if not
                      callable(getattr(self, i)) and not i.startswith('_')]
         self.check_key_match(self_keys, data.keys(), ok_to_use_defaults)
@@ -356,3 +374,22 @@ class Config():
         return ParseConverter(result_type=enum_type,
                               func=string_to_enum_best_match,
                               args={'num_type': enum_type})
+
+    @staticmethod
+    def valid_char_encoding(enc: str) -> bool:
+        """Check if character encoding is valid."""
+        try:
+            with TemporaryFile(mode='w', encoding=enc) as _:
+                pass
+        except LookupError as exc:
+            if 'unknown encoding' in str(exc):
+                return False
+            raise exc  # pragma: no cover
+        return True
+
+    @staticmethod
+    def check_char_encoding(enc: str) -> None:
+        """Report error and exit if character encoding is not valid."""
+        if not Config.valid_char_encoding(enc=enc):
+            print(f'{enc} is not a recognized encoding', file=sys.stderr)
+            sys.exit(1)

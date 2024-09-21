@@ -1,0 +1,123 @@
+#! /usr/local/bin/python3
+"""Test the Config class (part 2 of tests)."""
+
+# Copyright (c) 2024 Tom Björkholm
+# MIT License
+
+# pylint: disable=duplicate-code
+
+from typing import Optional  # pylint: disable=unused-import,ungrouped-imports # noqa: E501
+import pytest
+from excel_list_transform.config import Config
+from excel_list_transform.commontypes import JsonType
+
+
+@pytest.mark.parametrize('enc, is_ok',
+                         [('utf-8', True),
+                          ('abc123', False)])
+def test_cfg_valid_chr_enc_ok(capsys, enc, is_ok):
+    """Test OK cases of valid_char_encoding."""
+    ret = Config.valid_char_encoding(enc)
+    out, err = capsys.readouterr()
+    assert ret == is_ok
+    assert '' == out
+    assert '' == err
+
+
+@pytest.mark.parametrize('enc',
+                         [8, True])
+def test_cfg_valid_chr_enc_nok(capsys, enc):
+    """Test not OK cases of valid_char_encoding."""
+    with pytest.raises(Exception) as exc:
+        _ = Config.valid_char_encoding(enc)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert '' == err
+    assert 'must be str' in str(exc)
+
+
+@pytest.mark.parametrize('enc',
+                         ['utf-8', 'iso8859-1'])
+def test_cfg_check_chr_enc_ok(capsys, enc):
+    """Test OK cases of check_char_encoding."""
+    Config.check_char_encoding(enc)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert '' == err
+
+
+@pytest.mark.parametrize('enc',
+                         ['utf-88', 'abc123'])
+def test_cfg_check_chr_enc_nok(capsys, enc):
+    """Test not OK cases of check_char_encoding."""
+    with pytest.raises(SystemExit):
+        Config.check_char_encoding(enc)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert f'{enc} is not a recognized encoding' in err
+
+
+class AbcConfig(Config):
+    """Class to test defualt values."""
+
+    def __init__(self, from_json_data_text: Optional[str] = None,
+                 from_json_filename: Optional[str] = None) -> None:
+        """Construct test config object."""
+        self.ab = 'a1b2'
+        self.cd = 'c3d4'
+        self.ef = 'e5f6'
+        super().__init__(from_json_data_text=from_json_data_text,
+                         from_json_filename=from_json_filename)
+
+    def _def_vals_for_optional(self) -> dict[str, JsonType]:
+        """Return default values for optional parameters."""
+        return {'cd': 'cd99', 'ef': 'ef99'}
+
+
+def test_cfg_abc_dump_ok(capsys):
+    """Test dump of default constructed AbcConfig."""
+    abc = AbcConfig()
+    jstext = abc.as_json_string()
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert '' == err
+    jstext = jstext.replace('\n', ' ')
+    for _ in range(10):
+        jstext = jstext.replace('  ', ' ')
+    assert jstext == '{ "ab": "a1b2", "cd": "c3d4", "ef": "e5f6" }'
+
+
+@pytest.mark.parametrize('jstext, aval, cval, fval',
+                         [('{ "ab": "a1b2", "cd": "c3d4", "ef": "e5f6" }',
+                           'a1b2', 'c3d4', 'e5f6'),
+                          ('{ "ab": "donald", "cd": "duck", "ef": "mouse" }',
+                           'donald', 'duck', 'mouse'),
+                          ('{ "ab": "aaa", "cd": "mickey" }',
+                           'aaa', 'mickey', 'ef99'),
+                          ('{ "ab": "donald", "ef": "duck" }',
+                           'donald', 'cd99', 'duck'),
+                          ('{ "ab": "duck"}',
+                           'duck', 'cd99', 'ef99')])
+def test_cfg_def_val_json_ok(capsys, jstext, aval, cval, fval):
+    """Test construction of cfg from json with default values."""
+    abc = AbcConfig(from_json_data_text=jstext, from_json_filename=None)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert '' == err
+    assert abc.ab == aval
+    assert abc.cd == cval
+    assert abc.ef == fval
+
+
+@pytest.mark.parametrize('jstext',
+                         ['{ "cd": "c3d4", "ef": "e5f6" }',
+                          '{ "cd": "duck", "ef": "mouse" }',
+                          '{ "cd": "mickey" }',
+                          '{ "ef": "duck" }', '{}'])
+def test_cfg_def_val_json_nok(capsys, jstext):
+    """Test construction of cfg from json with default values."""
+    with pytest.raises(KeyError):
+        _ = AbcConfig(from_json_data_text=jstext, from_json_filename=None)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert 'No value for ab in' in err

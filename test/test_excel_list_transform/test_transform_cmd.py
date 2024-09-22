@@ -34,8 +34,8 @@ from excel_list_transform.config_enums import ColumnRef
                             'transform', '--output', 'of', '--input', 'ifi',
                             '--cfg', 'con'],
                            'of', 'ifi', 'con', None, 0, 1]])
-def test_excel_list_rfm_cmd_smoke(capsys, monkeypatch,  # pylint: disable=too-many-arguments, line-too-long # noqa: E501
-                                  args, exp_out, exp_in, exp_cfg,
+def test_excel_list_rfm_cmd_smoke(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments,line-too-long # noqa: E501
+                                  monkeypatch, args, exp_out, exp_in, exp_cfg,
                                   ref, gnum, rnum):
     """Test the excel_list_transform command parsing functionality."""
     def gen(filename, cfgtype, colref):

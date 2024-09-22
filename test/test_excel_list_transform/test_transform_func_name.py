@@ -70,7 +70,7 @@ def test_col_must_exist_name_nok(capsys, col, row, par, msg):
                            {'column': 'a', 'right_name': 'b'},
                            {'a': '4', 'b': '5'}),
                           ])
-def test_store_col_split_name(capsys,  # pylint: disable=too-many-arguments
+def test_store_col_split_name(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments  # noqa: E501
                               row, col, val, sr, nrow):
     """Test ok cases for store_col_split_name."""
     inrow = deepcopy(row)
@@ -492,13 +492,13 @@ def get_test_data_name(written_result: bool) -> DataToUseName:
     result = []
     if written_result:
         result = [['q', 'the new', 'Second'],
-                  ['h', 'x', 'd'],
-                  [None, 'x', 'g']]
+                  ['h', 'x', 'då'],
+                  [None, 'x', 'gÅÄÖåäö']]
     else:
-        result = [{'q': 'h', 'the new': 'x', 'Second': 'd', 'x': 'a b'},
-                  {'q': None, 'the new': 'x', 'Second': 'g', 'x': 'e f'}]
-    ret = DataToUseName(indata=[{'x': 'a', 'y': 'b c', 'z': 'd'},
-                                {'x': 'e', 'y': 'f', 'z': 'g'}],
+        result = [{'q': 'h', 'the new': 'x', 'Second': 'då', 'x': 'a b'},
+                  {'q': None, 'the new': 'x', 'Second': 'gÅÄÖåäö', 'x': 'e f'}]
+    ret = DataToUseName(indata=[{'x': 'a', 'y': 'b c', 'z': 'då'},
+                                {'x': 'e', 'y': 'f', 'z': 'gÅÄÖåäö'}],
                         split_cols=[{'column': 'y', 'separator': ' ',
                                      'where': SplitWhere.RIGHTMOST,
                                      'right_name': 'q'}],
@@ -534,10 +534,11 @@ def test_transform_data_ok_name(capsys):
     assert_data_is_equal(res, test_data.result)
 
 
-@pytest.mark.smoke
-def test_rfmt_nmd_files_xl2cs_name(capsys):
+@pytest.mark.parametrize('enc', ['utf-8', 'iso8859-1'])
+def test_rfmt_nmd_files_xl2cs_name(capsys, enc):
     """Test transform_name_files from xlsx to csv (named refs)."""
     cfg = ConfigXlsListRefmtName()
+    cfg.out_csv_encoding = enc
     test_data = get_test_data_name(written_result=True)
     cfg.s1_split_columns = test_data.split_cols
     cfg.s3_merge_columns = test_data.merge_cols
@@ -559,6 +560,7 @@ def test_rfmt_nmd_files_xl2cs_name(capsys):
                               cfgfilename=cfgname)
         res = read_csv_num(filename=outfilename + '.csv',
                            dialect=cfg.get_out_csv_dialect(),
+                           encoding=cfg.out_csv_encoding,
                            max_column_read=20)
         out, err = capsys.readouterr()
         assert '' == err
@@ -566,10 +568,11 @@ def test_rfmt_nmd_files_xl2cs_name(capsys):
         assert res == test_data.result
 
 
-@pytest.mark.smoke
-def test_rfmt_nmd_files_cs2xl_name(capsys):
+@pytest.mark.parametrize('enc', ['utf-8', 'iso8859-1'])
+def test_rfmt_nmd_files_cs2xl_name(capsys, enc):
     """Test transform_name_files from csv to xlsx (name refs)."""
     cfg = ConfigXlsListRefmtName()
+    cfg.in_csv_encoding = enc
     test_data = get_test_data_name(written_result=True)
     cfg.s1_split_columns = test_data.split_cols
     cfg.s3_merge_columns = test_data.merge_cols
@@ -586,6 +589,7 @@ def test_rfmt_nmd_files_cs2xl_name(capsys):
         outfilename = dirname + '/out'
         write_csv_named(data=test_data.indata, filename=infilename + '.csv',
                         dialect=cfg.get_in_csv_dialect(),
+                        encoding=cfg.in_csv_encoding,
                         column_order=test_data.in_col_order)
         transform_named_files(infilename=infilename, outfilename=outfilename,  # pylint: disable=duplicate-code  # noqa: E501
                               cfgfilename=cfgname)

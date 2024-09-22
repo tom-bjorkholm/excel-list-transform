@@ -60,7 +60,7 @@ class ColInfo(NamedTuple, Generic[Column]):
 class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-many-instance-attributes, line-too-long # noqa: E501
     """Class with configuration for excel list transform."""
 
-    def __init__(self, col_ref: ColumnRef,  # pylint: disable=too-many-arguments # noqa: E501
+    def __init__(self, *, col_ref: ColumnRef,  # pylint: disable=too-many-arguments # noqa: E501
                  colinfo: ColInfo[Column], tinfo: Column,
                  from_json_text: Optional[str] = None,
                  from_json_filename: Optional[str] = None) -> None:

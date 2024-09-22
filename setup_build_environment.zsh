@@ -3,7 +3,25 @@
 # Copyright (c) 2024 Tom Björkholm
 # MIT License
 #
-PYTHON=`./bestInstalledPython.zsh`
+if [ ${#} -gt 0 ]; then
+    PYTHON=${1}
+    if echo ${PYTHON} | grep -v 'python' > /dev/null
+    then
+        echo ${PYTHON} 'does not look like a python version'
+        exit 1
+    fi
+    if which ${PYTHON} > /dev/null
+    then
+        echo 'Using PYTHON' ${PYTHON} 
+    else
+        echo 'Cannot find executable for' ${PYTHON}
+        exit 1
+    fi
+fi
+if [[ ! -v PYTHON ]]; then
+    PYTHON=`./bestInstalledPython.zsh`
+fi
+echo 'Using PYTHON' ${PYTHON} 
 set -eE
 trap 'printf "\e[31m%s: %s\e[m\n" "Exiting due to error code from command" $?' ERR
 set -v

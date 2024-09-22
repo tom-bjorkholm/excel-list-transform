@@ -205,6 +205,7 @@ def openpyxl_reader(filename, max_column_read=40):
 def csv_reader(filename, max_column_read=40):
     """Read CSV with excel dialect."""
     return read_csv_num(filename=filename, dialect=csv_excel_dialect,
+                        encoding='utf_8_sig',
                         max_column_read=max_column_read)
 
 
@@ -216,7 +217,7 @@ def csv_reader(filename, max_column_read=40):
                            ExampleData.sw_data, csv_reader, 'out.csv'),
                           ('rrs_to_sw', ExampleData.rrs_data_out,
                            ExampleData.sw_data, csv_reader, 'out.csv')])
-def test_cfg_gen_used(capsys,  # pylint: disable=too-many-arguments disable=too-many-locals # noqa: E501
+def test_cfg_gen_used(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments, too-many-locals # noqa: E501
                       refcol, cfg, indgen, resgen, reader, outname):
     """Test to generate configuration and use it."""
     test_data = ExampleData()
@@ -249,7 +250,7 @@ def test_cfg_gen_used(capsys,  # pylint: disable=too-many-arguments disable=too-
                            ExampleData.sw_data, csv_reader, 'out.csv'),
                           ('rrs_to_sw', ExampleData.rrs_data_out,
                            ExampleData.sw_data, csv_reader, 'out.csv')])
-def test_cfg_and_cmd(capsys,  # pylint: disable=too-many-arguments disable=too-many-locals # noqa: E501
+def test_cfg_and_cmd(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals # noqa: E501
                      refcol, cfg, indgen, resgen, reader, outname):
     """Test to generate configuration and use it."""
     test_data = ExampleData()

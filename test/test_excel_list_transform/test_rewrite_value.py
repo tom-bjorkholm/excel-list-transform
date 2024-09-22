@@ -105,8 +105,8 @@ def test_remove_from_value(capsys, ind, chars, caseh, outd):
                            CaseSensitivity.MATCH_CASE, 'tahaha'),
                           ('tahaha', 'aha', 'a',
                            CaseSensitivity.MATCH_CASE, 'taha')])
-def test_str_replace_value(capsys, ind,  # pylint: disable=too-many-arguments
-                           fro, to, caseh, outd):
+def test_str_replace_value(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments  # noqa: E501
+                           ind, fro, to, caseh, outd):
     """Test replace substring in value."""
     ret = str_replace_value(value=ind, fro=fro, to=to, casehandle=caseh)
     out, err = capsys.readouterr()
@@ -124,8 +124,8 @@ def test_str_replace_value(capsys, ind,  # pylint: disable=too-many-arguments
                            CaseSensitivity.MATCH_CASE, 'bahah'),
                           ('ahahah', '^AH', 'b',
                            CaseSensitivity.MATCH_CASE, 'ahahah')])
-def test_reg_replace_value(capsys, ind,  # pylint: disable=too-many-arguments
-                           fro, to, caseh, outd):
+def test_reg_replace_value(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments  # noqa: E501
+                           ind, fro, to, caseh, outd):
     """Test replace regex in value for OK cases."""
     ret = regex_replace_value(value=ind, fro=fro, to=to, casehandle=caseh)
     out, err = capsys.readouterr()

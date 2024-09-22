@@ -224,11 +224,12 @@ class Config():
             file.write(text)
 
     @staticmethod
-    def get_csv_dialect(name: Optional[str], delimiter: Optional[str],  # pylint: disable=too-many-arguments, line-too-long, too-many-branches # noqa: E501
-                        quoting: Optional[str], quotechar: Optional[str],  # pylint: disable=too-many-arguments, line-too-long, too-many-branches # noqa: E501
-                        lineterminator: Optional[str],  # pylint: disable=too-many-arguments, line-too-long, too-many-branches # noqa: E501
-                        escapechar: Optional[str]  # pylint: disable=too-many-arguments, line-too-long, too-many-branches # noqa: E501
-                        ) -> type[csv.Dialect]:  # pylint: disable=too-many-arguments, line-too-long, too-many-branches # noqa: E501
+    def get_csv_dialect(*, name: Optional[str],  # pylint: disable=too-many-arguments, line-too-long, too-many-branches # noqa: E501
+                        delimiter: Optional[str],
+                        quoting: Optional[str], quotechar: Optional[str],
+                        lineterminator: Optional[str],
+                        escapechar: Optional[str]
+                        ) -> type[csv.Dialect]:
         """Get CSV dialect object matching arguments."""
         ret: Optional[type[csv.Dialect]] = None
         if name is None or name.lower() == 'csv.excel':

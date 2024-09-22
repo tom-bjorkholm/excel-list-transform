@@ -71,7 +71,7 @@ def test_cols_must_exist_lst_ok(capsys, collst, row, par, tinf):
                            {'x': 'a', 'y': 'b', 'z': 'c', 'q': 'd'},
                            'test2', 'a',
                            'test2: no column named "aa" in data row')])
-def test_cols_must_exist_lst_nok(capsys,  # pylint: disable=too-many-arguments
+def test_cols_must_exist_lst_nok(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments  # noqa: E501
                                  collst, row, par, tinf, msg):
     """Test OK cases of cols_must_exist_lst."""
     with pytest.raises(SystemExit):
@@ -111,7 +111,7 @@ def test_cols_must_exist_dict_ok(capsys, rule, row, par, tinf):
                            {'x': 'a', 'y': 'b', 'z': 'c', 'q': 'd'},
                            'test2', 'a',
                            'test2: no column named "xx" in data row')])
-def test_cols_must_exist_dict_nok(capsys,  # pylint: disable=too-many-arguments
+def test_cols_must_exist_dict_nok(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments  # noqa: E501
                                   rule, row, par, tinf, msg):
     """Test not OK cases of cols_must_exist_dict."""
     with pytest.raises(SystemExit):
@@ -147,7 +147,7 @@ def test_cols_must_exist_dlst_ok(capsys, rule, row, par, tinf):
                            {'x': 'a', 'y': 'b', 'z': 'c', 'q': 'd'},
                            'test2', 'a',
                            'test2: no column named "aa" in data row')])
-def test_cols_must_exist_dlst_nok(capsys,  # pylint: disable=too-many-arguments
+def test_cols_must_exist_dlst_nok(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments  # noqa: E501
                                   rule, row, par, tinf, msg):
     """Test not OK cases of cols_must_exist_dictlst."""
     with pytest.raises(SystemExit):

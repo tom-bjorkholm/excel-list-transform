@@ -21,7 +21,8 @@ How this is done is governed by a configuration file. The application can create
 
 ## Installing it
 
-If you want to use it, install it using pip. A precondition is that you have Python 3.10.5 or newer installed on you computer. Python can be downloaded from [https://www.python.org/downloads/](https://www.python.org/downloads/).
+If you want to use it, install it using pip. A precondition is that you have Python 3.12.6 or newer installed on you computer. (Python version 3.10.5 or newer for version 0.5.)
+Python can be downloaded from [https://www.python.org/downloads/](https://www.python.org/downloads/). 
 
 ### Installing on mac and Linux
 

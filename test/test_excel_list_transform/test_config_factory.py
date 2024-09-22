@@ -51,7 +51,7 @@ def test_config_fact_num_nok(capsys, num):
                           (None, '/dev/a/b/c', SystemExit, None,
                            'File /dev/a/b/c with configuration JSON ' +
                            'input does not exist')])
-def test_cfg_fact_get_text_nok(capsys,  # pylint: disable=too-many-arguments
+def test_cfg_fact_get_text_nok(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments  # noqa: E501
                                txt, fname, exc, excmsg, msg):
     """Test not OK cases _config_factory_get_text."""
     with pytest.raises(exc) as cexc:

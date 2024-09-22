@@ -483,7 +483,8 @@ def par_json_quote(var):
     return '"' + var + '"'
 
 
-def csv_combinations_chcker(nam, dlm, esc, quot, qchar, lterm, err):  # pylint: disable=too-many-arguments, line-too-long, too-many-branches, too-many-locals # noqa: E501
+def csv_combinations_chcker(nam,   # pylint: disable=too-many-arguments, too-many-positional-arguments, line-too-long, too-many-branches, too-many-locals # noqa: E501
+                            dlm, esc, quot, qchar, lterm, err):
     """Check test combinations of CSV configurations."""
     scfg = '{"csv_dialect2": {"name": ' + par_json_quote(nam)\
         + ', "delimiter": '\
@@ -547,7 +548,8 @@ def csv_combinations_chcker(nam, dlm, esc, quot, qchar, lterm, err):  # pylint: 
                                      ('|', False)])
 @pytest.mark.parametrize('ltr,er6', [(None, False), ('end', False),
                                      ('>', False), (None, False)])
-def test_config_smt_csv_comb_s(capsys, nam, dmt, esc, quo, qch,  # pylint: disable=too-many-arguments, line-too-long, too-many-locals # noqa: E501
+def test_config_smt_csv_comb_s(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments, line-too-long, too-many-locals # noqa: E501
+                               nam, dmt, esc, quo, qch,
                                ltr, er1, er2, er3, er4, er5,
                                er6):
     """Test combinations of CSV configurations thorough."""
@@ -571,7 +573,8 @@ def test_config_smt_csv_comb_s(capsys, nam, dmt, esc, quo, qch,  # pylint: disab
                                      ('csv.quote_all', False)])
 @pytest.mark.parametrize('qch,er5', [(None, False)])
 @pytest.mark.parametrize('ltr,er6', [('>', False), (None, False)])
-def test_config_smt_csv_comb_f1(capsys, nam, dmt, esc, quo, qch,  # pylint: disable=too-many-arguments, line-too-long, too-many-locals # noqa: E501
+def test_config_smt_csv_comb_f1(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments, line-too-long, too-many-locals # noqa: E501
+                                nam, dmt, esc, quo, qch,
                                 ltr, er1, er2, er3, er4, er5,
                                 er6):
     """Test combinations of CSV configurations f1."""
@@ -592,7 +595,8 @@ def test_config_smt_csv_comb_f1(capsys, nam, dmt, esc, quo, qch,  # pylint: disa
 @pytest.mark.parametrize('qch,er5', [(None, False)])
 @pytest.mark.parametrize('ltr,er6', [(None, False), ('end', False),
                                      ('>', False)])
-def test_config_smt_csv_comb_f6(capsys, nam, dmt, esc, quo,  # pylint: disable=too-many-arguments, line-too-long, too-many-locals # noqa: E501
+def test_config_smt_csv_comb_f6(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments, line-too-long, too-many-locals # noqa: E501
+                                nam, dmt, esc, quo,
                                 qch, ltr, er1, er2, er3,
                                 er4, er5, er6):
     """Test combinations of CSV configurations f6."""
@@ -861,7 +865,8 @@ def test_check_array_dicts_ok(capsys, arr, kkey, ktype, tmplts):
                                                    'c': int, 'd': int}},
                            'Value for key a = 3 is not str')
                           ])
-def test_check_array_dicts_nok(capsys, arr, kkey, ktype, tmplts, msg):    # pylint: disable=too-many-arguments,line-too-long  # noqa: E501
+def test_check_array_dicts_nok(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments,line-too-long  # noqa: E501
+                               arr, kkey, ktype, tmplts, msg):
     """Test not ok cases for check_array_dicts."""
     with pytest.raises(KeyError) as exc:
         Config.check_array_dicts(name_of_cfg='test_py', array=arr,

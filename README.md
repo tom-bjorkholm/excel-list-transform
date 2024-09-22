@@ -50,7 +50,7 @@ For running the script and running the test suite you need a mac or a Linux comp
 
 #### Python version
 
-The tests and the script for running the tests, coverage, mypy etc. requires Python version 3.12.5 or newer.
+The tests and the script for running the tests, coverage, mypy etc. requires Python version 3.12.6 or newer.
 
 #### Zsh
 

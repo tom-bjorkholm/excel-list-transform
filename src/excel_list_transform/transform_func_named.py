@@ -119,6 +119,7 @@ def transform_named_files_name(infilename: str, outfilename: str,
     indata = None
     if cfgn.in_type == FileType.CSV:
         indata = read_csv_named(infilename, cfgn.get_in_csv_dialect(),
+                                encoding=cfgn.in_csv_encoding,
                                 max_column_read=cfgn.max_column_read)
     else:
         indata = read_excel_named(infilename,
@@ -128,6 +129,7 @@ def transform_named_files_name(infilename: str, outfilename: str,
     if cfgn.out_type == FileType.CSV:
         write_csv_named(data=outdata, filename=outfilename,
                         dialect=cfgn.get_out_csv_dialect(),
+                        encoding=cfgn.out_csv_encoding,
                         column_order=cfgn.s8_column_order)
     else:
         write_excel_named(data=outdata, filename=outfilename,

@@ -80,6 +80,16 @@ def generate_syntax_txt(filename: str, example_description: str,
     are read and written. They are always needed in the configuration
     file, but are not used if the input and output are excel files.
 
+    Comma separated values files might have different encoding for
+    the text in the file. https://en.wikipedia.org/wiki/Character_encoding
+    This is specified with "in_csv_encoding" and "out_csv_encoding".
+    Unless you know that you need another encoding leave these as
+    in the generated example configuration. (In version 0.5 these
+    configuration parameters are missing. To be compatible with 0.5
+    configuration files "in_csv_encoding" defaults to "utf_8_sig"
+    and "out_csv_encoding" defaults to "utf-8" if missing in the
+    configutation file.)
+
 
     Column manipulation
     ====================

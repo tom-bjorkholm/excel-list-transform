@@ -22,7 +22,7 @@ def test_config_exc_list_refrm_def(capsys):
     colinfo = ColInfo(split_last='right_name', insert_last=None,
                       col_to_use=col_to_use, tinfo='a',
                       s1=[], s6=[])
-    cfg = ConfigExcelListTransform(ColumnRef.BY_NAME,
+    cfg = ConfigExcelListTransform(col_ref=ColumnRef.BY_NAME,
                                    colinfo=colinfo, tinfo='a')
     assert cfg.in_type == FileType.EXCEL
     assert cfg.out_type == FileType.EXCEL
@@ -31,10 +31,10 @@ def test_config_exc_list_refrm_def(capsys):
     str_cfg = cfg.as_json_string()
     assert len(str_cfg) > 1
     assert 'in_type' in str_cfg
-    zcfg = ConfigExcelListTransform(ColumnRef.BY_NAME,
+    zcfg = ConfigExcelListTransform(col_ref=ColumnRef.BY_NAME,
                                     colinfo=colinfo, tinfo='a')
     assert cfg.__dict__ == zcfg.__dict__
-    ycfg = ConfigExcelListTransform(ColumnRef.BY_NAME,
+    ycfg = ConfigExcelListTransform(col_ref=ColumnRef.BY_NAME,
                                     colinfo=colinfo, tinfo='a',
                                     from_json_text=str_cfg)
     assert ycfg.__dict__ == cfg.__dict__

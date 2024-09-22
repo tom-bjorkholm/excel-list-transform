@@ -16,7 +16,10 @@ def generate_syntax_txt(filename: str, example_description: str,
     https://en.wikipedia.org/wiki/JSON
     The keywords and the nesting is important. The order of keywords
     have no significance (the examples use alphabetical order).
-    Indentation and line breaks hanve no significance.
+    Indentation and line breaks have no significance.
+
+    The encoding for the configuration file must be UTF-8.
+    (US-ACII is a subset of UTF-8.)
 
     It is recommended that you let the command generate a configuration
     file and then edit that file to match your needs. It is NOT recommended

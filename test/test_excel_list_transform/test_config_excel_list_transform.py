@@ -6,7 +6,7 @@
 
 # pylint: disable=duplicate-code
 
-
+from collections import namedtuple
 import pytest
 from excel_list_transform.config_enums import ColumnRef
 from excel_list_transform.config_excel_list_transform import \
@@ -172,3 +172,151 @@ def test_check_increasing_nok(capsys, data, par):
     assert out == ''
     assert 'Increasing order needed in' in err
     assert 'Increasing order needed in' in str(exc)
+
+
+MockInitArgs = namedtuple('MockInitArgs', ['colref', 'colinfo', 'tinfo'])
+
+
+def get_mock_init_args(colref: ColumnRef):
+    """Get arguments for  ConfigExcelListTransform init."""
+    if colref == ColumnRef.BY_NUMBER:
+        col_to_us1 = [2, 3, 0, 1, 4, 4, 4, 4, 4, 1]
+        colinf1 = ColInfo(split_last='right_name', insert_last=None,
+                          col_to_use=col_to_us1, tinfo=2,
+                          s1=[], s6=[])
+        return MockInitArgs(colref=colref, colinfo=colinf1, tinfo=2)
+    col_to_use = ['street', 'street number', 'name', 'last name',
+                  'Phone', 'Phone', 'Phone', 'Phone', 'Phone',
+                  'Last Name']
+    colinf2 = ColInfo(split_last='right_name', insert_last=None,
+                      col_to_use=col_to_use, tinfo='a',
+                      s1=[], s6=[])
+    return MockInitArgs(colref=colref, colinfo=colinf2, tinfo='a')
+
+
+@pytest.mark.parametrize('cref', [ColumnRef.BY_NAME, ColumnRef.BY_NUMBER])
+def test_cfg_transf_def_vals(capsys, cref):
+    """Test ConfigExcelListTransform._def_vals_for_optional."""
+    args = get_mock_init_args(colref=cref)
+    cfg = ConfigExcelListTransform(col_ref=args.colref,
+                                   colinfo=args.colinfo,
+                                   tinfo=args.tinfo)
+    data = cfg._def_vals_for_optional()  # pylint: disable=protected-access # noqa: E501
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert '' == err
+    assert len(data) == 2
+    assert 'in_csv_encoding' in data
+    assert 'out_csv_encoding' in data
+    assert 'utf_8_sig' == data['in_csv_encoding']
+    assert 'utf-8' == data['out_csv_encoding']
+
+
+@pytest.mark.parametrize('cref', [ColumnRef.BY_NAME, ColumnRef.BY_NUMBER])
+def test_cfg_transf_encoding_def(capsys, cref):
+    """Test encoding in default constructed ConfigExcelListTransform."""
+    args = get_mock_init_args(colref=cref)
+    cfg = ConfigExcelListTransform(col_ref=args.colref,
+                                   colinfo=args.colinfo,
+                                   tinfo=args.tinfo)
+    assert 'utf_8_sig' == cfg.in_csv_encoding
+    assert 'utf-8' == cfg.out_csv_encoding
+    txt = cfg.as_json_string()
+    assert 'utf-8' in txt
+    cf2 = ConfigExcelListTransform(col_ref=args.colref,
+                                   colinfo=args.colinfo,
+                                   tinfo=args.tinfo,
+                                   from_json_text=txt,
+                                   from_json_filename=None)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert '' == err
+    assert 'utf_8_sig' == cf2.in_csv_encoding
+    assert 'utf-8' == cf2.out_csv_encoding
+
+
+@pytest.mark.parametrize('cref', [ColumnRef.BY_NAME, ColumnRef.BY_NUMBER])
+@pytest.mark.parametrize('in_enc, out_enc',
+                         [('utf-8', 'iso8859-1'),
+                          ('iso8859-2', 'ascii')])
+def test_cfg_transf_enc_1_ok(capsys, in_enc, out_enc, cref):
+    """Test configured encoding for ConfigExcelListTransform."""
+    args = get_mock_init_args(colref=cref)
+    cfg = ConfigExcelListTransform(col_ref=args.colref,
+                                   colinfo=args.colinfo,
+                                   tinfo=args.tinfo)
+    assert 'utf_8_sig' == cfg.in_csv_encoding
+    assert 'utf-8' == cfg.out_csv_encoding
+    cfg.in_csv_encoding = in_enc
+    cfg.out_csv_encoding = out_enc
+    assert cfg.in_csv_encoding == in_enc
+    assert cfg.out_csv_encoding == out_enc
+    txt = cfg.as_json_string()
+    assert in_enc in txt
+    assert out_enc in txt
+    cf2 = ConfigExcelListTransform(col_ref=args.colref,
+                                   colinfo=args.colinfo,
+                                   tinfo=args.tinfo,
+                                   from_json_text=txt,
+                                   from_json_filename=None)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert '' == err
+    assert cf2.in_csv_encoding == in_enc
+    assert cf2.out_csv_encoding == out_enc
+
+
+@pytest.mark.parametrize('cref', [ColumnRef.BY_NAME, ColumnRef.BY_NUMBER])
+@pytest.mark.parametrize('in_enc, out_enc',
+                         [('utf-88', 'iso8859-1'),
+                          ('ixo8859-2', 'ascii')])
+def test_cfg_transf_enc_1_nok(capsys, in_enc, out_enc, cref):
+    """Test not OK configured encoding for ConfigExcelListTransform."""
+    with pytest.raises(SystemExit):
+        args = get_mock_init_args(colref=cref)
+        cfg = ConfigExcelListTransform(col_ref=args.colref,
+                                       colinfo=args.colinfo,
+                                       tinfo=args.tinfo)
+        cfg.in_csv_encoding = in_enc
+        cfg.out_csv_encoding = out_enc
+        txt = cfg.as_json_string()
+        _ = ConfigExcelListTransform(col_ref=args.colref,
+                                     colinfo=args.colinfo,
+                                     tinfo=args.tinfo,
+                                     from_json_text=txt,
+                                     from_json_filename=None)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert 'is not a recognized encoding' in err
+
+
+@pytest.mark.parametrize('cref', [ColumnRef.BY_NAME, ColumnRef.BY_NUMBER])
+@pytest.mark.parametrize('in_enc, out_enc',
+                         [('utf-8', 'iso8859-1'),
+                          ('iso8859-2', 'ascii')])
+def test_cfg_transf_enc_2_ok(capsys, in_enc, out_enc, cref):
+    """Test default encoding for ConfigExcelListTransform."""
+    args = get_mock_init_args(colref=cref)
+    cfg = ConfigExcelListTransform(col_ref=args.colref,
+                                   colinfo=args.colinfo,
+                                   tinfo=args.tinfo)
+    assert 'utf_8_sig' == cfg.in_csv_encoding
+    assert 'utf-8' == cfg.out_csv_encoding
+    cfg.in_csv_encoding = in_enc
+    cfg.out_csv_encoding = out_enc
+    assert cfg.in_csv_encoding == in_enc
+    assert cfg.out_csv_encoding == out_enc
+    txt = cfg.as_json_string()
+    lines = txt.splitlines()
+    filtered_lines = [row for row in lines if 'encoding' not in row]
+    filtered_txt = '\n'.join(filtered_lines)
+    cf2 = ConfigExcelListTransform(col_ref=args.colref,
+                                   colinfo=args.colinfo,
+                                   tinfo=args.tinfo,
+                                   from_json_text=filtered_txt,
+                                   from_json_filename=None)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert '' == err
+    assert cf2.in_csv_encoding == 'utf_8_sig'
+    assert cf2.out_csv_encoding == 'utf-8'

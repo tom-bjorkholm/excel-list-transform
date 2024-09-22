@@ -15,6 +15,7 @@ from excel_list_transform.config import Config, ParseConverter
 from excel_list_transform.config_enums import FileType, SplitWhere, \
     ExcelLib, RewriteKind, CaseSensitivity, ColumnRef
 from excel_list_transform.str_to_enum import string_to_enum_best_match
+from excel_list_transform.commontypes import JsonType
 
 
 CsvSpec: TypeAlias = dict[str, Optional[str]]
@@ -78,6 +79,8 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
                                         'quotechar': '"',
                                         'lineterminator': None,
                                         'escapechar': None}
+        self.in_csv_encoding = 'utf_8_sig'
+        self.out_csv_encoding = 'utf-8'
         self.in_type: FileType = FileType.EXCEL
         self.in_excel_library: ExcelLib = ExcelLib.PYLIGHTXL
         self.out_excel_library: ExcelLib = ExcelLib.PYLIGHTXL
@@ -122,6 +125,8 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
         self._check_no_duplicate_single(self.s6_insert_columns,
                                         's6_insert_columns', colinfo.tinfo)
         self.check_rewrite_configs(coltype=type(colinfo.tinfo))
+        self.check_char_encoding(self.in_csv_encoding)
+        self.check_char_encoding(self.out_csv_encoding)
 
     def get_out_csv_dialect(self) -> type[Dialect]:
         """Get CSV dialect for output file."""
@@ -134,7 +139,12 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
         return self.get_csv_dialect(**self.in_csv_dialect)
 
     def sort_sx_hook(self) -> None:
-        """Sort s[0-9]_ as needed as needed (hook)."""
+        """Sort s[0-9]_ as needed (hook)."""
+
+    def _def_vals_for_optional(self) -> dict[str, JsonType]:
+        """Provide default values for optional encoding."""
+        return {'in_csv_encoding': 'utf_8_sig',
+                'out_csv_encoding': 'utf-8'}
 
     @staticmethod
     def _duplicates_not_allowed(expanded_data: list[Column],

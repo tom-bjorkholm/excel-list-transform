@@ -80,7 +80,7 @@ cat > ${DOCINDEX} <<EOF
 </head>
 <body>
 EOF
-date +"<h1>excel_list_refomat ${VER} test report %Y-%m-%d %H:%M </h1> " >> ${DOCINDEX}
+date +"<h1>excel_list_transform ${VER} test report %Y-%m-%d %H:%M </h1> " >> ${DOCINDEX}
 echo "<h2>Building version ${VER}</h2>" >> ${DOCINDEX}
 grep 'passed' < ${PYTESTLOG} | tail -1 >> ${DOCINDEX}
 failed=`grep 'passed' < ${PYTESTLOG} | tail -1 | grep failed | wc -l`

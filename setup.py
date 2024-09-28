@@ -5,13 +5,14 @@ from setuptools import setup
 
 setup(
   name='excel-list-transform',
-  version='0.6.1',
+  version='0.6.2',
   description='Transform a list in excel or CSV.',
   author='Tom Björkholm',
   author_email='klausuler_linnet0q@icloud.com',
   python_requires='>=3.12.6',
   packages=['excel_list_transform'],
   package_dir={'excel_list_transform': 'src/excel_list_transform'},
+  package_data={'excel_list_transform': ['src/py.typed']},
   install_requires=[
     'openpyxl >= 3.1.5',
     'types-openpyxl >= 3.1.5.20240918',

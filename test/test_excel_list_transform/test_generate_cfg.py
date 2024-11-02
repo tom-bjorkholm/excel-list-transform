@@ -199,6 +199,7 @@ FileNames = namedtuple('FileNames', ['indata', 'cfg', 'out'])
 def openpyxl_reader(filename, max_column_read=40):
     """Read excel with openpyxl."""
     return read_excel_num(filename=filename, max_column_read=max_column_read,
+                          strip_col_names=False, strip_values=False,
                           excel_lib=ExcelLib.OPENPYXL)
 
 

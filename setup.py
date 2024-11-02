@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
   name='excel-list-transform',
-  version='0.6.2',
+  version='0.6.3',
   description='Transform a list in excel or CSV.',
   author='Tom Björkholm',
   author_email='klausuler_linnet0q@icloud.com',

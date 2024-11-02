@@ -205,9 +205,11 @@ def test_cfg_transf_def_vals(capsys, cref):
     out, err = capsys.readouterr()
     assert '' == out
     assert '' == err
-    assert len(data) == 2
+    assert len(data) == 4
     assert 'in_csv_encoding' in data
     assert 'out_csv_encoding' in data
+    assert 'in_excel_col_name_strip' in data
+    assert 'in_excel_values_strip' in data
     assert 'utf_8_sig' == data['in_csv_encoding']
     assert 'utf-8' == data['out_csv_encoding']
 
@@ -239,7 +241,10 @@ def test_cfg_transf_encoding_def(capsys, cref):
 @pytest.mark.parametrize('in_enc, out_enc',
                          [('utf-8', 'iso8859-1'),
                           ('iso8859-2', 'ascii')])
-def test_cfg_transf_enc_1_ok(capsys, in_enc, out_enc, cref):
+@pytest.mark.parametrize('scol', [False, True])
+@pytest.mark.parametrize('sval', [False, True])
+def test_cfg_transf_enc_1_ok(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments  # noqa: E501
+                             in_enc, out_enc, cref, scol, sval):
     """Test configured encoding for ConfigExcelListTransform."""
     args = get_mock_init_args(colref=cref)
     cfg = ConfigExcelListTransform(col_ref=args.colref,
@@ -249,6 +254,8 @@ def test_cfg_transf_enc_1_ok(capsys, in_enc, out_enc, cref):
     assert 'utf-8' == cfg.out_csv_encoding
     cfg.in_csv_encoding = in_enc
     cfg.out_csv_encoding = out_enc
+    cfg.in_excel_col_name_strip = scol
+    cfg.in_excel_values_strip = sval
     assert cfg.in_csv_encoding == in_enc
     assert cfg.out_csv_encoding == out_enc
     txt = cfg.as_json_string()
@@ -264,6 +271,8 @@ def test_cfg_transf_enc_1_ok(capsys, in_enc, out_enc, cref):
     assert '' == err
     assert cf2.in_csv_encoding == in_enc
     assert cf2.out_csv_encoding == out_enc
+    assert cf2.in_excel_col_name_strip == scol
+    assert cf2.in_excel_values_strip == sval
 
 
 @pytest.mark.parametrize('cref', [ColumnRef.BY_NAME, ColumnRef.BY_NUMBER])

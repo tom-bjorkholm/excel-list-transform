@@ -8,6 +8,7 @@
 # https://realpython.com/openpyxl-excel-spreadsheets-python/
 
 import sys
+from copy import deepcopy
 from typing import Optional
 from openpyxl import load_workbook as openpyxl_load_workbook
 from openpyxl import Workbook as openpyxl_wb
@@ -62,7 +63,27 @@ def read_excel_xlsxwriter(filename: str,
                                 max_column_read=max_column_read)
 
 
+def excel_data_strip(data: NumData, strip_col_names: bool,
+                     strip_values: bool) -> NumData:
+    """Strip whitespace off titles and values as requested."""
+    if not strip_values and not strip_col_names:
+        return data
+    datacopy: NumData = deepcopy(data)
+    if strip_col_names:
+        titlerow = datacopy[0]
+        for index, titlecol in enumerate(titlerow):
+            if isinstance(titlecol, str):
+                titlerow[index] = titlecol.strip()
+    if strip_values:
+        for row in datacopy[1:]:
+            for ind, col in enumerate(row):
+                if isinstance(col, str):
+                    row[ind] = col.strip()
+    return datacopy
+
+
 def read_excel_num(filename: str, max_column_read: int,
+                   strip_col_names: bool, strip_values: bool,
                    excel_lib: Optional[ExcelLib] = None) \
                         -> NumData:
     """Read the excel file for number referenced columns."""
@@ -71,16 +92,20 @@ def read_excel_num(filename: str, max_column_read: int,
                 ExcelLib.XLSXWRITER: read_excel_xlsxwriter}
     if excel_lib is None:
         excel_lib = ExcelLib.PYLIGHTXL  # default for now
-    return dispatch[excel_lib](filename=filename,
-                               max_column_read=max_column_read)
+    data: NumData = dispatch[excel_lib](filename=filename,
+                                        max_column_read=max_column_read)
+    return excel_data_strip(data, strip_col_names=strip_col_names,
+                            strip_values=strip_values)
 
 
 def read_excel_named(filename: str, max_column_read: int,
+                     strip_col_names: bool, strip_values: bool,
                      excel_lib: Optional[ExcelLib] = None) \
                         -> NameData:
     """Read the excel file for name referenced columns."""
     data = read_excel_num(filename=filename, max_column_read=max_column_read,
-                          excel_lib=excel_lib)
+                          strip_col_names=strip_col_names,
+                          strip_values=strip_values, excel_lib=excel_lib)
     return named_cols_from_num_cols(data=data, filename=filename)
 
 

@@ -82,6 +82,8 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
         self.in_csv_encoding = 'utf_8_sig'
         self.out_csv_encoding = 'utf-8'
         self.in_type: FileType = FileType.EXCEL
+        self.in_excel_col_name_strip = True
+        self.in_excel_values_strip = False
         self.in_excel_library: ExcelLib = ExcelLib.PYLIGHTXL
         self.out_excel_library: ExcelLib = ExcelLib.PYLIGHTXL
         self.out_type: FileType = FileType.EXCEL
@@ -144,7 +146,9 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
     def _def_vals_for_optional(self) -> dict[str, JsonType]:
         """Provide default values for optional encoding."""
         return {'in_csv_encoding': 'utf_8_sig',
-                'out_csv_encoding': 'utf-8'}
+                'out_csv_encoding': 'utf-8',
+                'in_excel_col_name_strip': False,
+                'in_excel_values_strip': False}
 
     @staticmethod
     def _duplicates_not_allowed(expanded_data: list[Column],

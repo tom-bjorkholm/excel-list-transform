@@ -594,7 +594,8 @@ def test_rfmt_nmd_files_cs2xl_name(capsys, enc):
         transform_named_files(infilename=infilename, outfilename=outfilename,  # pylint: disable=duplicate-code  # noqa: E501
                               cfgfilename=cfgname)
         res = read_excel_num(filename=outfilename + '.xlsx',
-                             max_column_read=20)
+                             max_column_read=20, strip_col_names=False,
+                             strip_values=False)
         out, err = capsys.readouterr()
         assert '' == err
         assert f'Wrote {outfilename}.xlsx' == out.strip()

@@ -147,6 +147,8 @@ def transform_named_files_num(infilename: str, outfilename: str,
     else:
         indata = read_excel_num(infilename,
                                 max_column_read=cfgn.max_column_read,
+                                strip_col_names=cfgn.in_excel_col_name_strip,
+                                strip_values=cfgn.in_excel_values_strip,
                                 excel_lib=cfgn.in_excel_library)
     outdata = transform_data_num(indata=indata, cfg=cfgn)
     if cfgn.out_type == FileType.CSV:

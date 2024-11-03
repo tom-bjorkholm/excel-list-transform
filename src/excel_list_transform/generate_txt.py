@@ -97,15 +97,15 @@ def generate_syntax_txt(filename: str, example_description: str,
     When viewing an excel file in excel it is very hard to notice if
     some string value in a cell has trailing white space. These trailing
     trailing spaces can make the further processing of a file difficult
-    as the strings in the file are not what you thought they are. 
+    as the strings in the file are not what you thought they are.
     (This especially is a problem if you have trailing spaces in a
     cell on the first line, and refer to columns by their names.)
 
     The configuration "in_excel_col_name_strip" can be set to true,
-    to strip off leading and trailing whitespace from all columns 
+    to strip off leading and trailing whitespace from all columns
     values read from the first line of the excel input file.
     The configuration "in_excel_values_strip" can be set to true,
-    to strip off leading and trailing whitespace from all columns 
+    to strip off leading and trailing whitespace from all columns
     values read from from the other lines (not the first line) of
     the excel input file. (In version 0.6.2 and earlier these are
     missing. To be compatible with version 0.6.2 and earlier

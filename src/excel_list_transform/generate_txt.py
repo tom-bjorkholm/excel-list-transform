@@ -53,7 +53,7 @@ def generate_syntax_txt(filename: str, example_description: str,
     Type of input and output file
     ==============================
     The type of input file to read is determined by "in_type".
-    The type of input file to read is determined by "out_type".
+    The type of ouput file to write is determined by "out_type".
     "in_type" and "out_type" can have values "CSV" or "EXCEL".
 
     Excel files can be read and written using three libraries.
@@ -89,6 +89,28 @@ def generate_syntax_txt(filename: str, example_description: str,
     configuration files "in_csv_encoding" defaults to "utf_8_sig"
     and "out_csv_encoding" defaults to "utf-8" if missing in the
     configutation file.)
+
+
+    Extra spaces in excel input files
+    =================================
+
+    When viewing an excel file in excel it is very hard to notice if
+    some string value in a cell has trailing white space. These trailing
+    trailing spaces can make the further processing of a file difficult
+    as the strings in the file are not what you thought they are. 
+    (This especially is a problem if you have trailing spaces in a
+    cell on the first line, and refer to columns by their names.)
+
+    The configuration "in_excel_col_name_strip" can be set to true,
+    to strip off leading and trailing whitespace from all columns 
+    values read from the first line of the excel input file.
+    The configuration "in_excel_values_strip" can be set to true,
+    to strip off leading and trailing whitespace from all columns 
+    values read from from the other lines (not the first line) of
+    the excel input file. (In version 0.6.2 and earlier these are
+    missing. To be compatible with version 0.6.2 and earlier
+    "in_excel_col_name_strip" and "in_excel_values_strip"
+    defaults to false if missing in the configuration file.)
 
 
     Column manipulation

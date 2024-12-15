@@ -8,7 +8,6 @@
 import sys
 from copy import deepcopy
 from enum import Enum
-from collections import Counter
 from typing import Optional, Callable, TypeAlias, TypeVar, NamedTuple, Generic
 from csv import Dialect
 from excel_list_transform.config import Config, ParseConverter
@@ -151,18 +150,6 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
                 'in_excel_values_strip': False}
 
     @staticmethod
-    def _duplicates_not_allowed(expanded_data: list[Column],
-                                param_name: str) -> None:
-        """Error report duplicate data."""
-        dup = [str(k) for k, v in Counter(expanded_data).items() if v > 1]
-        if len(dup) == 0:
-            return
-        msg = f'Duplicates not allowed in {param_name}. Duplicate values: '  # noqa: E713, E501
-        msg += ','.join(dup)
-        print(msg, file=sys.stderr)
-        raise KeyError(msg)
-
-    @staticmethod
     def get_cols_single(rule: Rule[Column] | RuleSplit[Column] |
                         RuleRewrite[Column],
                         tinfo: Column) -> list[Column]:
@@ -192,7 +179,7 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
         """Flag as error if column is refered to multiple times."""
         cols: list[Column] = ConfigExcelListTransform.get_cols_single(rule,
                                                                       tinfo)
-        ConfigExcelListTransform._duplicates_not_allowed(cols, param_name)
+        ConfigExcelListTransform.check_no_duplicates(cols, param_name)
 
     @staticmethod
     def _check_no_duplicate_multi(rule: RuleMerge[Column],
@@ -200,7 +187,7 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
         """Flag as error if column is refered to multiple times."""
         cols: list[Column] = ConfigExcelListTransform.get_cols_multi(rule,
                                                                      tinfo)
-        ConfigExcelListTransform._duplicates_not_allowed(cols, param_name)
+        ConfigExcelListTransform.check_no_duplicates(cols, param_name)
 
     @staticmethod
     def _check_increasing_multi(rule: RuleMerge[Column], param_name: str,

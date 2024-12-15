@@ -9,6 +9,7 @@ from copy import deepcopy
 import json
 import sys
 import csv
+from collections import Counter
 from typing import Any, Optional, Type, TypeVar, Mapping, NamedTuple, Callable
 from enum import Enum, IntEnum
 from tempfile import TemporaryFile
@@ -394,3 +395,15 @@ class Config():
         if not Config.valid_char_encoding(enc=enc):
             print(f'{enc} is not a recognized encoding', file=sys.stderr)
             sys.exit(1)
+
+    @staticmethod
+    def check_no_duplicates(expanded_data: list[str] | list[int],
+                            param_name: str) -> None:
+        """Error report duplicate data."""
+        dup = [str(k) for k, v in Counter(expanded_data).items() if v > 1]
+        if len(dup) == 0:
+            return
+        msg = f'Duplicates not allowed in {param_name}. Duplicate values: '  # noqa: E713, E501
+        msg += ','.join(dup)
+        print(msg, file=sys.stderr)
+        sys.exit(1)

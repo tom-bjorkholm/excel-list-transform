@@ -37,4 +37,4 @@ class ConfigXlsListRefmtName(ConfigExcelListTransform[str]):  # pylint: disable=
                          colinfo=colinfo, tinfo='a',
                          from_json_text=from_json_text,
                          from_json_filename=from_json_filename)
-        self._duplicates_not_allowed(self.s8_column_order, 's8_column_order')
+        self.check_no_duplicates(self.s8_column_order, 's8_column_order')

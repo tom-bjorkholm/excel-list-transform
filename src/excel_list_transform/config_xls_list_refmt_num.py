@@ -51,12 +51,12 @@ class ConfigXlsListRefmtNum(ConfigExcelListTransform[int]):  # pylint: disable=t
                          colinfo=colinfo, tinfo=2,
                          from_json_text=from_json_text,
                          from_json_filename=from_json_filename)
-        self._duplicates_not_allowed(self.s2_remove_columns,
-                                     's2_remove_columns')
+        self.check_no_duplicates(self.s2_remove_columns,
+                                 's2_remove_columns')
         self._check_increasing_multi(self.s3_merge_columns,
                                      's3_merge_columns', 2)
-        self._duplicates_not_allowed(self.s4_place_columns_first,
-                                     's4_place_columns_first')
+        self.check_no_duplicates(self.s4_place_columns_first,
+                                 's4_place_columns_first')
 
     def sort_sx_hook(self) -> None:
         """Sort s[0-9]_ as needed as needed (hook)."""

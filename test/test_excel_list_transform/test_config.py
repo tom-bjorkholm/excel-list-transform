@@ -876,3 +876,26 @@ def test_check_array_dicts_nok(capsys,  # pylint: disable=too-many-arguments,too
     assert msg in str(exc)
     assert out == ''
     assert msg in err
+
+
+@pytest.mark.parametrize('data,par',
+                         [([1, 2, 3], 'test'),
+                          ([1, 4, 3, 2], 'test')])
+def test_check_no_dupl_ok(capsys, data, par):
+    """Test check_no_duplicates for OK cases."""
+    Config.check_no_duplicates(data, par)
+    out, err = capsys.readouterr()
+    assert out == ''
+    assert err == ''
+
+
+@pytest.mark.parametrize('data,par',
+                         [([1, 2, 3, 2], 'test'),
+                          ([1, 2, 3, 1], 'test')])
+def test_check_no_dupl_nok(capsys, data, par):
+    """Test check:_no_cuplicates for OK cases."""
+    with pytest.raises(SystemExit):
+        Config.check_no_duplicates(data, par)
+    out, err = capsys.readouterr()
+    assert out == ''
+    assert 'Duplicates not allowed in' in err

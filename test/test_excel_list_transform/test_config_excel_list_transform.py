@@ -73,17 +73,6 @@ def test_config_exc_list_reform_read_incomplete4(capsys, t):
 
 
 @pytest.mark.parametrize('data,par',
-                         [([1, 2, 3], 'test'),
-                          ([1, 4, 3, 2], 'test')])
-def test_check_no_dupl_ok(capsys, data, par):
-    """Test check:_no_cuplicates for OK cases."""
-    ConfigExcelListTransform._duplicates_not_allowed(data, par)  # pylint: disable=protected-access # noqa: E501
-    out, err = capsys.readouterr()
-    assert out == ''
-    assert err == ''
-
-
-@pytest.mark.parametrize('data,par',
                          [([{'a': 1, 'column': 2},
                             {'a': 1, 'column': 3},
                             {'a': 3, 'column': 4}], 'test')])
@@ -108,29 +97,15 @@ def test_check_no_dupl_mul_ok(capsys, data, par):
 
 
 @pytest.mark.parametrize('data,par',
-                         [([1, 2, 3, 2], 'test'),
-                          ([1, 2, 3, 1], 'test')])
-def test_check_no_dupl_nok(capsys, data, par):
-    """Test check:_no_cuplicates for OK cases."""
-    with pytest.raises(KeyError) as exc:
-        ConfigExcelListTransform._duplicates_not_allowed(data, par)  # pylint: disable=protected-access # noqa: E501
-    out, err = capsys.readouterr()
-    assert out == ''
-    assert 'Duplicates not allowed in' in str(exc)
-    assert 'Duplicates not allowed in' in err
-
-
-@pytest.mark.parametrize('data,par',
                          [([{'a': 1, 'column': 2},
                             {'a': 1, 'column': 3},
                             {'a': 3, 'column': 2}], 'test')])
 def test_check_no_dupl_keyd_nok(capsys, data, par):
     """Test check:_no_cuplicates for OK cases."""
-    with pytest.raises(KeyError) as exc:
+    with pytest.raises(SystemExit):
         ConfigExcelListTransform._check_no_duplicate_single(data, par, 2)  # pylint: disable=protected-access # noqa: E501
     out, err = capsys.readouterr()
     assert out == ''
-    assert 'Duplicates not allowed in' in str(exc)
     assert 'Duplicates not allowed in' in err
 
 
@@ -140,11 +115,10 @@ def test_check_no_dupl_keyd_nok(capsys, data, par):
                             {'a': 3, 'columns': [2, 5]}], 'test')])
 def test_check_no_dupl_num_nok(capsys, data, par):
     """Test check:_no_cuplicates for OK cases."""
-    with pytest.raises(KeyError) as exc:
+    with pytest.raises(SystemExit):
         ConfigExcelListTransform._check_no_duplicate_multi(data, par, 2)  # pylint: disable=protected-access # noqa: E501
     out, err = capsys.readouterr()
     assert out == ''
-    assert 'Duplicates not allowed in' in str(exc)
     assert 'Duplicates not allowed in' in err
 
 

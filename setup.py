@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
   name='excel-list-transform',
-  version='0.7.2',
+  version='0.7.3',
   description='Transform a list in excel or CSV.',
   author='Tom Björkholm',
   author_email='klausuler_linnet0q@icloud.com',
@@ -15,7 +15,7 @@ setup(
   package_data={'excel_list_transform': ['src/py.typed']},
   install_requires=[
     'openpyxl >= 3.1.5',
-    'types-openpyxl >= 3.1.5.20241126',
+    'types-openpyxl >= 3.1.5.20241225',
     'pylightxl >= 1.61',
     'XlsxWriter >= 3.2.0',
     'pip >= 24.2',

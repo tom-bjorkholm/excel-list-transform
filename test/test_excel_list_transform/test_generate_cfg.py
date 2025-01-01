@@ -192,6 +192,13 @@ class ExampleData:  # pylint: disable=too-many-instance-attributes
             ret.append(row)
         return ret
 
+    def sw_data_extacted(self) -> list[list[str]]:
+        """Get data as extracted from sail wave export."""
+        ret = deepcopy(self.sw_data())
+        ret[0] = ['Class', 'Division', 'Nationality', 'Sail Number',
+                  'Boat Name', 'Name', 'Club Name', 'Email', 'Phone']
+        return ret
+
 
 FileNames = namedtuple('FileNames', ['indata', 'cfg', 'out'])
 
@@ -250,7 +257,9 @@ def test_cfg_gen_used(capsys,  # pylint: disable=too-many-arguments, too-many-po
                           ('forms_to_sw', ExampleData.form_data,
                            ExampleData.sw_data, csv_reader, 'out.csv'),
                           ('rrs_to_sw', ExampleData.rrs_data_out,
-                           ExampleData.sw_data, csv_reader, 'out.csv')])
+                           ExampleData.sw_data, csv_reader, 'out.csv'),
+                          ('sw_to_rrs', ExampleData.sw_data_extacted,
+                           ExampleData.rrs_data, openpyxl_reader, 'out.xlsx')])
 def test_cfg_and_cmd(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals # noqa: E501
                      refcol, cfg, indgen, resgen, reader, outname):
     """Test to generate configuration and use it."""

@@ -7,7 +7,7 @@
 
 from excel_list_transform.file_extension import fix_file_extension
 from excel_list_transform.config_enums import ColumnRef, FileType, \
-    RewriteKind, CaseSensitivity, ExcelLib
+    RewriteKind, CaseSensitivity, ExcelLib, SplitWhere
 from excel_list_transform.config_factory import config_factory_from_enum
 from excel_list_transform.generate_txt import generate_syntax_txt
 from excel_list_transform.config_xls_list_refmt_name import \
@@ -15,15 +15,7 @@ from excel_list_transform.config_xls_list_refmt_name import \
 from excel_list_transform.config_xls_list_refmt_num import \
     ConfigXlsListRefmtNum
 
-syntax_o2x_common: str = '''
-
-Column names are changed from another language (Swedish) and sometimes from
-a more instuctive naming to the names understood by RRS.
-
-The events does not use divisions, boat names and WhatsApp. Thus the
-form did not ask for these. They are inserted as empty columns to please
-RRS.
-
+syntax_phone_fix: str = '''
 The phone number has to be in international format '+' followed by only
 digits for RRS, but the sailors filling in the form sometimes use
 national format (no + and no country code). Also the sailors filling
@@ -34,6 +26,17 @@ The rewriting of phone numbers in this example is for Swedish mobile
 phone numbers. For other countries s7_rewrite_columns need to be
 adjusted.
 '''
+
+syntax_o2x_common: str = '''
+
+Column names are changed from another language (Swedish) and sometimes from
+a more instuctive naming to the names understood by RRS.
+
+The events does not use divisions, boat names and WhatsApp. Thus the
+form did not ask for these. They are inserted as empty columns to please
+RRS.
+
+''' + syntax_phone_fix
 
 syntax_only_o2r_common: str = '''
 This an example of taking a registration list from the excel file received
@@ -59,6 +62,94 @@ is "BY_NAME".
 '''
 
 syntax_o2r_common: str = syntax_only_o2r_common + syntax_o2x_common
+
+syntax_s2r_common: str = '''
+
+In this example the input data is exported as JSON or XML from SailWave
+https://www.sailwave.com . The data as a list in excel format is then
+extracted using extract-list https://pypi.org/project/extract-list.
+As SW only has a name field and not first name and last name fields,
+and as SW has not field for WhatsApp, this processing of the data is needed
+before it can be imported into RRS https://www.racingrulesofsailing.org/
+
+The Name column is split into First Name and Last Name columns.
+The column WhatsApp is added with no data.
+
+''' + syntax_phone_fix
+
+
+def generate_syntax_s2r_name(filename: str, colref: ColumnRef) -> None:
+    """Generate config example for office_forms_to_rrs."""
+    assert colref == ColumnRef.BY_NAME
+    cfg = ConfigXlsListRefmtName()
+    cfg.out_excel_library = ExcelLib.OPENPYXL
+    cfg.in_type = FileType.EXCEL
+    cfg.out_type = FileType.EXCEL
+    cfg.s1_split_columns = [{'column': 'Name',
+                             'separator': ' ',
+                             'where': SplitWhere.RIGHTMOST,
+                             'right_name': 'Last Name'}]
+    cfg.s3_merge_columns = []
+    cfg.s5_rename_columns = [{'column': 'Name', 'name': 'First Name'}]
+    cfg.s6_insert_columns = [{'column': 'WhatsApp', 'value': None}]
+    cfg.s7_rewrite_columns = [
+        {'column': 'Phone', 'kind': RewriteKind.STRIP,
+         'chars': '', 'case': CaseSensitivity.IGNORE_CASE},
+        {'column': 'Phone', 'kind': RewriteKind.REMOVECHARS,
+         'chars': [' ', '-'], 'case': CaseSensitivity.MATCH_CASE},
+        {'column': 'Phone', 'kind': RewriteKind.REGEX_SUBSTITUTE,
+         'from': '^07', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
+        {'column': 'Phone', 'kind': RewriteKind.REGEX_SUBSTITUTE,
+         'from': '^\\+4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
+        {'column': 'Phone', 'kind': RewriteKind.REGEX_SUBSTITUTE,
+         'from': '^467', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
+        {'column': 'Phone', 'kind': RewriteKind.REGEX_SUBSTITUTE,
+         'from': '^4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE}]
+    cfg.s8_column_order = ['Class', 'Division', 'Nationality',
+                           'Sail Number', 'Boat Name', 'First Name',
+                           'Last Name', 'Club Name', 'Email', 'Phone',
+                           'WhatsApp']
+    cfg.write(to_json_filename=filename)
+
+
+TXT_S2R_NAME = syntax_s2r_common + by_name_common
+
+
+def generate_syntax_s2r_num(filename: str, colref: ColumnRef) -> None:
+    """Generate config example for office_forms_to_rrs."""
+    assert colref == ColumnRef.BY_NUMBER
+    cfg = ConfigXlsListRefmtNum()
+    cfg.out_excel_library = ExcelLib.OPENPYXL
+    cfg.in_type = FileType.EXCEL
+    cfg.out_type = FileType.EXCEL
+    cfg.s1_split_columns = [{'column': 5, 'separator': ' ',
+                             'where': SplitWhere.RIGHTMOST,
+                             'store_single': SplitWhere.RIGHTMOST}]
+    cfg.s2_remove_columns = []
+    cfg.s3_merge_columns = []
+    cfg.s4_place_columns_first = []
+    cfg.s5_rename_columns = \
+        [{'column': 5, 'name': 'First Name'},
+         {'column': 6, 'name': 'Last Name'}]
+    cfg.s6_insert_columns = [{'column': 10, 'name': 'WhatsApp',
+                              'value': None}]
+    cfg.s7_rewrite_columns = [
+        {'column': 9, 'kind': RewriteKind.STRIP,
+         'chars': '', 'case': CaseSensitivity.IGNORE_CASE},
+        {'column': 9, 'kind': RewriteKind.REMOVECHARS,
+         'chars': [' ', '-'], 'case': CaseSensitivity.MATCH_CASE},
+        {'column': 9, 'kind': RewriteKind.REGEX_SUBSTITUTE,
+         'from': '^07', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
+        {'column': 9, 'kind': RewriteKind.REGEX_SUBSTITUTE,
+         'from': '^\\+4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
+        {'column': 9, 'kind': RewriteKind.REGEX_SUBSTITUTE,
+         'from': '^467', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
+        {'column': 9, 'kind': RewriteKind.REGEX_SUBSTITUTE,
+         'from': '^4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE}]
+    cfg.write(to_json_filename=filename)
+
+
+TXT_S2R_NUM = syntax_s2r_common + by_number_common
 
 
 def generate_syntax_o2r_name(filename: str, colref: ColumnRef) -> None:
@@ -341,6 +432,8 @@ dispatch = {'forms_to_rrs': {ColumnRef.BY_NAME: generate_syntax_o2r_name,
                             ColumnRef.BY_NUMBER: generate_syntax_o2s_num},
             'rrs_to_sw': {ColumnRef.BY_NAME: generate_syntax_r2s_name,
                           ColumnRef.BY_NUMBER: generate_syntax_r2s_num},
+            'sw_to_rrs': {ColumnRef.BY_NAME: generate_syntax_s2r_name,
+                          ColumnRef.BY_NUMBER: generate_syntax_s2r_num},
             'example': {ColumnRef.BY_NAME: generate_syntax_example,
                         ColumnRef.BY_NUMBER: generate_syntax_example}}
 
@@ -350,6 +443,8 @@ txts = {'forms_to_rrs': {ColumnRef.BY_NAME: TXT_O2R_NAME,
                         ColumnRef.BY_NUMBER: TXT_O2S_NUM},
         'rrs_to_sw': {ColumnRef.BY_NAME: TXT_R2S_NAME,
                       ColumnRef.BY_NUMBER: TXT_R2S_NUM},
+        'sw_to_rrs': {ColumnRef.BY_NAME: TXT_S2R_NAME,
+                      ColumnRef.BY_NUMBER: TXT_S2R_NUM},
         'example': {ColumnRef.BY_NAME: TXT_SYNTAX_WXAMPLE,
                     ColumnRef.BY_NUMBER: TXT_SYNTAX_WXAMPLE}}
 

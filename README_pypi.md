@@ -37,15 +37,27 @@ pip3 install excel-list-transform
 pip install excel-list-transform
 ````
 
+## Version history
+
+| Version | Date        | Python version  | Description                         |
+|---------|-------------|-----------------|-------------------------------------|
+| 0.5     | 10 Sep 2024 | 3.10.5 or newer | First released version              |
+| 0.6     | 22 Sep 2024 | 3.12.6 or newer | Configured encoding for CSV         |
+| 0.6.2   | 28 Sep 2024 | 3.12.6 or newer | Fix name in test report             |
+| 0.7.0   | 03 Nov 2024 | 3.12.6 or newer | Option to strip space in excel      |
+| 0.7.1   | 15 Dec 2024 | 3.12.6 or newer | Refactor tests                      |
+| 0.7.3   | 06 Jan 2025 | 3.12.6 or newer | Example config for Sailwave to RRS  |
+| 0.7.5   | ?           | 3.12.6 or newer | Example config for Sailarena to RRS |
+
 ## Running the application
 
 ### Running the application on mac and Linux
 
 ````sh
 python3 -m excel_list_transform --help
-python3 -m excel_list_transform example --help
+python3 -m excel_list_transform cfg-example --help
 python3 -m excel_list_transform transform --help
-python3 -m excel_list_transform example -k forms_to_rrs -r by_name -o example.cfg
+python3 -m excel_list_transform cfg-example -k forms_to_rrs -r by_name -o example.cfg
 python3 -m excel_list_transform transform -c example.cfg -i input.xlsx -o output.xlsx
 ````
 
@@ -53,15 +65,15 @@ python3 -m excel_list_transform transform -c example.cfg -i input.xlsx -o output
 
 ````sh
 python -m excel_list_transform --help
-python -m excel_list_transform example --help
+python -m excel_list_transform cfg-example --help
 python -m excel_list_transform transform --help
-python -m excel_list_transform example -k forms_to_rrs -r by_name -o example.cfg
+python -m excel_list_transform cfg-example -k forms_to_rrs -r by_name -o example.cfg
 python -m excel_list_transform transform -c example.cfg -i input.xlsx -o output.xlsx
 ````
 
 ## Suggested way to get started
 
- 1. Use the "example" sub-command to generate a few example configuration (.cfg) files with description (.txt) files.
+ 1. Use the "cfg-example" sub-command to generate a few example configuration (.cfg) files with description (.txt) files.
  2. Read the example configuration (.cfg) files and the accompanying description (.txt) files.
  3. Find an example that is close to what you want to achieve.
  4. Modify that configuration file to achieve what you want to achieve.
@@ -70,7 +82,7 @@ python -m excel_list_transform transform -c example.cfg -i input.xlsx -o output.
 
 ### Example configuration files
 
-When using the "example" sub-command to generate an example configuration file (say example.cfg) a text file describing the configuration and the syntax of the configuration file is also generated. If the example configuration file is named example.cfg, then the text file descriging the configuration is named example.txt.
+When using the "cfg-example" sub-command to generate an example configuration file (say example.cfg) a text file describing the configuration and the syntax of the configuration file is also generated. If the example configuration file is named example.cfg, then the text file descriging the configuration is named example.txt.
 
 You can generate several example configuration files each with an accompanying text file descriping it.
 

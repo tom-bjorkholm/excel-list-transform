@@ -74,12 +74,14 @@ See also help text for main command without sub-commands.
 SubParseAct: TypeAlias = 'argparse._SubParsersAction[argparse.ArgumentParser]'
 
 
-def gen_cfg_args(subparsers: SubParseAct) -> None:
-    """Add arguments for generate example config sub-command."""
+def gen_cfg_args_named(subparsers: SubParseAct, sub_pars_name: str) -> None:
+    """Add arguments for generate named example config sub-command."""
     cfg_help = 'Generate example configuration file (example .cfg file). '
     cfg_help += 'Arguments select the kind of configuration file that '
     cfg_help += 'is generated.'
-    cfg_parser = subparsers.add_parser('example', help=cfg_help,
+    if sub_pars_name == 'example':
+        cfg_help = 'example is an alias for cfg-example.'
+    cfg_parser = subparsers.add_parser(sub_pars_name, help=cfg_help,
                                        epilog=USAGE_ORDER,
                                        description=cfg_help +
                                        TXT_DESCRIPTION + SEE_MAIN_HELP)
@@ -99,6 +101,12 @@ def gen_cfg_args(subparsers: SubParseAct) -> None:
     cfg_output_help = 'Name of configuration (output) file to create.'
     cfg_parser.add_argument('-o', '--output', nargs=1,
                             help=cfg_output_help, required=True)
+
+
+def gen_cfg_args(subparsers: SubParseAct) -> None:
+    """Add arguments for generate example config sub-command."""
+    gen_cfg_args_named(subparsers=subparsers, sub_pars_name='example')
+    gen_cfg_args_named(subparsers=subparsers, sub_pars_name='cfg-example')
 
 
 def rfmt_args(subparsers: SubParseAct) -> None:

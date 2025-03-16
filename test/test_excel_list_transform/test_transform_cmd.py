@@ -6,37 +6,71 @@
 
 # pylint: disable=duplicate-code
 
-
+from copy import deepcopy
 import pytest
 from excel_list_transform.transform_cmd import transform_cmd
 from excel_list_transform.config_enums import ColumnRef
 
 
 @pytest.mark.smoke
-@pytest.mark.parametrize('args, exp_out, exp_in, exp_cfg, ref, gnum, rnum',
+@pytest.mark.parametrize('arg1', ['example', 'cfg-example'])
+@pytest.mark.parametrize('arg2, exp_out, exp_in, exp_cfg, ref',
+                         [[['-o', 'ofile', '-k', 'example',
+                            '-r', 'by_name'],
+                           'ofile', None, 'example', ColumnRef.BY_NAME],
+                          [['-o', 'ofile', '-k', 'example',
+                            '-r', 'by_number'],
+                           'ofile', None, 'example', ColumnRef.BY_NUMBER],
+                          [['--output', 'ofile', '--kind',
+                            'example', '--reference', 'by_name'],
+                           'ofile', None, 'example', ColumnRef.BY_NAME]])
+def test_excel_list_rfm_cmd_smok1(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments,line-too-long # noqa: E501
+                                  monkeypatch, arg1, arg2, exp_out, exp_in,
+                                  exp_cfg, ref):
+    """Test the excel_list_transform command parsing functionality."""
+    full_args = [deepcopy(arg1)] + deepcopy(arg2)
+
+    def gen(filename, cfgtype, colref):
+        """Mock generate_examplecfg."""
+        assert filename == exp_out
+        assert cfgtype == exp_cfg
+        assert colref == ref
+        gen.num_called += 1
+    gen.num_called = 0
+
+    def refor(infilename, outfilename, cfgfilename):
+        """Mock transform_named_files."""
+        refor.num_called += 1
+        assert infilename == exp_in
+        assert outfilename == exp_out
+        assert cfgfilename == exp_cfg
+    refor.num_called = 0
+    mod = 'excel_list_transform.transform_cmd.'
+    monkeypatch.setattr(mod + 'generate_examplecfg', gen)
+    monkeypatch.setattr(mod + 'transform_named_files', refor)
+    transform_cmd(arguments=full_args)
+    out, err = capsys.readouterr()
+    assert gen.num_called == 1
+    assert refor.num_called == 0
+    assert '' == out
+    assert '' == err
+
+
+@pytest.mark.smoke
+@pytest.mark.parametrize('args, exp_out, exp_in, exp_cfg, ref',
                          [[['transform', '-o', 'ofile', '-i', 'ifile', '-c',
                             'conf'],
-                           'ofile', 'ifile', 'conf', None, 0, 1],
-                          [['example', '-o', 'ofile', '-k', 'example',
-                            '-r', 'by_name'],
-                           'ofile', None, 'example', ColumnRef.BY_NAME, 1, 0],
-                          [['example', '-o', 'ofile', '-k', 'example',
-                            '-r', 'by_number'],
-                           'ofile', None, 'example', ColumnRef.BY_NUMBER,
-                           1, 0],
-                          [['example', '--output', 'ofile', '--kind',
-                            'example', '--reference', 'by_name'],
-                           'ofile', None, 'example', ColumnRef.BY_NAME, 1, 0],
+                           'ofile', 'ifile', 'conf', None],
                           [['transform', '--output', 'of', '--input', 'ifi',
                             '--cfg', 'con'],
-                           'of', 'ifi', 'con', None, 0, 1],
+                           'of', 'ifi', 'con', None],
                           [['python3', '-m', 'module.py',
                             'transform', '--output', 'of', '--input', 'ifi',
                             '--cfg', 'con'],
-                           'of', 'ifi', 'con', None, 0, 1]])
-def test_excel_list_rfm_cmd_smoke(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments,line-too-long # noqa: E501
+                           'of', 'ifi', 'con', None]])
+def test_excel_list_rfm_cmd_smok2(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments,line-too-long # noqa: E501
                                   monkeypatch, args, exp_out, exp_in, exp_cfg,
-                                  ref, gnum, rnum):
+                                  ref):
     """Test the excel_list_transform command parsing functionality."""
     def gen(filename, cfgtype, colref):
         """Mock generate_examplecfg."""
@@ -58,8 +92,8 @@ def test_excel_list_rfm_cmd_smoke(capsys,  # pylint: disable=too-many-arguments,
     monkeypatch.setattr(mod + 'transform_named_files', refor)
     transform_cmd(arguments=args)
     out, err = capsys.readouterr()
-    assert gen.num_called == gnum
-    assert refor.num_called == rnum
+    assert gen.num_called == 0
+    assert refor.num_called == 1
     assert '' == out
     assert '' == err
 
@@ -69,11 +103,20 @@ def test_excel_list_rfm_cmd_smoke(capsys,  # pylint: disable=too-many-arguments,
                            'arguments are required: -o/--output'],
                           [['example', '-r', 'by_name', '-k', 'example'],
                            'arguments are required: -o/--output'],
+                          [['cfg-example', '-r', 'by_name', '-k', 'example'],
+                           'arguments are required: -o/--output'],
                           [['-i', 'ifile', '-o', 'ofile'],
-                           "(choose from 'example', 'transform')"],
+                           "(choose from 'example', 'cfg-example', " +
+                           "'transform')"],
                           [['example', '-k', 'example', '-r', 'by_number'],
                            'required: -o/--output'],
                           [['example', '--output', 'of', '-i', 'in',
+                            '-k', 'con', '-r', 'by_name'],
+                           'invalid choice: \'con\''],
+                          [['cfg-example', '-k', 'example', '-r',
+                            'by_number'],
+                           'required: -o/--output'],
+                          [['cfg-example', '--output', 'of', '-i', 'in',
                             '-k', 'con', '-r', 'by_name'],
                            'invalid choice: \'con\'']])
 def test_excel_list_rfm_cmd_err(capsys, args, errs):
@@ -101,10 +144,11 @@ def test_excel_list_rfm_cmd_help(capsys, args):
     assert '' == err
 
 
-@pytest.mark.parametrize('args', [['example', '-h'],
-                                  ['example', '--help']])
-def test_xlsr_cmd_example_help(capsys, args):
+@pytest.mark.parametrize('arg1', ['example', 'cfg-example'])
+@pytest.mark.parametrize('arg2', ['-h', '--help'])
+def test_xlsr_cmd_example_help(capsys, arg1, arg2):
     """Test the excel_list_transform command parsing help."""
+    args = [deepcopy(arg1), deepcopy(arg2)]
     with pytest.raises(SystemExit) as _:
         transform_cmd(arguments=args)
     out, err = capsys.readouterr()

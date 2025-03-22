@@ -250,6 +250,7 @@ def test_cfg_gen_used(capsys,  # pylint: disable=too-many-arguments, too-many-po
     assert '' == err
 
 
+@pytest.mark.parametrize('example', ['cfg-example', 'example'])
 @pytest.mark.parametrize('refcol', [ColumnRef.BY_NAME, ColumnRef.BY_NUMBER])
 @pytest.mark.parametrize('cfg, indgen, resgen, reader, outname',
                          [('forms_to_rrs', ExampleData.form_data,
@@ -261,7 +262,7 @@ def test_cfg_gen_used(capsys,  # pylint: disable=too-many-arguments, too-many-po
                           ('sw_to_rrs', ExampleData.sw_data_extacted,
                            ExampleData.rrs_data, openpyxl_reader, 'out.xlsx')])
 def test_cfg_and_cmd(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals # noqa: E501
-                     refcol, cfg, indgen, resgen, reader, outname):
+                     refcol, cfg, indgen, resgen, reader, outname, example):
     """Test to generate configuration and use it."""
     test_data = ExampleData()
     res = None
@@ -269,7 +270,7 @@ def test_cfg_and_cmd(capsys,  # pylint: disable=too-many-arguments,too-many-posi
         files = FileNames(indata=dname + '/a.xlsx',
                           cfg=dname + '/a.cfg',
                           out=dname + '/' + outname)
-        transform_cmd(['example', '-r', refcol.name.lower(), '-k', cfg,
+        transform_cmd([example, '-r', refcol.name.lower(), '-k', cfg,
                       '-o', files.cfg])
         write_excel_num(data=indgen(test_data), filename=files.indata)
         transform_cmd(['transform', '-i', files.indata, '-o', files.out,
@@ -283,6 +284,32 @@ def test_cfg_and_cmd(capsys,  # pylint: disable=too-many-arguments,too-many-posi
     assert res == tomatch
     assert 'Wrote ' + files.out in out
     assert '' == err
+
+
+@pytest.mark.parametrize('example', ['cfg-example', 'example'])
+@pytest.mark.parametrize('refcol', [ColumnRef.BY_NAME, ColumnRef.BY_NUMBER])
+def test_sa_cfg_and_cmd(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals # noqa: E501
+                        refcol, example):
+    """Test to generate SailArena configuration and use it."""
+    with TemporaryDirectory() as dname:
+        files = FileNames(indata='./test/test_excel_list_transform/' +
+                          'SA_example.csv',
+                          cfg=dname + '/a.cfg',
+                          out=dname + '/out.xlsx')
+        transform_cmd([example, '-r', refcol.name.lower(), '-k', 'sa_to_rrs',
+                      '-o', files.cfg])
+        transform_cmd(['transform', '-i', files.indata, '-o', files.out,
+                      '-c', files.cfg])
+        res = openpyxl_reader(filename=files.out, max_column_read=40)
+        tomatch = csv_reader(filename='./test/test_excel_list_transform/' +
+                             'SA_result.csv', max_column_read=40)
+        out, err = capsys.readouterr()
+        assert len(res) == len(tomatch)
+        for r, t in zip(res, tomatch):  # error msg is easier to read with loop
+            assert r == t
+        assert res == tomatch
+        assert 'Wrote ' + files.out in out
+        assert '' == err
 
 
 @pytest.mark.parametrize('refcol', [ColumnRef.BY_NAME, ColumnRef.BY_NUMBER])

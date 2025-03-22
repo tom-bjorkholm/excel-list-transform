@@ -39,7 +39,7 @@ fi
 ${PYTHON} -m pip install --upgrade pip
 ${PYTHON} -m pip install --upgrade setuptools
 ${PYTHON} -m pip install --upgrade build
-${PYTHON} -m pip install --upgrade twine
+${PYTHON} -m pip install twine==6.0.1
 ${PYTHON} -m venv venv
 . ./venv/bin/activate
 ${PYTHON} -m pip install --upgrade pip
@@ -48,7 +48,7 @@ ${PYTHON} -m pip install --upgrade mypy
 ${PYTHON} -m pip install --upgrade lxml
 ${PYTHON} -m pip install --upgrade build
 ${PYTHON} -m pip install --upgrade setuptools
-${PYTHON} -m pip install --upgrade twine
+${PYTHON} -m pip install twine==6.0.1
 ${PYTHON} -m pip install --upgrade pytest
 ${PYTHON} -m pip install --upgrade pytest-html
 ${PYTHON} -m pip install --upgrade flake8

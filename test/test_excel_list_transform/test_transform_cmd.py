@@ -106,8 +106,8 @@ def test_excel_list_rfm_cmd_smok2(capsys,  # pylint: disable=too-many-arguments,
                           [['cfg-example', '-r', 'by_name', '-k', 'example'],
                            'arguments are required: -o/--output'],
                           [['-i', 'ifile', '-o', 'ofile'],
-                           "(choose from 'example', 'cfg-example', " +
-                           "'transform')"],
+                           "(choose from example, cfg-example, " +
+                           "transform)"],
                           [['example', '-k', 'example', '-r', 'by_number'],
                            'required: -o/--output'],
                           [['example', '--output', 'of', '-i', 'in',
@@ -169,9 +169,9 @@ def test_xlsr_cmd_rfmt_help(capsys, args):
         transform_cmd(arguments=args)
     out, err = capsys.readouterr()
     assert '-h, --help' in out
-    assert ' -c CFG, --cfg CFG' in out
-    assert ' -i INPUT, --input INPUT' in out
-    assert ' -o OUTPUT, --output OUTPUT' in out
+    assert ' -c, --cfg CFG' in out
+    assert ' -i, --input INPUT' in out
+    assert ' -o, --output OUTPUT' in out
     assert 'example' in out
     assert 'list in excel or CSV file' in out
     assert '' == err

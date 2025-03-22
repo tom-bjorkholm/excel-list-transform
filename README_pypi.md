@@ -47,7 +47,7 @@ pip install excel-list-transform
 | 0.7.0   | 03 Nov 2024 | 3.12.6 or newer | Option to strip space in excel      |
 | 0.7.1   | 15 Dec 2024 | 3.12.6 or newer | Refactor tests                      |
 | 0.7.3   | 06 Jan 2025 | 3.12.6 or newer | Example config for Sailwave to RRS  |
-| 0.7.5   | ?           | 3.12.6 or newer | Example config for Sailarena to RRS |
+| 0.7.5   | 21 Mar 2025 | 3.12.6 or newer | Example config for Sailarena to RRS |
 
 ## Running the application
 

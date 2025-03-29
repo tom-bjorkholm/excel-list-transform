@@ -11,13 +11,13 @@ If you want to use it install it using pip from [https://pypi.org/project/excel-
 ### Installing on mac and Linux
 
 ````
-pip3 install excel-list-transform
+pip3 install --upgrade excel-list-transform
 ````
 
 ### Installing on Microsoft Windows
 
 ````
-pip install excel-list-transform
+pip install --upgrade excel-list-transform
 ````
 
 ### Information for use
@@ -50,7 +50,7 @@ For running the script and running the test suite you need a mac or a Linux comp
 
 #### Python version
 
-The tests and the script for running the tests, coverage, mypy etc. requires Python version 3.12.6 or newer.
+Please see README_pypi.md for information on needed python version.
 
 #### Zsh
 

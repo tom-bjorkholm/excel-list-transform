@@ -4,12 +4,14 @@
 # Copyright (c) 2024 Tom Björkholm
 # MIT License
 
-
+from copy import deepcopy
 from excel_list_transform.file_extension import fix_file_extension
 from excel_list_transform.config_enums import ColumnRef, FileType, \
     RewriteKind, CaseSensitivity, ExcelLib, SplitWhere
 from excel_list_transform.config_factory import config_factory_from_enum
 from excel_list_transform.generate_txt import generate_syntax_txt
+from excel_list_transform.config_excel_list_transform import \
+    Column, SingleRuleRewrite, RuleRewrite
 from excel_list_transform.config_xls_list_refmt_name import \
     ConfigXlsListRefmtName
 from excel_list_transform.config_xls_list_refmt_num import \
@@ -88,6 +90,36 @@ format of the phone number and save to excel.
 ''' + syntax_phone_fix
 
 
+def rewrite_phone_46_cfg(cfg: ConfigXlsListRefmtName | ConfigXlsListRefmtNum,
+                         column: Column, append: bool) -> None:
+    """Add configuration to rewrite +46 phone numbers."""
+    assert (isinstance(cfg, ConfigXlsListRefmtName) and
+            isinstance(column, str)) or \
+           (isinstance(cfg, ConfigXlsListRefmtNum) and
+            isinstance(column, int))
+    assert isinstance(append, bool)
+    rules: RuleRewrite[Column] = [
+        {'kind': RewriteKind.STRIP,
+         'chars': '', 'case': CaseSensitivity.IGNORE_CASE},
+        {'kind': RewriteKind.REMOVECHARS,
+         'chars': [' ', '-', '(', ')'], 'case': CaseSensitivity.MATCH_CASE},
+        {'kind': RewriteKind.REGEX_SUBSTITUTE,
+         'from': '^07', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
+        {'kind': RewriteKind.REGEX_SUBSTITUTE,
+         'from': '^\\+4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
+        {'kind': RewriteKind.REGEX_SUBSTITUTE,
+         'from': '^467', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
+        {'kind': RewriteKind.REGEX_SUBSTITUTE,
+         'from': '^4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE}
+    ]
+    if not append:
+        cfg.s7_rewrite_columns.clear()
+    for rule in rules:
+        newrule: SingleRuleRewrite[Column] = deepcopy(rule)
+        newrule['column'] = column
+        cfg.s7_rewrite_columns.append(newrule)
+
+
 def generate_syntax_sa2r_name(filename: str, colref: ColumnRef) -> None:
     """Generate config example for sa_to_rrs."""
     assert colref == ColumnRef.BY_NAME
@@ -105,19 +137,7 @@ def generate_syntax_sa2r_name(filename: str, colref: ColumnRef) -> None:
     cfg.s3_merge_columns = []
     cfg.s5_rename_columns = []
     cfg.s6_insert_columns = []
-    cfg.s7_rewrite_columns = [
-        {'column': 'Phone', 'kind': RewriteKind.STRIP,
-         'chars': '', 'case': CaseSensitivity.IGNORE_CASE},
-        {'column': 'Phone', 'kind': RewriteKind.REMOVECHARS,
-         'chars': [' ', '-'], 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 'Phone', 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^07', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 'Phone', 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^\\+4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 'Phone', 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^467', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 'Phone', 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE}]
+    rewrite_phone_46_cfg(cfg=cfg, column='Phone', append=False)
     cfg.s8_column_order = ['Class', 'Division', 'Nationality',
                            'Sail Number', 'Boat Name', 'First Name',
                            'Last Name', 'Club Name', 'Email', 'Phone',
@@ -139,19 +159,7 @@ def generate_syntax_sw2r_name(filename: str, colref: ColumnRef) -> None:
     cfg.s3_merge_columns = []
     cfg.s5_rename_columns = [{'column': 'Name', 'name': 'First Name'}]
     cfg.s6_insert_columns = [{'column': 'WhatsApp', 'value': None}]
-    cfg.s7_rewrite_columns = [
-        {'column': 'Phone', 'kind': RewriteKind.STRIP,
-         'chars': '', 'case': CaseSensitivity.IGNORE_CASE},
-        {'column': 'Phone', 'kind': RewriteKind.REMOVECHARS,
-         'chars': [' ', '-'], 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 'Phone', 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^07', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 'Phone', 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^\\+4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 'Phone', 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^467', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 'Phone', 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE}]
+    rewrite_phone_46_cfg(cfg=cfg, column='Phone', append=False)
     cfg.s8_column_order = ['Class', 'Division', 'Nationality',
                            'Sail Number', 'Boat Name', 'First Name',
                            'Last Name', 'Club Name', 'Email', 'Phone',
@@ -182,19 +190,7 @@ def generate_syntax_sa2r_num(filename: str, colref: ColumnRef) -> None:
     cfg.s4_place_columns_first = []
     cfg.s5_rename_columns = []
     cfg.s6_insert_columns = []
-    cfg.s7_rewrite_columns = [
-        {'column': 9, 'kind': RewriteKind.STRIP,
-         'chars': '', 'case': CaseSensitivity.IGNORE_CASE},
-        {'column': 9, 'kind': RewriteKind.REMOVECHARS,
-         'chars': [' ', '-'], 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 9, 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^07', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 9, 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^\\+4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 9, 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^467', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 9, 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE}]
+    rewrite_phone_46_cfg(cfg=cfg, column=9, append=False)
     cfg.write(to_json_filename=filename)
 
 
@@ -216,19 +212,7 @@ def generate_syntax_sw2r_num(filename: str, colref: ColumnRef) -> None:
          {'column': 6, 'name': 'Last Name'}]
     cfg.s6_insert_columns = [{'column': 10, 'name': 'WhatsApp',
                               'value': None}]
-    cfg.s7_rewrite_columns = [
-        {'column': 9, 'kind': RewriteKind.STRIP,
-         'chars': '', 'case': CaseSensitivity.IGNORE_CASE},
-        {'column': 9, 'kind': RewriteKind.REMOVECHARS,
-         'chars': [' ', '-'], 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 9, 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^07', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 9, 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^\\+4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 9, 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^467', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 9, 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE}]
+    rewrite_phone_46_cfg(cfg=cfg, column=9, append=False)
     cfg.write(to_json_filename=filename)
 
 
@@ -258,19 +242,7 @@ def generate_syntax_o2r_name(filename: str, colref: ColumnRef) -> None:
         {'column': 'Division', 'value': None},
         {'column': 'Boat Name', 'value': None},
         {'column': 'WhatsApp', 'value': None}]
-    cfg.s7_rewrite_columns = [
-        {'column': 'Phone', 'kind': RewriteKind.STRIP,
-         'chars': '', 'case': CaseSensitivity.IGNORE_CASE},
-        {'column': 'Phone', 'kind': RewriteKind.REMOVECHARS,
-         'chars': [' ', '-'], 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 'Phone', 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^07', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 'Phone', 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^\\+4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 'Phone', 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^467', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 'Phone', 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE}]
+    rewrite_phone_46_cfg(cfg=cfg, column='Phone', append=False)
     cfg.s8_column_order = ['Class', 'Division', 'Nationality',
                            'Sail Number', 'Boat Name', 'First Name',
                            'Last Name', 'Club Name', 'Email', 'Phone',
@@ -305,19 +277,7 @@ def generate_syntax_o2r_num(filename: str, colref: ColumnRef) -> None:
         {'column': 1, 'name': 'Division', 'value': None},
         {'column': 4, 'name': 'Boat Name', 'value': None},
         {'column': 10, 'name': 'WhatsApp', 'value': None}]
-    cfg.s7_rewrite_columns = [
-        {'column': 9, 'kind': RewriteKind.STRIP,
-         'chars': '', 'case': CaseSensitivity.IGNORE_CASE},
-        {'column': 9, 'kind': RewriteKind.REMOVECHARS,
-         'chars': [' ', '-'], 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 9, 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^07', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 9, 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^\\+4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 9, 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^467', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 9, 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE}]
+    rewrite_phone_46_cfg(cfg=cfg, column=9, append=False)
     cfg.write(to_json_filename=filename)
 
 
@@ -353,20 +313,7 @@ def generate_syntax_o2s_name(filename: str, colref: ColumnRef) -> None:
     cfg.s6_insert_columns = [
         {'column': 'Division', 'value': None},
         {'column': 'Boat', 'value': None}]
-    cfg.s7_rewrite_columns = [
-        {'column': 'HelmPhone', 'kind': RewriteKind.STRIP,
-         'chars': '', 'case': CaseSensitivity.IGNORE_CASE},
-        {'column': 'HelmPhone', 'kind': RewriteKind.REMOVECHARS,
-         'chars': [' ', '-'], 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 'HelmPhone', 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^07', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 'HelmPhone', 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^\\+4607', 'to': '+467',
-         'case': CaseSensitivity.MATCH_CASE},
-        {'column': 'HelmPhone', 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^467', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 'HelmPhone', 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE}]
+    rewrite_phone_46_cfg(cfg=cfg, column='HelmPhone', append=False)
     cfg.s8_column_order = ['Class', 'Division', 'Nat', 'SailNo', 'Boat',
                            'HelmName', 'Club', 'HelmEmail', 'HelmPhone']
     cfg.write(to_json_filename=filename)
@@ -397,19 +344,7 @@ def generate_syntax_o2s_num(filename: str, colref: ColumnRef) -> None:
     cfg.s6_insert_columns = [
         {'column': 1, 'name': 'Division', 'value': None},
         {'column': 4, 'name': 'Boat', 'value': None}]
-    cfg.s7_rewrite_columns = [
-        {'column': 8, 'kind': RewriteKind.STRIP,
-         'chars': '', 'case': CaseSensitivity.IGNORE_CASE},
-        {'column': 8, 'kind': RewriteKind.REMOVECHARS,
-         'chars': [' ', '-'], 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 8, 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^07', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 8, 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^\\+4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 8, 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^467', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE},
-        {'column': 8, 'kind': RewriteKind.REGEX_SUBSTITUTE,
-         'from': '^4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE}]
+    rewrite_phone_46_cfg(cfg=cfg, column=8, append=False)
     cfg.write(to_json_filename=filename)
 
 

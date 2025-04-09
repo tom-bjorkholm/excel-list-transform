@@ -49,6 +49,7 @@ pip install --upgrade excel-list-transform
 | 0.7.3   | 06 Jan 2025 | 3.12.6 or newer | Example config for Sailwave to RRS  |
 | 0.7.5   | 21 Mar 2025 | 3.12.6 or newer | Example config for Sailarena to RRS |
 | 0.7.6   | 21 Mar 2025 | 3.13.2 or newer | Adapted to Python 3.13.2            |
+| 0.7.7   | 09 Apr 2025 | 3.13.3 or newer | refactor phone number rewrite cfg   |
 
 ## Running the application
 

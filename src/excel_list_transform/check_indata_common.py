@@ -1,7 +1,7 @@
 #! /usr/local/bin/python3
 """Function for common indata checks.."""
 
-# Copyright (c) 2024 Tom Björkholm
+# Copyright (c) 2024-2025 Tom Björkholm
 # MIT License
 
 

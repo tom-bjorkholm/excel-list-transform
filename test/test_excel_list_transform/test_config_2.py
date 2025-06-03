@@ -1,7 +1,7 @@
 #! /usr/local/bin/python3
 """Test the Config class (part 2 of tests)."""
 
-# Copyright (c) 2024 Tom Björkholm
+# Copyright (c) 2024-2025 Tom Björkholm
 # MIT License
 
 # pylint: disable=duplicate-code

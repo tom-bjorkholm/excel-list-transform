@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 """Handle reading and writing of an excel file."""
 
-# Copyright (c) 2024 Tom Björkholm
+# Copyright (c) 2024-2025 Tom Björkholm
 # MIT License
 
 

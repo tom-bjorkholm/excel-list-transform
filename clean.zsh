@@ -1,6 +1,6 @@
 #! /bin/zsh
 #
-# Copyright (c) 2024 Tom Björkholm
+# Copyright (c) 2024-2025 Tom Björkholm
 # MIT License
 #
 if [ ! -z "${VIRTUAL_ENV}" ] ; then

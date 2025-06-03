@@ -1,7 +1,7 @@
 #! /usr/local/bin/python3
 """Command to transform list in excel or CSV file."""
 
-# Copyright (c) 2024 Tom Björkholm
+# Copyright (c) 2024-2025 Tom Björkholm
 # MIT License
 
 

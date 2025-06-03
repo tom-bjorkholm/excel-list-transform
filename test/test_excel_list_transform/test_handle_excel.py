@@ -1,7 +1,7 @@
 #! /usr/local/bin/python3
 """The test cases for handle_excel."""
 
-# Copyright (c) 2024 Tom Björkholm
+# Copyright (c) 2024-2025 Tom Björkholm
 # MIT License
 
 # pylint: disable=duplicate-code

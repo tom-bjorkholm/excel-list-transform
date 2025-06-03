@@ -1,7 +1,7 @@
 #! /usr/local/bin/python3
 """Functions for doing transform of lists excel files."""
 
-# Copyright (c) 2024 Tom Björkholm
+# Copyright (c) 2024-2025 Tom Björkholm
 # MIT License
 
 

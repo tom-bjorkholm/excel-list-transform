@@ -1,7 +1,7 @@
 #! /usr/local/bin/python3
 """Convert data between numbered columns and named columns."""
 
-# Copyright (c) 2024 Tom Björkholm
+# Copyright (c) 2024-2025 Tom Björkholm
 # MIT License
 
 

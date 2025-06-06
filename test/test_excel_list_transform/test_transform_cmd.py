@@ -7,6 +7,8 @@
 # pylint: disable=duplicate-code
 
 from copy import deepcopy
+import sys
+from importlib.metadata import version as metadata_version
 import pytest
 from excel_list_transform.transform_cmd import transform_cmd
 from excel_list_transform.config_enums import ColumnRef
@@ -107,7 +109,7 @@ def test_excel_list_rfm_cmd_smok2(capsys,  # pylint: disable=too-many-arguments,
                            'arguments are required: -o/--output'],
                           [['-i', 'ifile', '-o', 'ofile'],
                            "(choose from example, cfg-example, " +
-                           "transform)"],
+                           "transform, version)"],
                           [['example', '-k', 'example', '-r', 'by_number'],
                            'required: -o/--output'],
                           [['example', '--output', 'of', '-i', 'in',
@@ -137,6 +139,8 @@ def test_excel_list_rfm_cmd_help(capsys, args):
     assert '-h, --help' in out
     assert 'transform' in out
     assert 'example' in out
+    assert 'version' in out
+    assert 'Only print versions of excel_list_transform' in out
     assert 'Generate example configuration file (example .cfg' in out
     assert 'Transform list in excel or CSV file. How data is' in out
     assert 'More detailed help is available for each sub-command.' \
@@ -175,3 +179,26 @@ def test_xlsr_cmd_rfmt_help(capsys, args):
     assert 'example' in out
     assert 'list in excel or CSV file' in out
     assert '' == err
+
+
+@pytest.mark.parametrize('args', [['version', '-h'],
+                                  ['version', '--help']])
+def test_xlsr_cmd_vers_help(capsys, args):
+    """Test the excel_list_transform command parsing help."""
+    with pytest.raises(SystemExit) as _:
+        transform_cmd(arguments=args)
+    out, err = capsys.readouterr()
+    assert '-h, --help' in out
+    assert 'Only print versions of excel_list_transform' in out
+    assert '' == err
+
+
+def test_version_cmd1(capsys):
+    """Test command to print version information."""
+    transform_cmd(['version'])
+    out, err = capsys.readouterr()
+    assert '' == err
+    assert f'Python .............. {".".join(map(str, sys.version_info))}' \
+        in out
+    assert f'excel_list_transform  {metadata_version("excel_list_transform")}'\
+        in out

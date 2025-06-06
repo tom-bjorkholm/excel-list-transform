@@ -14,6 +14,7 @@ from excel_list_transform.generate_cfg import generate_examplecfg
 from excel_list_transform.generate_cfg import get_example_names
 from excel_list_transform.config_enums import ColumnRef
 from excel_list_transform.str_to_enum import string_to_enum_best_match
+from excel_list_transform.version import Version
 
 
 def gen_cfg_cmd(args: argparse.Namespace) -> int:
@@ -34,6 +35,13 @@ def rfmt_cmd(args: argparse.Namespace) -> int:
     return transform_named_files(infilename=infilename,
                                  outfilename=outfilename,
                                  cfgfilename=cfgfilename)
+
+
+def version_cmd(_: argparse.Namespace) -> int:
+    """Print version information."""
+    vers = Version()
+    vers.print()
+    return 0
 
 
 USAGE_ORDER = '''
@@ -109,23 +117,35 @@ def gen_cfg_args(subparsers: SubParseAct) -> None:
     gen_cfg_args_named(subparsers=subparsers, sub_pars_name='cfg-example')
 
 
-def rfmt_args(subparsers: SubParseAct) -> None:
+def transf_args(subparsers: SubParseAct) -> None:
     """Add arguments for transform sub-command."""
-    rfmt_help = 'Transform list in excel or CSV file. How data is transformed '
-    rfmt_help += 'is described in a configuration file. Name of input file, '
-    rfmt_help += 'output file and configuration file is given as command '
-    rfmt_help += 'line arguments.'
-    rfmt_parser = subparsers.add_parser('transform', help=rfmt_help,
-                                        epilog=USAGE_ORDER,
-                                        description=rfmt_help + SEE_MAIN_HELP)
-    rfmt_parser.set_defaults(func=rfmt_cmd)
-    rfmt_parser.add_argument('-c', '--cfg', nargs=1, required=True,
-                             help='Configuation file name to use.')
-    rfmt_parser.add_argument('-i', '--input', nargs=1,
-                             help='Name of input file.', required=True)
-    rfmt_parser.add_argument('-o', '--output', nargs=1,
-                             help='Name of output file to create.',
-                             required=True)
+    transf_help = 'Transform list in excel or CSV file. How data is '
+    transf_help += 'transformed is described in a configuration file. Name '
+    transf_help += 'of input file, output file and configuration file is '
+    transf_help += 'given as command line arguments.'
+    transf_parser = subparsers.add_parser('transform', help=transf_help,
+                                          epilog=USAGE_ORDER,
+                                          description=transf_help +
+                                          SEE_MAIN_HELP)
+    transf_parser.set_defaults(func=rfmt_cmd)
+    transf_parser.add_argument('-c', '--cfg', nargs=1, required=True,
+                               help='Configuation file name to use.')
+    transf_parser.add_argument('-i', '--input', nargs=1,
+                               help='Name of input file.', required=True)
+    transf_parser.add_argument('-o', '--output', nargs=1,
+                               help='Name of output file to create.',
+                               required=True)
+
+
+def version_args(subparsers: SubParseAct) -> None:
+    """Add arguments for version sub-command."""
+    version_help = 'Only print versions of excel_list_transform '
+    version_help += 'and of main modules used by it and of Python.'
+    version_parser = subparsers.add_parser('version', help=version_help,
+                                           epilog=USAGE_ORDER,
+                                           description=version_help +
+                                           SEE_MAIN_HELP)
+    version_parser.set_defaults(func=version_cmd)
 
 
 def transform_cmd(arguments: Optional[list[str]] = None) -> None:
@@ -146,7 +166,8 @@ def transform_cmd(arguments: Optional[list[str]] = None) -> None:
                                      description=desc, epilog=epimain)
     subparsers = parser.add_subparsers(dest='subparser_name', required=True)
     gen_cfg_args(subparsers)
-    rfmt_args(subparsers)
+    transf_args(subparsers)
+    version_args(subparsers)
     args = parser.parse_args(args=fixed_args)
     _ = args.func(args)
 

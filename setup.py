@@ -15,11 +15,11 @@ setup(
   package_data={'excel_list_transform': ['src/py.typed']},
   install_requires=[
     'openpyxl >= 3.1.5',
-    'types-openpyxl >= 3.1.5.20250306',
+    'types-openpyxl >= 3.1.5.20250602',
     'pylightxl >= 1.61',
-    'XlsxWriter >= 3.2.2',
+    'XlsxWriter >= 3.2.3',
     'pip >= 25.0.1',
-    'setuptools >= 78.1.0',
+    'setuptools >= 80.9.0',
     'build >= 1.2.2.post1',
     'wheel>=0.45.1'
   ]

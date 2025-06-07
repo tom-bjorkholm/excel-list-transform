@@ -8,19 +8,67 @@
 # https://realpython.com/openpyxl-excel-spreadsheets-python/
 
 import sys
+from datetime import datetime, date, time
 from copy import deepcopy
-from typing import Optional
-from openpyxl import load_workbook as openpyxl_load_workbook
-from openpyxl import Workbook as openpyxl_wb
+from typing import Optional, TypeAlias, Any
+from decimal import Decimal
 from xlsxwriter import Workbook as xlsxwriter_wb  # type: ignore
 from pylightxl import readxl as pl_readxl  # type: ignore
 from pylightxl import Database as pl_db, writexl as pl_writexl
+from openpyxl import load_workbook as openpyxl_load_workbook
+from openpyxl import Workbook as openpyxl_wb
+try:
+    # only availabe in mypy, flake8 and pylint, not in python
+    from openpyxl.cell import _CellGetValue  # pylint: disable=unused-import  # noqa: F401,E501
+except ImportError:
+    pass
 from excel_list_transform.commontypes import NameData, NameDataMap, \
-    NumData, NumDataSeq
+    NumData, NumDataSeq, NumRow
 from excel_list_transform.config_enums import ExcelLib
 from excel_list_transform.handle_empty_column import handle_empty_column_in_lst
 from excel_list_transform.num_named_conversion import \
     named_cols_from_num_cols, num_cols_from_named_cols
+
+
+_AnyCellValue: TypeAlias = Any  # AnyOf _CellGetValue # noqa: Y047
+seentypes: list[str] = []
+
+
+def fix_row_openpyxl(row: tuple[_AnyCellValue, ...],
+                     max_column_reed: int) -> NumRow:
+    """Convert types in row from openpyxl to those supported."""
+    ret: NumRow = []
+    colnum = 0
+    for cell in row:
+        if colnum >= max_column_reed:
+            continue
+        colnum += 1
+        if cell is None:
+            ret.append(None)
+        elif isinstance(cell, (str, int, float, datetime)):
+            assert isinstance(cell, (str, int, float, datetime))
+            ret.append(cell)
+        elif isinstance(cell, date):
+            assert isinstance(cell, date)
+            ret.append(datetime(year=cell.year,
+                                month=cell.month,
+                                day=cell.month))
+        elif isinstance(cell, Decimal):
+            assert isinstance(cell, Decimal)
+            ret.append(float(cell))
+        elif isinstance(cell, time):
+            assert isinstance(cell, time)
+            ret.append(cell.isoformat())
+        else:
+            typename = type(cell).__name__
+            if typename not in seentypes:
+                print('Sorry, cells with value of type ' +
+                      f'{typename} are not supported\n' +
+                      'Trying to convert to string.',
+                      file=sys.stderr)
+                seentypes.append(typename)
+            ret.append(str(cell))
+    return ret
 
 
 def read_excel_openpyxl(filename: str,
@@ -33,7 +81,7 @@ def read_excel_openpyxl(filename: str,
     assert sheet is not None
     res: NumData = []
     for row in sheet.iter_rows(values_only=True):
-        res.append(list(row)[:max_column_read])
+        res.append(fix_row_openpyxl(row, max_column_reed=max_column_read))
     return handle_empty_column_in_lst(res)
 
 

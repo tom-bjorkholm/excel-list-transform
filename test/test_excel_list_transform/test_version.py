@@ -1,6 +1,10 @@
 #! /usr/local/bin/python3
 """Test recode command and recode function."""
 
+# Copyright (c) 2024-2025 Tom Björkholm
+# MIT License
+
+
 import sys
 import pytest
 from excel_list_transform.version import Version, VersionInfo

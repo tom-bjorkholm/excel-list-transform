@@ -52,7 +52,7 @@ def fix_row_openpyxl(row: tuple[_AnyCellValue, ...],
             assert isinstance(cell, date)
             ret.append(datetime(year=cell.year,
                                 month=cell.month,
-                                day=cell.month))
+                                day=cell.day))
         elif isinstance(cell, Decimal):
             assert isinstance(cell, Decimal)
             ret.append(float(cell))

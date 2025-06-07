@@ -8,10 +8,12 @@
 
 
 from tempfile import TemporaryDirectory
+from datetime import datetime, date, time
+from decimal import Decimal
 import pytest
 from excel_list_transform.handle_excel import \
     read_excel_num, write_excel_num, read_excel_named, write_excel_named, \
-    excel_data_strip
+    excel_data_strip, fix_row_openpyxl
 from excel_list_transform.config_excel_list_transform import ExcelLib
 
 
@@ -224,3 +226,48 @@ def test_excel_data_strip(capsys, ind, stitle, svalue, outd):
     assert res == outd
     assert '' == out
     assert '' == err
+
+
+@pytest.mark.parametrize('row,maxc,expected',
+                         [((1, 2, 3), 1, [1]),
+                          ((2, 'a', 1.0, 'b'), 3, [2, 'a', 1.0]),
+                          ((datetime(year=2025, month=6, day=7,
+                                     hour=22, minute=14),
+                            date(year=2014, month=12, day=25),
+                            time(hour=22, minute=24, second=59)),
+                           20,
+                           [datetime(year=2025, month=6, day=7,
+                                     hour=22, minute=14),
+                            datetime(year=2014, month=12, day=25),
+                            '22:24:59']),
+                          ((Decimal('1.5'), 2, Decimal(4.0)), 10,
+                           [1.5, 2, 4.0])])
+def test_fix_row_openpyxl_ok(capsys, row, maxc, expected):
+    """Test fix_row_openpyxl for OK cases."""
+    ret = fix_row_openpyxl(row=row, max_column_reed=maxc)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert '' == err
+    assert ret == expected
+
+
+@pytest.mark.parametrize('row,maxc,expected,errtxt',
+                         [((1, [3, 2], 4), 5, [1, '[3, 2]', 4],
+                           'Sorry, cells with value of type ' +
+                           'list are not supported\n' +
+                           'Trying to convert to string.\n'),
+                          (({'a': 'b'}, (4, 5), {'c': 5}), 5,
+                           ["{'a': 'b'}", "(4, 5)", "{'c': 5}"],
+                           'Sorry, cells with value of type ' +
+                           'dict are not supported\n' +
+                           'Trying to convert to string.\n'
+                           'Sorry, cells with value of type ' +
+                           'tuple are not supported\n' +
+                           'Trying to convert to string.\n')])
+def test_fix_row_openpyxl_str(capsys, row, maxc, expected, errtxt):
+    """Test fix_row_openpyxl for OK cases."""
+    ret = fix_row_openpyxl(row=row, max_column_reed=maxc)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert errtxt == err
+    assert ret == expected

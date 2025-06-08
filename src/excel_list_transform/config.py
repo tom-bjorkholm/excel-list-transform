@@ -387,6 +387,11 @@ class Config():
             if 'unknown encoding' in str(exc):
                 return False
             raise exc  # pragma: no cover
+        except OSError as exc:
+            # workaround for Python 3.10 bug
+            if 'Bad file descriptor' in str(exc):
+                return False
+            raise exc  # pragma: no cover
         return True
 
     @staticmethod

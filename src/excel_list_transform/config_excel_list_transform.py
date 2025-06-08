@@ -8,7 +8,7 @@
 import sys
 from copy import deepcopy
 from enum import Enum
-from typing import Optional, Callable, TypeAlias, TypeVar, NamedTuple, Generic
+from typing import Optional, Callable, TypeAlias, TypeVar, Generic
 from csv import Dialect
 from excel_list_transform.config import Config, ParseConverter
 from excel_list_transform.config_enums import FileType, SplitWhere, \
@@ -45,7 +45,7 @@ NoDupKeydType: TypeAlias = \
     Rule[Column] | RuleMerge[Column] | RuleSplit[Column]
 
 
-class ColInfo(NamedTuple, Generic[Column]):
+class ColInfo(Generic[Column]):  # pylint: disable=too-few-public-methods
     """Information about columns to pass to ConfigExcelListTransform init."""
 
     split_last: str
@@ -54,6 +54,18 @@ class ColInfo(NamedTuple, Generic[Column]):
     s6: Rule[Column]
     col_to_use: list[Column]
     tinfo: Column
+
+    def __init__(self,  # pylint: disable=too-many-arguments, too-many-positional-arguments # noqa: E501
+                 split_last: str, insert_last: Optional[str],
+                 s1: RuleSplit[Column], s6: Rule[Column],
+                 col_to_use: list[Column], tinfo: Column):
+        """Create a ColInfo object."""
+        self.split_last = split_last
+        self.insert_last = insert_last
+        self.s1 = s1
+        self.s6 = s6
+        self.col_to_use = col_to_use
+        self.tinfo = tinfo
 
 
 class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-many-instance-attributes, line-too-long # noqa: E501

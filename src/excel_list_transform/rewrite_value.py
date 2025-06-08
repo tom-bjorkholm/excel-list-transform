@@ -7,11 +7,12 @@
 
 from copy import deepcopy
 import sys
-from typing import Optional, assert_never
+from typing import Optional
 from re import compile as re_compile
 from re import Pattern
 from re import IGNORECASE as re_IGNORECASE
 from re import error as re_error
+from typing_extensions import assert_never
 from excel_list_transform.commontypes import get_checked_type
 from excel_list_transform.config_enums import RewriteKind, CaseSensitivity
 from excel_list_transform.config_excel_list_transform import \

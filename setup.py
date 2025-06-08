@@ -5,11 +5,11 @@ from setuptools import setup
 
 setup(
   name='excel-list-transform',
-  version='0.7.11',
+  version='0.7.10',
   description='Transform a list in excel or CSV.',
   author='Tom Björkholm',
   author_email='klausuler_linnet0q@icloud.com',
-  python_requires='<3.13,>=3.12',
+  python_requires='<3.12,>=3.11',
   packages=['excel_list_transform'],
   package_dir={'excel_list_transform': 'src/excel_list_transform'},
   package_data={'excel_list_transform': ['src/py.typed']},

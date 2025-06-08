@@ -6,7 +6,7 @@
 
 # pylint: disable=duplicate-code
 
-from tempfile import NamedTemporaryFile as ntf
+from tempfile import TemporaryDirectory
 from json import JSONDecodeError
 import pytest
 from excel_list_transform.config_enums import ColumnRef
@@ -78,12 +78,13 @@ def test_cfg_fact_get_text_ok_txt(capsys, txt):
 
 def test_cfg_fact_get_text_bad_enc(capsys):
     """Test bad UTF-8 encoding in file for _config_factory_get_text."""
-    with ntf(mode='wb', delete_on_close=False) as tmpf:
-        byt = [255, 1, 255, 0]
-        tmpf.write(bytes(byt))
-        tmpf.close()
+    with TemporaryDirectory() as td:
+        fname = td + '/a.cfg'
+        with open(file=fname, mode='w+b') as tmpf:
+            byt = [255, 1, 255, 0]
+            tmpf.write(bytes(byt))
         with pytest.raises(UnicodeDecodeError) as exc:
-            _ = _config_factory_get_text(from_json_filename=tmpf.name,
+            _ = _config_factory_get_text(from_json_filename=fname,
                                          from_json_text=None)
         out, err = capsys.readouterr()
         assert 'invalid' in str(exc)
@@ -94,10 +95,11 @@ def test_cfg_fact_get_text_bad_enc(capsys):
 @pytest.mark.parametrize('txt', ['some text', 'another'])
 def test_cfg_fact_get_text_ok_enc(capsys, txt):
     """Test good UTF-8 encoding in file for _config_factory_get_text."""
-    with ntf(mode='w', delete_on_close=False) as tmpf:
-        print(txt, file=tmpf)
-        tmpf.close()
-        ret = _config_factory_get_text(from_json_filename=tmpf.name,
+    with TemporaryDirectory() as td:
+        fname = td + '/a.cfg'
+        with open(file=fname, mode='w', encoding='utf-8') as tmpf:
+            print(txt, file=tmpf)
+        ret = _config_factory_get_text(from_json_filename=fname,
                                        from_json_text=None)
         out, err = capsys.readouterr()
         assert ret.strip() == txt.strip()
@@ -162,9 +164,8 @@ def test_cfg_fact_fr_json_ok_txt(capsys, kind):
 def test_cfg_fact_fr_json_ok_file(capsys, kind):
     """Test OK cases txt of config_factory_from_json."""
     orig = kind()
-    with ntf(delete_on_close=False) as file:
-        fname = file.name
-        file.close()
+    with TemporaryDirectory() as td:
+        fname = td + '/b.cfg'
         orig.write(to_json_filename=fname)
         cfg = config_factory_from_json(from_json_text=None,
                                        from_json_filename=fname)

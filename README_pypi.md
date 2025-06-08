@@ -50,6 +50,10 @@ pip install --upgrade excel-list-transform
 | 0.7.5   | 21 Mar 2025 | 3.12.6 or newer | Example config for Sailarena to RRS |
 | 0.7.6   | 21 Mar 2025 | 3.13.2 or newer | Adapted to Python 3.13.2            |
 | 0.7.7   | 09 Apr 2025 | 3.13.3 or newer | refactor phone number rewrite cfg   |
+| 0.7.9   | 09 Jun 2025 | 3.10.x          | Backport 0.7.12 to Python 3.10      |
+| 0.7.10  | 09 Jun 2025 | 3.11.x          | Backport 0.7.12 to Python 3.11      |
+| 0.7.11  | 09 Jun 2025 | 3.12.x          | Backport 0.7.12 to Python 3.12      |
+| 0.7.12  | 09 Jun 2025 | 3.13 or newer   | Add version sub-command             |
 
 ## Running the application
 
@@ -57,6 +61,7 @@ pip install --upgrade excel-list-transform
 
 ````sh
 python3 -m excel_list_transform --help
+python3 -m excel_list_transform version
 python3 -m excel_list_transform cfg-example --help
 python3 -m excel_list_transform transform --help
 python3 -m excel_list_transform cfg-example -k forms_to_rrs -r by_name -o example.cfg
@@ -67,6 +72,7 @@ python3 -m excel_list_transform transform -c example.cfg -i input.xlsx -o output
 
 ````sh
 python -m excel_list_transform --help
+python -m excel_list_transform version
 python -m excel_list_transform cfg-example --help
 python -m excel_list_transform transform --help
 python -m excel_list_transform cfg-example -k forms_to_rrs -r by_name -o example.cfg

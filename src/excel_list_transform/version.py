@@ -7,9 +7,9 @@
 
 import sys
 from importlib.metadata import version as metadata_version
-from typing import Optional
+from typing import Optional, TypeAlias
 
-type VersionInfo = dict[str, str]
+VersionInfo: TypeAlias = dict[str, str]
 
 
 class Version():

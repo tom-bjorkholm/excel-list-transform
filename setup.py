@@ -9,7 +9,7 @@ setup(
   description='Transform a list in excel or CSV.',
   author='Tom Björkholm',
   author_email='klausuler_linnet0q@icloud.com',
-  python_requires='>=3.13.3',
+  python_requires='>=3.13',
   packages=['excel_list_transform'],
   package_dir={'excel_list_transform': 'src/excel_list_transform'},
   package_data={'excel_list_transform': ['src/py.typed']},

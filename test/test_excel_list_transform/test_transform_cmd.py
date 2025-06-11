@@ -212,7 +212,7 @@ def test_version_cmd1(capsys):
                            date(year=2024, month=12, day=25), False),
                           ((3, 10, 11, 75, 0),
                            date(year=2027, month=12, day=25), True)])
-def test_version_check_if_u(capsys, monkeypatch, ver, dat, errprint):
+def test_cmd_ver_check_if_u(capsys, monkeypatch, ver, dat, errprint):
     """Test version check if unsupported python widh old Python."""
     monkeypatch.setattr('excel_list_transform.version.sys.version_info',
                         ver)

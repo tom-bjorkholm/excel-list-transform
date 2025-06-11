@@ -150,6 +150,7 @@ def version_args(subparsers: SubParseAct) -> None:
 
 def transform_cmd(arguments: Optional[list[str]] = None) -> None:
     """Command to transform list in excel or CSV file."""
+    Version().check_if_unsupported_python()
     epimain = 'More detailed help is available for each sub-command.'
     if arguments is None:  # pragma: no cover
         arguments = sys_argv

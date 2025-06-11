@@ -53,7 +53,8 @@ pip install --upgrade excel-list-transform
 | 0.7.9   | 09 Jun 2025 | 3.10.x          | Backport 0.7.12 to Python 3.10      |
 | 0.7.10  | 09 Jun 2025 | 3.11.x          | Backport 0.7.12 to Python 3.11      |
 | 0.7.11  | 09 Jun 2025 | 3.12.x          | Backport 0.7.12 to Python 3.12      |
-| 0.7.12  | 09 Jun 2025 | 3.13 or newer   | Add version sub-command             |
+| 0.7.12  | 09 Jun 2025 | 3.13.3 or newer | Add version sub-command             |
+| 0.7.13  | 11 Jun 2025 | 3.13 or newer   | Relax Python version requirement    |
 
 ## Running the application
 

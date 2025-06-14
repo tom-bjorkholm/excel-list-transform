@@ -21,6 +21,9 @@ from excel_list_transform.commontypes import JsonType
 
 Keya = TypeVar('Keya', str, Enum, RewriteKind)
 
+BackwardCompatible = NamedTuple('BackwardCompatible',
+                                [('old', str), ('new', str)])
+
 
 class ConfigEncoder(json.JSONEncoder):
     """Encoder for enumerations in config."""
@@ -169,6 +172,59 @@ class Config():
             if key not in json_data:
                 json_data[key] = value
 
+    def _backward_compatible(self) -> list[BackwardCompatible]:
+        """Get names of backward compatible config parameters.
+
+        Derived class shall override this method if it has
+        backward compatible config parameter names.
+        """
+        return []
+
+    @staticmethod
+    def _bwcompat_single(rename: BackwardCompatible,
+                         json_data: dict[str, JsonType]) -> None:
+        """Find and rename a single backward compatible in JSON data."""
+        assert rename.old is not None
+        assert rename.new is not None
+        assert rename.old != rename.new
+        if rename.old in json_data:
+            if rename.new in json_data:
+                print('Inconsistent configuration:', file=sys.stderr)
+                print(f'Both new config parameter {rename.new} and '
+                      f'old {rename.old} present.',
+                      file=sys.stderr)
+                print(f'Ignoring old parameter {rename.old}', file=sys.stderr)
+                del json_data[rename.old]
+            else:
+                json_data[rename.new] = json_data[rename.old]
+                del json_data[rename.old]
+        for _, value in json_data.items():
+            if isinstance(value, dict):
+                assert isinstance(value, dict)
+                Config._bwcompat_single(rename=rename, json_data=value)
+            if isinstance(value, list):
+                assert isinstance(value, list)
+                Config._bwcompat_single_lst(rename=rename, json_data=value)
+
+    @staticmethod
+    def _bwcompat_single_lst(rename: BackwardCompatible,
+                             json_data: list[JsonType]) -> None:
+        """Find and rename a single backward compatible in JSON data."""
+        for value in json_data:
+            if isinstance(value, dict):
+                assert isinstance(value, dict)
+                Config._bwcompat_single(rename=rename, json_data=value)
+            if isinstance(value, list):
+                assert isinstance(value, list)
+                Config._bwcompat_single_lst(rename=rename, json_data=value)
+
+    def _rename_backward_compatible(self,
+                                    json_data: dict[str, JsonType]) -> None:
+        """Rename any backward compatible config parameter to new name."""
+        bwcompat = self._backward_compatible()
+        for name in bwcompat:
+            self._bwcompat_single(rename=name, json_data=json_data)
+
     def parse_json(self, from_json_text: str,
                    ok_to_use_defaults: bool = False) -> None:
         """Parse a string of JSON data and set self to that."""
@@ -190,6 +246,7 @@ class Config():
                 raise ConfigBadJson(msg=msg, doc=exc.doc, pos=exc.pos) from exc
             raise ConfigBadJson(msg=msg, doc='', pos=0) from exc
         self._add_optional_configs(data)
+        self._rename_backward_compatible(data)
         self_keys = [i for i in vars(self).keys() if not
                      callable(getattr(self, i)) and not i.startswith('_')]
         self.check_key_match(self_keys, data.keys(), ok_to_use_defaults)

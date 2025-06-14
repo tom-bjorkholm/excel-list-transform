@@ -7,8 +7,9 @@
 # pylint: disable=duplicate-code
 
 from typing import Optional  # pylint: disable=unused-import,ungrouped-imports # noqa: E501
+from copy import deepcopy
 import pytest
-from excel_list_transform.config import Config
+from excel_list_transform.config import Config, BackwardCompatible
 from excel_list_transform.commontypes import JsonType
 
 
@@ -121,3 +122,115 @@ def test_cfg_def_val_json_nok(capsys, jstext):
     out, err = capsys.readouterr()
     assert '' == out
     assert 'No value for ab in' in err
+
+
+@pytest.mark.parametrize('ind, outd, ren, errtxt',
+                         [({'foo': 12, 'bar': 'data'},
+                           {'foo': 12, 'bar': 'data'},
+                           BackwardCompatible(old='star', new='sun'), ''),
+                          ({'foo': 12, 'bar': 'data'},
+                           {'sun': 12, 'bar': 'data'},
+                           BackwardCompatible(old='foo', new='sun'), ''),
+                          ({'foo': 12, 'bar': 'data'},
+                           {'foo': 12, 'sun': 'data'},
+                           BackwardCompatible(old='bar', new='sun'), ''),
+                          ({'foo': 12, 'bar': 'data'},
+                           {'foo': 12},
+                           BackwardCompatible(old='bar', new='foo'),
+                           'Inconsistent configuration:\n' +
+                           'Both new config parameter foo and old bar ' +
+                           'present.\nIgnoring old parameter bar\n'),
+                          ({'foo': {'a': 'b', 'bar': 'c'}, 'bar': 'data'},
+                           {'foo': {'a': 'b', 'sun': 'c'}, 'sun': 'data'},
+                           BackwardCompatible(old='bar', new='sun'), ''),
+                          ({'foo': {'a': 'b', 'foo': 'c'}, 'bar': 'data'},
+                           {'sun': {'a': 'b', 'sun': 'c'}, 'bar': 'data'},
+                           BackwardCompatible(old='foo', new='sun'), ''),
+                          ({'foo': {'foo': 'b', 'bar': 'c'}, 'bar': 'data'},
+                           {'sun': {'sun': 'b', 'bar': 'c'}, 'bar': 'data'},
+                           BackwardCompatible(old='foo', new='sun'), ''),
+                          ({'a': [{'a': 1, 'b': 2}, {'a': 3, 'b': 4}], 'b': 5},
+                           {'c': [{'c': 1, 'b': 2}, {'c': 3, 'b': 4}], 'b': 5},
+                           BackwardCompatible(old='a', new='c'), '')])
+def test_bw_compat_single1(capsys, ind, outd, ren, errtxt):
+    """Test Config._bwcompat_single for case 1."""
+    data = deepcopy(ind)
+    Config._bwcompat_single(rename=ren,  # pylint: disable=protected-access # noqa: E501
+                            json_data=data)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert err == errtxt
+    assert data == outd
+
+
+@pytest.mark.parametrize('ren',
+                         [BackwardCompatible(old=None, new='sun'),
+                          BackwardCompatible(old='foo', new=None),
+                          BackwardCompatible(old='foo', new='foo')])
+def test_bw_compat_single2(capsys, ren):
+    """Test Config._bwcompat_single for not OK case."""
+    with pytest.raises(AssertionError):
+        Config._bwcompat_single(rename=ren,  # pylint: disable=protected-access # noqa: E501
+                                json_data={'a': 'b'})
+    out, _ = capsys.readouterr()
+    assert '' == out
+
+
+@pytest.mark.parametrize('ind,outd,ren,errtxt',
+                         [([{'a': 2, 'b': 'c'},
+                            {'a': 4, 'b': 'd'}],
+                           [{'e': 2, 'b': 'c'},
+                            {'e': 4, 'b': 'd'}],
+                           BackwardCompatible(old='a', new='e'), ''),
+                          ([{'foo': 12, 'bar': 'data'},
+                            {'fff': 14, 'bar': 'other'}],
+                           [{'foo': 12}, {'fff': 14, 'foo': 'other'}],
+                           BackwardCompatible(old='bar', new='foo'),
+                           'Inconsistent configuration:\n' +
+                           'Both new config parameter foo and old bar ' +
+                           'present.\nIgnoring old parameter bar\n'),
+                          ([[{'a': 1, 'b': 2}, {'a': 3, 'b': 4}]],
+                           [[{'a': 1, 'c': 2}, {'a': 3, 'c': 4}]],
+                           BackwardCompatible(old='b', new='c'), '')])
+def test_bwcompat_single_lst1(capsys, ind, outd, ren, errtxt):
+    """Test Config._bwcompat_single_lst for case 1."""
+    data = deepcopy(ind)
+    Config._bwcompat_single_lst(rename=ren,  # pylint: disable=protected-access # noqa: E501
+                                json_data=data)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert err == errtxt
+    assert data == outd
+
+
+class DummyCfg(Config):
+    """Dummy Config for testing only."""
+
+    def __init__(self):
+        """Create a DummyCfg object."""
+        self.aa = 'text'
+        super().__init__(from_json_data_text='{ "aa": "text" }',
+                         from_json_filename=None)
+
+    def _backward_compatible(self) -> list[BackwardCompatible]:
+        return [
+            BackwardCompatible(old='a', new='x'),
+            BackwardCompatible(old='b', new='y'),
+            BackwardCompatible(old='c', new='z')
+        ]
+
+
+@pytest.mark.parametrize('ind,outd,errtxt',
+                         [({'p': [{'a': 2, 'b': 'c'}, {'a': 4, 'b': 'd'}]},
+                           {'p': [{'x': 2, 'y': 'c'}, {'x': 4, 'y': 'd'}]},
+                           '')])
+def test_rename_backward_compatible(capsys, ind, outd, errtxt):
+    """Test Config._rename_backward_compatible."""
+    data = deepcopy(ind)
+    cfg = DummyCfg()
+    cfg._rename_backward_compatible(  # pylint: disable=protected-access # noqa: E501
+                                    json_data=data)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert err == errtxt
+    assert data == outd

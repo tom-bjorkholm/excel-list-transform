@@ -9,6 +9,8 @@ This python application was born out of an experience at sail racing events. At 
 This small python application:
 
 * reads data (that is a list with columns) from an excel file or from a comma separate values (CSV) file.
+* split rows in the list (creating separate rows when a cell contains something that can be split to several values, see below)
+* merge rows (if specified columns have the same value in several rows the rows are merged to one row)
 * splits columns in the list (like creating "first name" and "last name" columns from "name" column)
 * merges columns in the list (like creating "name" column from "first name" and "last name" columns)
 * removes columns in the list
@@ -55,6 +57,7 @@ pip install --upgrade excel-list-transform
 | 0.7.11  | 09 Jun 2025 | 3.12.x          | Backport 0.7.12 to Python 3.12      |
 | 0.7.12  | 09 Jun 2025 | 3.13.3 or newer | Add version sub-command             |
 | 0.7.13  | 11 Jun 2025 | 3.13 or newer   | Relax Python version requirement    |
+| 0.8.?   | ?           | ?               | Add split-row and merge-row         |
 
 ## Running the application
 
@@ -219,10 +222,10 @@ Some "s" numbers are only used if columns are referenced
 by name while other "s" numbers are only used if columns are
 referenced by number.
 
-### "s1_split_columns"
+### "s03_split_columns"
 
 The first operation that is done is splitting of columns.
-The key **"s1_split_columns"** have an array of splits to be
+The key **"s03_split_columns"** have an array of splits to be
 done. (When the list of splits has more than one split,
 the least confusion is to split columns to the right before
 columns to the left. Named references also helps to avoid
@@ -260,15 +263,15 @@ be stored in. (The other column will be empty.)
 In the case of column references *"BY_NAME"* the single value is
 always stored in the column with the original name.
 
-### "s2_remove_columns"
+### "s04_remove_columns"
 
-**"s2_remove_columns"** is only used with column references *"BY_NUMBER"*.
-The value of **"s2_remove_columns"** is a list of column numbers to
-remove. (For columns references *"BY_NAME"* see **"s8_column_order"**.)
+**"s04_remove_columns"** is only used with column references *"BY_NUMBER"*.
+The value of **"s04_remove_columns"** is a list of column numbers to
+remove. (For columns references *"BY_NAME"* see **"s10_column_order"**.)
 
-### "s3_merge_columns"
+### "s05_merge_columns"
 
-The key **"s3_merge_columns"** have an array of merges to be done.
+The key **"s05_merge_columns"** have an array of merges to be done.
 Each merge have the keys **"columns"** and **"separator"**.
 
 **"columns"** have a list of column references. If *"BY_NAME"* the
@@ -278,17 +281,17 @@ column references are column numbers.
 **"separator"** is a string of characters that is inserted between
 the column values being merged.
 
-### "s4_place_columns_first"
+### "s06_place_columns_first"
 
-**"s4_place_columns_first"** is only used with column references *"BY_NUMBER"*.
-The key **"s4_place_columns_first"** has a value that is a list of the
+**"s06_place_columns_first"** is only used with column references *"BY_NUMBER"*.
+The key **"s06_place_columns_first"** has a value that is a list of the
 column numbers to be placed first in order. This step re-orders the
 columns.
-(For columns references *"BY_NAME"* see **"s8_column_order"**.)
+(For columns references *"BY_NAME"* see **"s10_column_order"**.)
 
-### "s5_rename_columns"
+### "s07_rename_columns"
 
-The key **"s5_rename_columns"** has a value that is a list of column rename
+The key **"s07_rename_columns"** has a value that is a list of column rename
 operations. Each column rename operation has the keys **"column"** and **"name"**.
 
 **"column"** is the number/name of the column before renameing. This is a
@@ -297,9 +300,9 @@ in the sace of *"BY_NAME"*.
 
 **"name"** is the new name/title of the column identified by **"column"**.
 
-### "s6_insert_columns"
+### "s08_insert_columns"
 
-The key **"s6_insert_columns"** has a value that is a list of columns to
+The key **"s08_insert_columns"** has a value that is a list of columns to
 insert. Each column to insert is described by the keys: **"column"**,
 **"value"** and for *"BY_NUMBER"* only also **"name"**.
 
@@ -314,9 +317,9 @@ empty (with no value).
 
 **"name"** is the name/title of the column in the case of *"BY_NUMBER"*.
 
-### "s7_rewrite_columns"
+### "s09_rewrite_columns"
 
-The key **"s7_rewrite_columns"** has a value that is a list of
+The key **"s09_rewrite_columns"** has a value that is a list of
 rewrite operations that will be applied in order. Each rewrite
 operation is described by several keys.
 
@@ -361,14 +364,29 @@ when matching. The from part in the substitute from something to something.
 
 **"to"** specifies the string that substitution will replace **"from"** with.
 
-### "s8_column_order"
+### "s10_column_order"
 
-The key **"s8_column_order"** is used only in the *"BY_NAME"* case.
-The value of the **"s8_column_order"** key is a list of column names.
+The key **"s10_column_order"** is used only in the *"BY_NAME"* case.
+The value of the **"s10_column_order"** key is a list of column names.
 The columns will be output in this order.
-Columns not mentioned in **"s8_column_order"** will not be output,
+Columns not mentioned in **"s10_column_order"** will not be output,
 and will thus be removed.
-(For *"BY_NUMBER"* see **"s2_remove_columns"** and **"s4_place_columns_first"**.)
+(For *"BY_NUMBER"* see **"s04_remove_columns"** and **"s06_place_columns_first"**.)
+
+## Backward compatibility of configuration keywords
+
+Old keywords according to the table below are automatically renamed to the new keywords, when reading the configuration file.
+
+| Version 0.7.13 and lower | Version 0.8 and higher  |
+|--------------------------|-------------------------|
+| s1_split_columns         | s03_split_columns       |
+| s2_remove_columns        | s04_remove_columns      |
+| s3_merge_columns         | s05_merge_columns       |
+| s4_place_columns_first   | s06_place_columns_first |
+| s5_rename_columns        | s07_rename_columns      |
+| s6_insert_columns        | s08_insert_columns      |
+| s7_rewrite_columns       | s09_rewrite_columns     |
+| s8_column_order          | s10_column_order        |
 
 ## Source code
 

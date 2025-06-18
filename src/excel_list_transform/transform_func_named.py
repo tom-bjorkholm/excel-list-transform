@@ -24,13 +24,13 @@ from excel_list_transform.transform_func_common import \
 def rename_columns_name(indata: NameData,
                         cfg: ConfigXlsListRefmtName) -> NameData:
     """Rename columns in the list in indata with column name refs."""
-    if len(cfg.s5_rename_columns) == 0:
+    if len(cfg.s07_rename_columns) == 0:
         return indata
     ret = deepcopy(indata)
     for row in ret:
-        cols_must_exist_dict(rule=cfg.s5_rename_columns, row=row,
-                             param='s5_rename_columns', tinfo='a')
-        for i in cfg.s5_rename_columns:
+        cols_must_exist_dict(rule=cfg.s07_rename_columns, row=row,
+                             param='s07_rename_columns', tinfo='a')
+        for i in cfg.s07_rename_columns:
             from_name: str = get_checked_type(value=i['column'], istype=str)
             to_name: str = get_checked_type(value=i['name'], istype=str)
             val = row.pop(from_name)
@@ -41,15 +41,15 @@ def rename_columns_name(indata: NameData,
 def insert_columns_name(indata: NameData,
                         cfg: ConfigXlsListRefmtName) -> NameData:
     """Insert columns in the list in indata with column name refs."""
-    if len(cfg.s6_insert_columns) == 0:
+    if len(cfg.s08_insert_columns) == 0:
         return indata
     ret = deepcopy(indata)
     for row in ret:
-        for i in cfg.s6_insert_columns:
+        for i in cfg.s08_insert_columns:
             col: str = get_checked_type(value=i['column'], istype=str)
             val = i['value']
             if col in row:
-                msg = f's6_insert_columns: column "{col}" '
+                msg = f's08_insert_columns: column "{col}" '
                 msg += 'already exists.'
                 print(msg, file=sys.stderr)
                 sys.exit(1)
@@ -132,9 +132,9 @@ def transform_named_files_name(infilename: str, outfilename: str,
         write_csv_named(data=outdata, filename=outfilename,
                         dialect=cfgn.get_out_csv_dialect(),
                         encoding=cfgn.out_csv_encoding,
-                        column_order=cfgn.s8_column_order)
+                        column_order=cfgn.s10_column_order)
     else:
         write_excel_named(data=outdata, filename=outfilename,
-                          column_order=cfgn.s8_column_order,
+                          column_order=cfgn.s10_column_order,
                           excel_lib=cfgn.out_excel_library)
     print(f'Wrote {outfilename}')

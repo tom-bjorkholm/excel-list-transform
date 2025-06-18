@@ -29,7 +29,7 @@ class ConfigXlsListRefmtName(ConfigExcelListTransform[str]):  # pylint: disable=
                                s6=[{'column': 'Division', 'value': None},
                                    {'column': 'Other', 'value': 'some text'}],
                                col_to_use=col_to_use, tinfo='a')
-        self.s8_column_order: RuleOrder = \
+        self.s10_column_order: RuleOrder = \
             ['Class', 'Division', 'Nationality', 'Sail Number', 'Boat Name',
              'First Name', 'Last Name', 'Club Name', 'Email', 'Phone',
              'WhatsApp']
@@ -37,4 +37,4 @@ class ConfigXlsListRefmtName(ConfigExcelListTransform[str]):  # pylint: disable=
                          colinfo=colinfo, tinfo='a',
                          from_json_text=from_json_text,
                          from_json_filename=from_json_filename)
-        self.check_no_duplicates(self.s8_column_order, 's8_column_order')
+        self.check_no_duplicates(self.s10_column_order, 's10_column_order')

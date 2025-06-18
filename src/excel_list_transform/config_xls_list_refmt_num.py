@@ -34,8 +34,8 @@ class ConfigXlsListRefmtNum(ConfigExcelListTransform[int]):  # pylint: disable=t
                  from_json_text: Optional[str] = None,
                  from_json_filename: Optional[str] = None) -> None:
         """Construct configuration for excel list transform."""
-        self.s2_remove_columns: RuleRemove = [1, 2, 3]
-        self.s4_place_columns_first: RulePlace = [7, 3, 6]
+        self.s04_remove_columns: RuleRemove = [1, 2, 3]
+        self.s06_place_columns_first: RulePlace = [7, 3, 6]
         col_to_use = [15, 16, 1, 2, 5, 5, 5, 5, 5, 6]
         colinfo: ColInfo[int] = \
             ColInfo[int](split_last='store_single', insert_last='name',
@@ -51,20 +51,20 @@ class ConfigXlsListRefmtNum(ConfigExcelListTransform[int]):  # pylint: disable=t
                          colinfo=colinfo, tinfo=2,
                          from_json_text=from_json_text,
                          from_json_filename=from_json_filename)
-        self.check_no_duplicates(self.s2_remove_columns,
-                                 's2_remove_columns')
-        self._check_increasing_multi(self.s3_merge_columns,
-                                     's3_merge_columns', 2)
-        self.check_no_duplicates(self.s4_place_columns_first,
-                                 's4_place_columns_first')
+        self.check_no_duplicates(self.s04_remove_columns,
+                                 's04_remove_columns')
+        self._check_increasing_multi(self.s05_merge_columns,
+                                     's05_merge_columns', 2)
+        self.check_no_duplicates(self.s06_place_columns_first,
+                                 's06_place_columns_first')
 
     def sort_sx_hook(self) -> None:
         """Sort s[0-9]_ as needed as needed (hook)."""
-        self.s1_split_columns = sorted(self.s1_split_columns, key=get_column)
-        self.s2_remove_columns = sorted(self.s2_remove_columns)
-        self.s3_merge_columns = sorted(self.s3_merge_columns,
-                                       key=get_merge_first_column)
-        self.s5_rename_columns = sorted(self.s5_rename_columns,
-                                        key=get_column)
-        self.s6_insert_columns = sorted(self.s6_insert_columns,
-                                        key=get_column)
+        self.s03_split_columns = sorted(self.s03_split_columns, key=get_column)
+        self.s04_remove_columns = sorted(self.s04_remove_columns)
+        self.s05_merge_columns = sorted(self.s05_merge_columns,
+                                        key=get_merge_first_column)
+        self.s07_rename_columns = sorted(self.s07_rename_columns,
+                                         key=get_column)
+        self.s08_insert_columns = sorted(self.s08_insert_columns,
+                                         key=get_column)

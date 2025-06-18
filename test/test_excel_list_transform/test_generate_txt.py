@@ -33,6 +33,6 @@ def test_generate_syntax_txt(capsys, txt_file, edescr, cfg_file):
     assert edescr in content
     assert 'Explanation for example configuration file' in content
     assert cfg_file in content
-    assert 's8_column_order' in content
+    assert 's10_column_order' in content
     assert '' == out
     assert '' == err

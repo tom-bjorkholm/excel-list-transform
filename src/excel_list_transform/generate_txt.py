@@ -127,10 +127,10 @@ def generate_syntax_txt(filename: str, example_description: str,
     referenced by number.
 
 
-    "s1_split_columns"
+    "s03_split_columns"
     ==================
     The first operation that is done is splitting of columns.
-    The key "s1_split_columns" have an array of splits to be
+    The key "s03_split_columns" have an array of splits to be
     done. (When the list of splits has more than one split,
     the least confusion is to split columns to the right before
     columns to the left. Named references also helps to avoid
@@ -169,17 +169,17 @@ def generate_syntax_txt(filename: str, example_description: str,
     always stored in the column with the original name.
 
 
-    "s2_remove_columns"
+    "s04_remove_columns"
     ===================
-    "s2_remove_columns" is only used with column references "BY_NUMBER".
-    The value of "s2_remove_columns" is a list of column numbers to
+    "s04_remove_columns" is only used with column references "BY_NUMBER".
+    The value of "s04_remove_columns" is a list of column numbers to
     remove.
-    (For columns references "BY_NAME" see "s8_column_order".)
+    (For columns references "BY_NAME" see "s10_column_order".)
 
 
-    "s3_merge_columns"
+    "s05_merge_columns"
     ==================
-    The key "s3_merge_columns" have an array of merges to be done.
+    The key "s05_merge_columns" have an array of merges to be done.
     Each merge have the keys "columns" and "separator"
 
     "columns" have a list of column references. If "BY_NAME" the
@@ -190,18 +190,18 @@ def generate_syntax_txt(filename: str, example_description: str,
     the column values being merged.
 
 
-    "s4_place_columns_first"
+    "s06_place_columns_first"
     ========================
-    "s4_place_columns_first" is only used with column references "BY_NUMBER".
-    The key "s4_place_columns_first" has a value that is a list of the
+    "s06_place_columns_first" is only used with column references "BY_NUMBER".
+    The key "s06_place_columns_first" has a value that is a list of the
     column numbers to be placed first in order. This step re-orders the
     columns.
-    (For columns references "BY_NAME" see "s8_column_order".)
+    (For columns references "BY_NAME" see "s10_column_order".)
 
 
-    "s5_rename_columns"
+    "s07_rename_columns"
     ===================
-    The key "s5_rename_columns" has a value that is a list of column rename
+    The key "s07_rename_columns" has a value that is a list of column rename
     operations. Each column rename operation has the keys "column" and "name"
 
     "column" is the number/name of the column before renameing. This is a
@@ -211,9 +211,9 @@ def generate_syntax_txt(filename: str, example_description: str,
     "name" is the new name/title of the column identified by "column".
 
 
-    "s6_insert_columns"
+    "s08_insert_columns"
     ===================
-    The key "s6_insert_columns" has a value that is a list of columns to
+    The key "s08_insert_columns" has a value that is a list of columns to
     insert. Each column to insert is described by the keys: "column",
     "value" and for "BY_NUMBER" only "name",
 
@@ -229,9 +229,9 @@ def generate_syntax_txt(filename: str, example_description: str,
     "name" is the name/title of the column in the case of "BY_NUMBER".
 
 
-    "s7_rewrite_columns"
+    "s09_rewrite_columns"
     ====================
-    The key "s7_rewrite_columns" has a value that is a list of
+    The key "s09_rewrite_columns" has a value that is a list of
     rewrite operations that will be applied in order. Each rewrite
     operation is described by several keys.
 
@@ -277,14 +277,14 @@ def generate_syntax_txt(filename: str, example_description: str,
     "to" specifies the string that substitution will replace "from" with.
 
 
-    "s8_column_order"
+    "s10_column_order"
     =================
-    The key "s8_column_order" is used only in the "BY_NAME" case.
-    The value of the "s8_column_order" key is a list of column names.
+    The key "s10_column_order" is used only in the "BY_NAME" case.
+    The value of the "s10_column_order" key is a list of column names.
     The columns will be output in this order.
-    Columns not mentioned in "s8_column_order" will not be output,
+    Columns not mentioned in "s10_column_order" will not be output,
     and will thus be removed.
-    (For "BY_NUMBER" see "s2_remove_columns" and "s4_place_columns_first".)
+    (For "BY_NUMBER" see "s04_remove_columns" and "s06_place_columns_first".)
     '''
     with open(file=filename, mode='w', encoding='utf-8') as file:
         print(f'Explanation for example configuration file {cfgfilename}',

@@ -10,7 +10,8 @@ from copy import deepcopy
 from enum import Enum
 from typing import Optional, Callable, TypeAlias, TypeVar, NamedTuple, Generic
 from csv import Dialect
-from excel_list_transform.config import Config, ParseConverter
+from excel_list_transform.config import Config, ParseConverter, \
+    BackwardCompatible
 from excel_list_transform.config_enums import FileType, SplitWhere, \
     ExcelLib, RewriteKind, CaseSensitivity, ColumnRef
 from excel_list_transform.str_to_enum import string_to_enum_best_match
@@ -86,15 +87,15 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
         self.in_excel_library: ExcelLib = ExcelLib.PYLIGHTXL
         self.out_excel_library: ExcelLib = ExcelLib.PYLIGHTXL
         self.out_type: FileType = FileType.EXCEL
-        self.s1_split_columns: RuleSplit[Column] = colinfo.s1
-        self.s3_merge_columns: RuleMerge[Column] = \
+        self.s03_split_columns: RuleSplit[Column] = colinfo.s1
+        self.s05_merge_columns: RuleMerge[Column] = \
             [{'columns': [col2use.pop(0), col2use.pop(0)],
               'separator': ' '}]
-        self.s5_rename_columns: Rule[Column] = \
+        self.s07_rename_columns: Rule[Column] = \
             [{'column': col2use.pop(0), 'name': 'First Name'},
              {'column': col2use.pop(0), 'name': 'Last Name'}]
-        self.s6_insert_columns: Rule[Column] = colinfo.s6
-        self.s7_rewrite_columns: RuleRewrite[Column] = \
+        self.s08_insert_columns: Rule[Column] = colinfo.s6
+        self.s09_rewrite_columns: RuleRewrite[Column] = \
             [{'column': col2use.pop(0),
               'kind': RewriteKind.STRIP, 'chars': '',
               'case': CaseSensitivity.IGNORE_CASE},
@@ -119,12 +120,12 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
         self.check_array_configs(split_last=colinfo.split_last,
                                  insert_last=colinfo.insert_last)
         self.sort_sx_hook()
-        self._check_no_duplicate_single(self.s1_split_columns,
-                                        's1_split_columns', colinfo.tinfo)
-        self._check_no_duplicate_single(self.s5_rename_columns,
-                                        's5_rename_columns', colinfo.tinfo)
-        self._check_no_duplicate_single(self.s6_insert_columns,
-                                        's6_insert_columns', colinfo.tinfo)
+        self._check_no_duplicate_single(self.s03_split_columns,
+                                        's03_split_columns', colinfo.tinfo)
+        self._check_no_duplicate_single(self.s07_rename_columns,
+                                        's07_rename_columns', colinfo.tinfo)
+        self._check_no_duplicate_single(self.s08_insert_columns,
+                                        's08_insert_columns', colinfo.tinfo)
         self.check_rewrite_configs(coltype=type(colinfo.tinfo))
         self.check_char_encoding(self.in_csv_encoding)
         self.check_char_encoding(self.out_csv_encoding)
@@ -148,6 +149,26 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
                 'out_csv_encoding': 'utf-8',
                 'in_excel_col_name_strip': False,
                 'in_excel_values_strip': False}
+
+    def _backward_compatible(self) -> list[BackwardCompatible]:
+        """Get names of backward compatible config parameters."""
+        return [
+            BackwardCompatible(old='s1_split_columns',
+                               new='s03_split_columns'),
+            BackwardCompatible(old='s2_remove_columns',
+                               new='s04_remove_columns'),
+            BackwardCompatible(old='s3_merge_columns',
+                               new='s05_merge_columns'),
+            BackwardCompatible(old='s4_place_columns_first',
+                               new='s06_place_columns_first'),
+            BackwardCompatible(old='s5_rename_columns',
+                               new='s07_rename_columns'),
+            BackwardCompatible(old='s6_insert_columns',
+                               new='s08_insert_columns'),
+            BackwardCompatible(old='s7_rewrite_columns',
+                               new='s09_rewrite_columns'),
+            BackwardCompatible(old='s8_column_order', new='s10_column_order')
+        ]
 
     @staticmethod
     def get_cols_single(rule: Rule[Column] | RuleSplit[Column] |
@@ -235,26 +256,26 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
                             insert_last: Optional[str]) -> None:
         """Check that keywords in configuration arrays are OK."""
         split_col_keys = ['column', 'separator', 'where', split_last]
-        self.check_array_keys('s1_split_columns', self.s1_split_columns,
+        self.check_array_keys('s03_split_columns', self.s03_split_columns,
                               split_col_keys)
         merge_col_keys = ['columns', 'separator']
-        self.check_array_keys('s3_merge_columns', self.s3_merge_columns,
+        self.check_array_keys('s05_merge_columns', self.s05_merge_columns,
                               merge_col_keys)
         rename_col_keys = ['column', 'name']
-        self.check_array_keys('s5_rename_columns', self.s5_rename_columns,
+        self.check_array_keys('s07_rename_columns', self.s07_rename_columns,
                               rename_col_keys)
         insert_col_keys = ['column', 'value']
         if insert_last is not None:
             assert insert_last is not None  # keep mypy happy
             insert_col_keys.append(insert_last)
-        self.check_array_keys('s6_insert_columns', self.s6_insert_columns,
+        self.check_array_keys('s08_insert_columns', self.s08_insert_columns,
                               insert_col_keys)
 
     def check_rewrite_configs(self, coltype: type) -> None:
         """Check the rewrite column configuration."""
         rewrite_col_mand_keys: list[str] = ['column', 'kind', 'case']
         rewrite_col_opt_keys: list[str] = ['chars', 'from', 'to']
-        self.check_array_keys('s7_rewrite_columns', self.s7_rewrite_columns,
+        self.check_array_keys('s09_rewrite_columns', self.s09_rewrite_columns,
                               mandatory_keys=rewrite_col_mand_keys,
                               allowed_keys=rewrite_col_opt_keys)
         template = {RewriteKind.STRIP: {'column': coltype,
@@ -273,7 +294,7 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
                                                  'kind': RewriteKind,
                                                  'from': str, 'to': str,
                                                  'case': CaseSensitivity}}
-        self.check_array_dicts(name_of_cfg='s7_rewrite_columns',
-                               array=self.s7_rewrite_columns,
+        self.check_array_dicts(name_of_cfg='s09_rewrite_columns',
+                               array=self.s09_rewrite_columns,
                                kind_key='kind', kind_type=RewriteKind,
                                dict_of_templates=template)

@@ -119,13 +119,13 @@ def pop_from_row(row: NumRow | NameRow, colref: Column) -> Value:
 def split_columns(indata: Data, cfg: ConfigExcelListTransform[Column],
                   tinfo: Column) -> Data:
     """Split columns in the in indata."""
-    if len(cfg.s1_split_columns) == 0:
+    if len(cfg.s03_split_columns) == 0:
         return indata
     ret = deepcopy(indata)
     for row in ret:
-        cols_must_exist_dict(rule=cfg.s1_split_columns, row=row,
-                             param='s1_split_columns', tinfo=tinfo)
-        for i in reversed(cfg.s1_split_columns):
+        cols_must_exist_dict(rule=cfg.s03_split_columns, row=row,
+                             param='s03_split_columns', tinfo=tinfo)
+        for i in reversed(cfg.s03_split_columns):
             colref = i['column']
             assert isinstance(colref, type(tinfo))
             sep = i['separator']
@@ -134,7 +134,7 @@ def split_columns(indata: Data, cfg: ConfigExcelListTransform[Column],
             val: list[str] = []
             if inval is not None:
                 if not isinstance(inval, str):
-                    msg = 's1_split_columns: '
+                    msg = 's03_split_columns: '
                     msg += 'Can only split columns with string values.\n'
                     msg += f'Column "{colref}" has value of '
                     msg += f'type {type(inval).__name__}'
@@ -173,13 +173,13 @@ def insert_into_row(row: NumRow | NameRow, colref: Column, val: Value) -> None:
 def merge_columns(indata: Data, cfg: ConfigExcelListTransform[Column],
                   tinfo: Column) -> Data:
     """Merge columns in the list in indata with column number refs."""
-    if len(cfg.s3_merge_columns) == 0:
+    if len(cfg.s05_merge_columns) == 0:
         return indata
     ret = deepcopy(indata)
     for row in ret:
-        cols_must_exist_dictlst(rule=cfg.s3_merge_columns, row=row,
-                                param='s3_merge_columns', tinfo=tinfo)
-        for i in reversed(cfg.s3_merge_columns):
+        cols_must_exist_dictlst(rule=cfg.s05_merge_columns, row=row,
+                                param='s05_merge_columns', tinfo=tinfo)
+        for i in reversed(cfg.s05_merge_columns):
             colspec = i['columns']
             assert isinstance(colspec, list)
             if len(colspec) < 2:
@@ -231,13 +231,13 @@ def set_row_element(row: NumRow | NameRow, idx: Column, tinfo: Column,
 def rewrite_columns(indata: Data, cfg: ConfigExcelListTransform[Column],
                     tinfo: Column) -> Data:
     """Rewrite columns in the list in indata with column number refs."""
-    if len(cfg.s7_rewrite_columns) == 0:
+    if len(cfg.s09_rewrite_columns) == 0:
         return indata
     ret = deepcopy(indata)
     for row in ret:
-        cols_must_exist_dict(rule=cfg.s7_rewrite_columns, row=row,
-                             param='s7_rewrite_columns', tinfo=tinfo)
-        for i in cfg.s7_rewrite_columns:
+        cols_must_exist_dict(rule=cfg.s09_rewrite_columns, row=row,
+                             param='s09_rewrite_columns', tinfo=tinfo)
+        for i in cfg.s09_rewrite_columns:
             colref = i['column']
             assert isinstance(colref, type(tinfo))
             oldvalue = row_element(row=row, idx=colref, tinfo=tinfo)

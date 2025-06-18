@@ -22,10 +22,10 @@ The phone number has to be in international format '+' followed by only
 digits for RRS, but the sailors filling in the form sometimes use
 national format (no + and no country code). Also the sailors filling
 in the form are used to group digits by dashes and spaces for easy
-reading. The s7_rewrite_columns include rewrite instructions to
+reading. The s09_rewrite_columns include rewrite instructions to
 "fix" the phone number to the format needed by RRS.
 The rewriting of phone numbers in this example is for Swedish mobile
-phone numbers. For other countries s7_rewrite_columns need to be
+phone numbers. For other countries s09_rewrite_columns need to be
 adjusted.
 '''
 
@@ -48,7 +48,7 @@ RRS ( https://www.racingrulesofsailing.org ).
 
 by_name_common: str = '''
 
-s8_column_order both tells the order the columns shall be written
+s10_column_order both tells the order the columns shall be written
 in, and what columns to write out. The columns not listed here
 are ignored (and thus removed from the output).
 
@@ -113,11 +113,11 @@ def rewrite_phone_46_cfg(cfg: ConfigXlsListRefmtName | ConfigXlsListRefmtNum,
          'from': '^4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE}
     ]
     if not append:
-        cfg.s7_rewrite_columns.clear()
+        cfg.s09_rewrite_columns.clear()
     for rule in rules:
         newrule: SingleRuleRewrite[Column] = deepcopy(rule)
         newrule['column'] = column
-        cfg.s7_rewrite_columns.append(newrule)
+        cfg.s09_rewrite_columns.append(newrule)
 
 
 def generate_syntax_sa2r_name(filename: str, colref: ColumnRef) -> None:
@@ -133,15 +133,15 @@ def generate_syntax_sa2r_name(filename: str, colref: ColumnRef) -> None:
                           'quotechar': '"',
                           'lineterminator': None,
                           'escapechar': None}
-    cfg.s1_split_columns = []
-    cfg.s3_merge_columns = []
-    cfg.s5_rename_columns = []
-    cfg.s6_insert_columns = []
+    cfg.s03_split_columns = []
+    cfg.s05_merge_columns = []
+    cfg.s07_rename_columns = []
+    cfg.s08_insert_columns = []
     rewrite_phone_46_cfg(cfg=cfg, column='Phone', append=False)
-    cfg.s8_column_order = ['Class', 'Division', 'Nationality',
-                           'Sail Number', 'Boat Name', 'First Name',
-                           'Last Name', 'Club Name', 'Email', 'Phone',
-                           'WhatsApp']
+    cfg.s10_column_order = ['Class', 'Division', 'Nationality',
+                            'Sail Number', 'Boat Name', 'First Name',
+                            'Last Name', 'Club Name', 'Email', 'Phone',
+                            'WhatsApp']
     cfg.write(to_json_filename=filename)
 
 
@@ -152,18 +152,18 @@ def generate_syntax_sw2r_name(filename: str, colref: ColumnRef) -> None:
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.EXCEL
-    cfg.s1_split_columns = [{'column': 'Name',
-                             'separator': ' ',
-                             'where': SplitWhere.RIGHTMOST,
-                             'right_name': 'Last Name'}]
-    cfg.s3_merge_columns = []
-    cfg.s5_rename_columns = [{'column': 'Name', 'name': 'First Name'}]
-    cfg.s6_insert_columns = [{'column': 'WhatsApp', 'value': None}]
+    cfg.s03_split_columns = [{'column': 'Name',
+                              'separator': ' ',
+                              'where': SplitWhere.RIGHTMOST,
+                              'right_name': 'Last Name'}]
+    cfg.s05_merge_columns = []
+    cfg.s07_rename_columns = [{'column': 'Name', 'name': 'First Name'}]
+    cfg.s08_insert_columns = [{'column': 'WhatsApp', 'value': None}]
     rewrite_phone_46_cfg(cfg=cfg, column='Phone', append=False)
-    cfg.s8_column_order = ['Class', 'Division', 'Nationality',
-                           'Sail Number', 'Boat Name', 'First Name',
-                           'Last Name', 'Club Name', 'Email', 'Phone',
-                           'WhatsApp']
+    cfg.s10_column_order = ['Class', 'Division', 'Nationality',
+                            'Sail Number', 'Boat Name', 'First Name',
+                            'Last Name', 'Club Name', 'Email', 'Phone',
+                            'WhatsApp']
     cfg.write(to_json_filename=filename)
 
 
@@ -184,12 +184,12 @@ def generate_syntax_sa2r_num(filename: str, colref: ColumnRef) -> None:
                           'quotechar': '"',
                           'lineterminator': None,
                           'escapechar': None}
-    cfg.s1_split_columns = []
-    cfg.s2_remove_columns = []
-    cfg.s3_merge_columns = []
-    cfg.s4_place_columns_first = []
-    cfg.s5_rename_columns = []
-    cfg.s6_insert_columns = []
+    cfg.s03_split_columns = []
+    cfg.s04_remove_columns = []
+    cfg.s05_merge_columns = []
+    cfg.s06_place_columns_first = []
+    cfg.s07_rename_columns = []
+    cfg.s08_insert_columns = []
     rewrite_phone_46_cfg(cfg=cfg, column=9, append=False)
     cfg.write(to_json_filename=filename)
 
@@ -201,16 +201,16 @@ def generate_syntax_sw2r_num(filename: str, colref: ColumnRef) -> None:
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.EXCEL
-    cfg.s1_split_columns = [{'column': 5, 'separator': ' ',
-                             'where': SplitWhere.RIGHTMOST,
-                             'store_single': SplitWhere.RIGHTMOST}]
-    cfg.s2_remove_columns = []
-    cfg.s3_merge_columns = []
-    cfg.s4_place_columns_first = []
-    cfg.s5_rename_columns = \
+    cfg.s03_split_columns = [{'column': 5, 'separator': ' ',
+                              'where': SplitWhere.RIGHTMOST,
+                              'store_single': SplitWhere.RIGHTMOST}]
+    cfg.s04_remove_columns = []
+    cfg.s05_merge_columns = []
+    cfg.s06_place_columns_first = []
+    cfg.s07_rename_columns = \
         [{'column': 5, 'name': 'First Name'},
          {'column': 6, 'name': 'Last Name'}]
-    cfg.s6_insert_columns = [{'column': 10, 'name': 'WhatsApp',
+    cfg.s08_insert_columns = [{'column': 10, 'name': 'WhatsApp',
                               'value': None}]
     rewrite_phone_46_cfg(cfg=cfg, column=9, append=False)
     cfg.write(to_json_filename=filename)
@@ -227,9 +227,9 @@ def generate_syntax_o2r_name(filename: str, colref: ColumnRef) -> None:
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.EXCEL
-    cfg.s1_split_columns = []
-    cfg.s3_merge_columns = []
-    cfg.s5_rename_columns = [
+    cfg.s03_split_columns = []
+    cfg.s05_merge_columns = []
+    cfg.s07_rename_columns = [
         {'column': 'Klass', 'name': 'Class'},
         {'column': 'Nationalitetsbokstäver i seglet', 'name': 'Nationality'},
         {'column': 'Segelnummer (endast siffror)', 'name': 'Sail Number'},
@@ -238,15 +238,15 @@ def generate_syntax_o2r_name(filename: str, colref: ColumnRef) -> None:
         {'column': 'Klubb', 'name': 'Club Name'},
         {'column': 'Epostadress', 'name': 'Email'},
         {'column': 'Mobiltelefonnummer', 'name': 'Phone'}]
-    cfg.s6_insert_columns = [
+    cfg.s08_insert_columns = [
         {'column': 'Division', 'value': None},
         {'column': 'Boat Name', 'value': None},
         {'column': 'WhatsApp', 'value': None}]
     rewrite_phone_46_cfg(cfg=cfg, column='Phone', append=False)
-    cfg.s8_column_order = ['Class', 'Division', 'Nationality',
-                           'Sail Number', 'Boat Name', 'First Name',
-                           'Last Name', 'Club Name', 'Email', 'Phone',
-                           'WhatsApp']
+    cfg.s10_column_order = ['Class', 'Division', 'Nationality',
+                            'Sail Number', 'Boat Name', 'First Name',
+                            'Last Name', 'Club Name', 'Email', 'Phone',
+                            'WhatsApp']
     cfg.write(to_json_filename=filename)
 
 
@@ -260,11 +260,11 @@ def generate_syntax_o2r_num(filename: str, colref: ColumnRef) -> None:
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.EXCEL
-    cfg.s1_split_columns = []
-    cfg.s2_remove_columns = [0, 1, 2, 3, 4, 5, 14, 15, 16, 17, 18, 19]
-    cfg.s3_merge_columns = []
-    cfg.s4_place_columns_first = [5, 6, 7, 0, 1, 4, 2, 3]
-    cfg.s5_rename_columns = [
+    cfg.s03_split_columns = []
+    cfg.s04_remove_columns = [0, 1, 2, 3, 4, 5, 14, 15, 16, 17, 18, 19]
+    cfg.s05_merge_columns = []
+    cfg.s06_place_columns_first = [5, 6, 7, 0, 1, 4, 2, 3]
+    cfg.s07_rename_columns = [
         {'column': 0, 'name': 'Class'},
         {'column': 1, 'name': 'Nationality'},
         {'column': 2, 'name': 'Sail Number'},
@@ -273,7 +273,7 @@ def generate_syntax_o2r_num(filename: str, colref: ColumnRef) -> None:
         {'column': 5, 'name': 'Club Name'},
         {'column': 6, 'name': 'Email'},
         {'column': 7, 'name': 'Phone'}]
-    cfg.s6_insert_columns = [
+    cfg.s08_insert_columns = [
         {'column': 1, 'name': 'Division', 'value': None},
         {'column': 4, 'name': 'Boat Name', 'value': None},
         {'column': 10, 'name': 'WhatsApp', 'value': None}]
@@ -299,10 +299,10 @@ def generate_syntax_o2s_name(filename: str, colref: ColumnRef) -> None:
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.CSV
-    cfg.s1_split_columns = []
-    cfg.s3_merge_columns = [{'columns': ['Förnamn', 'Efternamn'],
+    cfg.s03_split_columns = []
+    cfg.s05_merge_columns = [{'columns': ['Förnamn', 'Efternamn'],
                              'separator': ' '}]
-    cfg.s5_rename_columns = [
+    cfg.s07_rename_columns = [
         {'column': 'Klass', 'name': 'Class'},
         {'column': 'Nationalitetsbokstäver i seglet', 'name': 'Nat'},
         {'column': 'Segelnummer (endast siffror)', 'name': 'SailNo'},
@@ -310,12 +310,12 @@ def generate_syntax_o2s_name(filename: str, colref: ColumnRef) -> None:
         {'column': 'Klubb', 'name': 'Club'},
         {'column': 'Epostadress', 'name': 'HelmEmail'},
         {'column': 'Mobiltelefonnummer', 'name': 'HelmPhone'}]
-    cfg.s6_insert_columns = [
+    cfg.s08_insert_columns = [
         {'column': 'Division', 'value': None},
         {'column': 'Boat', 'value': None}]
     rewrite_phone_46_cfg(cfg=cfg, column='HelmPhone', append=False)
-    cfg.s8_column_order = ['Class', 'Division', 'Nat', 'SailNo', 'Boat',
-                           'HelmName', 'Club', 'HelmEmail', 'HelmPhone']
+    cfg.s10_column_order = ['Class', 'Division', 'Nat', 'SailNo', 'Boat',
+                            'HelmName', 'Club', 'HelmEmail', 'HelmPhone']
     cfg.write(to_json_filename=filename)
 
 
@@ -329,11 +329,11 @@ def generate_syntax_o2s_num(filename: str, colref: ColumnRef) -> None:
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.CSV
-    cfg.s1_split_columns = []
-    cfg.s2_remove_columns = [0, 1, 2, 3, 4, 5, 14, 15, 16, 17, 18, 19]
-    cfg.s3_merge_columns = [{'columns': [0, 1], 'separator': ' '}]
-    cfg.s4_place_columns_first = [4, 5, 6, 0, 3, 1, 2]
-    cfg.s5_rename_columns = [
+    cfg.s03_split_columns = []
+    cfg.s04_remove_columns = [0, 1, 2, 3, 4, 5, 14, 15, 16, 17, 18, 19]
+    cfg.s05_merge_columns = [{'columns': [0, 1], 'separator': ' '}]
+    cfg.s06_place_columns_first = [4, 5, 6, 0, 3, 1, 2]
+    cfg.s07_rename_columns = [
         {'column': 0, 'name': 'Class'},
         {'column': 1, 'name': 'Nat'},
         {'column': 2, 'name': 'SailNo'},
@@ -341,7 +341,7 @@ def generate_syntax_o2s_num(filename: str, colref: ColumnRef) -> None:
         {'column': 4, 'name': 'Club'},
         {'column': 5, 'name': 'HelmEmail'},
         {'column': 6, 'name': 'HelmPhone'}]
-    cfg.s6_insert_columns = [
+    cfg.s08_insert_columns = [
         {'column': 1, 'name': 'Division', 'value': None},
         {'column': 4, 'name': 'Boat', 'value': None}]
     rewrite_phone_46_cfg(cfg=cfg, column=8, append=False)
@@ -371,10 +371,10 @@ def generate_syntax_r2s_name(filename: str, colref: ColumnRef) -> None:
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.CSV
-    cfg.s1_split_columns = []
-    cfg.s3_merge_columns = [{'columns': ['First Name', 'Last Name'],
+    cfg.s03_split_columns = []
+    cfg.s05_merge_columns = [{'columns': ['First Name', 'Last Name'],
                              'separator': ' '}]
-    cfg.s5_rename_columns = [
+    cfg.s07_rename_columns = [
         {'column': 'Nationality', 'name': 'Nat'},
         {'column': 'Sail Number', 'name': 'SailNo'},
         {'column': 'First Name', 'name': 'HelmName'},
@@ -382,14 +382,14 @@ def generate_syntax_r2s_name(filename: str, colref: ColumnRef) -> None:
         {'column': 'Email', 'name': 'HelmEmail'},
         {'column': 'Mobile Phone', 'name': 'HelmPhone'},
         {'column': 'Boat Name', 'name': 'Boat'}]
-    cfg.s6_insert_columns = []
-    cfg.s7_rewrite_columns = [
+    cfg.s08_insert_columns = []
+    cfg.s09_rewrite_columns = [
         {'column': 'HelmPhone', 'kind': RewriteKind.REGEX_SUBSTITUTE,
          'from': '^', 'to': '+', 'case': CaseSensitivity.MATCH_CASE},
         {'column': 'HelmPhone', 'kind': RewriteKind.REGEX_SUBSTITUTE,
          'from': '^\\+\\+', 'to': '+', 'case': CaseSensitivity.MATCH_CASE}]
-    cfg.s8_column_order = ['Class', 'Division', 'Nat', 'SailNo', 'Boat',
-                           'HelmName', 'Club', 'HelmEmail', 'HelmPhone']
+    cfg.s10_column_order = ['Class', 'Division', 'Nat', 'SailNo', 'Boat',
+                            'HelmName', 'Club', 'HelmEmail', 'HelmPhone']
     cfg.write(to_json_filename=filename)
 
 
@@ -403,11 +403,11 @@ def generate_syntax_r2s_num(filename: str, colref: ColumnRef) -> None:
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.CSV
-    cfg.s1_split_columns = []
-    cfg.s2_remove_columns = [10]  # remove WhatsApp
-    cfg.s3_merge_columns = [{'columns': [5, 6], 'separator': ' '}]
-    cfg.s4_place_columns_first = []
-    cfg.s5_rename_columns = [
+    cfg.s03_split_columns = []
+    cfg.s04_remove_columns = [10]  # remove WhatsApp
+    cfg.s05_merge_columns = [{'columns': [5, 6], 'separator': ' '}]
+    cfg.s06_place_columns_first = []
+    cfg.s07_rename_columns = [
         {'column': 0, 'name': 'Class'},
         {'column': 1, 'name': 'Division'},
         {'column': 2, 'name': 'Nat'},
@@ -417,8 +417,8 @@ def generate_syntax_r2s_num(filename: str, colref: ColumnRef) -> None:
         {'column': 6, 'name': 'Club'},
         {'column': 7, 'name': 'HelmEmail'},
         {'column': 8, 'name': 'HelmPhone'}]
-    cfg.s6_insert_columns = []
-    cfg.s7_rewrite_columns = [
+    cfg.s08_insert_columns = []
+    cfg.s09_rewrite_columns = [
         {'column': 8, 'kind': RewriteKind.REGEX_SUBSTITUTE,
          'from': '^', 'to': '+', 'case': CaseSensitivity.MATCH_CASE},
         {'column': 8, 'kind': RewriteKind.REGEX_SUBSTITUTE,

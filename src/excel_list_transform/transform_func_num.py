@@ -23,14 +23,14 @@ from excel_list_transform.transform_func_common import \
 def remove_columns_num(indata: NumData,
                        cfg: ConfigXlsListRefmtNum) -> NumData:
     """Remove columns in the list in indata with column number refs."""
-    if len(cfg.s2_remove_columns) == 0:
+    if len(cfg.s04_remove_columns) == 0:
         return indata
     ret = deepcopy(indata)
     for row in ret:
         rowlen = len(row)
-        cols_must_exist_lst(cols=cfg.s2_remove_columns, row=row,
-                            param='s2_remove_columns', tinfo=2)
-        for i in reversed(cfg.s2_remove_columns):
+        cols_must_exist_lst(cols=cfg.s04_remove_columns, row=row,
+                            param='s04_remove_columns', tinfo=2)
+        for i in reversed(cfg.s04_remove_columns):
             if 0 <= i < rowlen:
                 row.pop(i)
     return ret
@@ -39,15 +39,15 @@ def remove_columns_num(indata: NumData,
 def place_columns_first(indata: NumData,
                         cfg: ConfigXlsListRefmtNum) -> NumData:
     """Place columns first in the list in indata."""
-    if len(cfg.s4_place_columns_first) == 0:
+    if len(cfg.s06_place_columns_first) == 0:
         return indata
     ret = deepcopy(indata)
     for row_i, row in enumerate(ret):
         rowlen = len(row)
-        cols_must_exist_lst(cols=cfg.s4_place_columns_first, row=row,
-                            param='s4_place_columns_first', tinfo=2)
+        cols_must_exist_lst(cols=cfg.s06_place_columns_first, row=row,
+                            param='s06_place_columns_first', tinfo=2)
         drow = dict(enumerate(row))
-        order = deepcopy(cfg.s4_place_columns_first)
+        order = deepcopy(cfg.s06_place_columns_first)
         for i in range(rowlen):
             if i not in order:
                 order.append(i)
@@ -61,13 +61,13 @@ def place_columns_first(indata: NumData,
 def rename_columns_num(indata: NumData,
                        cfg: ConfigXlsListRefmtNum) -> NumData:
     """Rename columns in the list in indata with column number refs."""
-    assert isinstance(cfg.s5_rename_columns, list)
-    if len(cfg.s5_rename_columns) == 0:
+    assert isinstance(cfg.s07_rename_columns, list)
+    if len(cfg.s07_rename_columns) == 0:
         return indata
     ret = deepcopy(indata)
-    cols_must_exist_dict(rule=cfg.s5_rename_columns, row=ret[0],
-                         param='s5_rename_columns', tinfo=2)
-    for i in cfg.s5_rename_columns:
+    cols_must_exist_dict(rule=cfg.s07_rename_columns, row=ret[0],
+                         param='s07_rename_columns', tinfo=2)
+    for i in cfg.s07_rename_columns:
         colref: int = get_checked_type(i['column'], int)
         assert isinstance(colref, int)
         ret[0][colref] = get_checked_type(i['name'], str)
@@ -77,15 +77,15 @@ def rename_columns_num(indata: NumData,
 def insert_columns_num(indata: NumData,
                        cfg: ConfigXlsListRefmtNum) -> NumData:
     """Insert columns in the list in indata with column number refs."""
-    assert isinstance(cfg.s6_insert_columns, list)
-    if len(cfg.s6_insert_columns) == 0:
+    assert isinstance(cfg.s08_insert_columns, list)
+    if len(cfg.s08_insert_columns) == 0:
         return indata
     ret = deepcopy(indata)
     for row_i, row in enumerate(ret):
-        for i in cfg.s6_insert_columns:
+        for i in cfg.s08_insert_columns:
             colref: int = get_checked_type(value=i['column'], istype=int)
             if not 0 <= colref <= len(row):
-                msg = f's6_insert_columns: column index {colref} out of '
+                msg = f's08_insert_columns: column index {colref} out of '
                 msg += f'range [0, {len(row)}].'
                 print(msg, file=sys.stderr)
                 sys.exit(1)

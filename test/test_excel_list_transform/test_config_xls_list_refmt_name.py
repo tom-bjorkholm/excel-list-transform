@@ -93,6 +93,8 @@ def test_bak_compat_0_7_13_name(capsys):
     refcfg = ConfigXlsListRefmtName()
     refcfg.out_type = FileType.CSV
     refcfg.in_csv_dialect['name'] = 'csv.unix_dialect'
+    refcfg.s01_split_rows = []
+    refcfg.s02_merge_rows = []
     refcfg.s03_split_columns[0]['right_name'] = 'Family Name'
     refcfg.s08_insert_columns[1]['column'] = 'Something Else'
     filename = 'test/test_excel_list_transform/bak_compat_0_7_13_name.cfg'

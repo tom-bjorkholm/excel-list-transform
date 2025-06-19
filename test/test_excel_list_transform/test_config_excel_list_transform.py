@@ -19,11 +19,14 @@ def test_config_exc_list_refrm_def(capsys):
     col_to_use = ['street', 'street number', 'name', 'last name',
                   'Phone', 'Phone', 'Phone', 'Phone', 'Phone',
                   'Last Name']
+    col_to_use_row = ['Club Name', 'name', 'last name']
     colinfo = ColInfo(split_last='right_name', insert_last=None,
-                      col_to_use=col_to_use, tinfo='a',
-                      s1=[], s6=[])
+                      col_to_use=col_to_use,
+                      col_to_use_row=col_to_use_row, tinfo='a',
+                      s03=[], s08=[])
     cfg = ConfigExcelListTransform(col_ref=ColumnRef.BY_NAME,
-                                   colinfo=colinfo, tinfo='a')
+                                   colinfo=colinfo,
+                                   tinfo='a')
     assert cfg.in_type == FileType.EXCEL
     assert cfg.out_type == FileType.EXCEL
     assert cfg.column_ref == ColumnRef.BY_NAME
@@ -58,10 +61,12 @@ def test_config_exc_list_refrm_def(capsys):
 def test_config_exc_list_reform_read_incomplete4(capsys, t):
     """Test ConfigExcelListTransform read incomplete 4."""
     col_to_use = [15, 16, 1, 2, 5, 5, 5, 5, 5, 6]
+    col_to_use_row = [7, 1, 2]
     colinfo = ColInfo(split_last='store_single',
                       insert_last='name',
-                      col_to_use=col_to_use, tinfo=2,
-                      s1=[], s6=[])
+                      col_to_use=col_to_use,
+                      col_to_use_row=col_to_use_row, tinfo=2,
+                      s03=[], s08=[])
     cfg = ConfigExcelListTransform(col_ref=ColumnRef.BY_NUMBER,
                                    colinfo=colinfo, tinfo=2)
     with pytest.raises(KeyError) as exc_info:
@@ -155,16 +160,20 @@ def get_mock_init_args(colref: ColumnRef):
     """Get arguments for  ConfigExcelListTransform init."""
     if colref == ColumnRef.BY_NUMBER:
         col_to_us1 = [2, 3, 0, 1, 4, 4, 4, 4, 4, 1]
+        col_to_use_r1 = [7, 1, 2]
         colinf1 = ColInfo(split_last='right_name', insert_last=None,
-                          col_to_use=col_to_us1, tinfo=2,
-                          s1=[], s6=[])
+                          col_to_use=col_to_us1,
+                          col_to_use_row=col_to_use_r1, tinfo=2,
+                          s03=[], s08=[])
         return MockInitArgs(colref=colref, colinfo=colinf1, tinfo=2)
     col_to_use = ['street', 'street number', 'name', 'last name',
                   'Phone', 'Phone', 'Phone', 'Phone', 'Phone',
                   'Last Name']
+    col_to_use_r2 = ['Club Name', 'name', 'last name']
     colinf2 = ColInfo(split_last='right_name', insert_last=None,
-                      col_to_use=col_to_use, tinfo='a',
-                      s1=[], s6=[])
+                      col_to_use=col_to_use,
+                      col_to_use_row=col_to_use_r2, tinfo='a',
+                      s03=[], s08=[])
     return MockInitArgs(colref=colref, colinfo=colinf2, tinfo='a')
 
 
@@ -179,11 +188,15 @@ def test_cfg_transf_def_vals(capsys, cref):
     out, err = capsys.readouterr()
     assert '' == out
     assert '' == err
-    assert len(data) == 4
+    assert len(data) == 6
     assert 'in_csv_encoding' in data
     assert 'out_csv_encoding' in data
     assert 'in_excel_col_name_strip' in data
     assert 'in_excel_values_strip' in data
+    assert 's01_split_rows' in data
+    assert 's02_merge_rows' in data
+    assert len(data['s01_split_rows']) == 0
+    assert len(data['s02_merge_rows']) == 0
     assert 'utf_8_sig' == data['in_csv_encoding']
     assert 'utf-8' == data['out_csv_encoding']
 

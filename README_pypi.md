@@ -379,6 +379,8 @@ Old keywords according to the table below are automatically renamed to the new k
 
 | Version 0.7.13 and lower | Version 0.8 and higher  |
 |--------------------------|-------------------------|
+|  -                       | s01_split_rows          |
+|  -                       | s02_merge_rows          |
 | s1_split_columns         | s03_split_columns       |
 | s2_remove_columns        | s04_remove_columns      |
 | s3_merge_columns         | s05_merge_columns       |

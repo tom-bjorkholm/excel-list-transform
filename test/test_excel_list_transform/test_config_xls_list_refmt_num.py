@@ -91,6 +91,8 @@ def test_bak_compat_0_7_13_num(capsys):
     refcfg = ConfigXlsListRefmtNum()
     refcfg.out_type = FileType.CSV
     refcfg.in_csv_dialect['name'] = 'csv.unix_dialect'
+    refcfg.s01_split_rows = []
+    refcfg.s02_merge_rows = []
     refcfg.s07_rename_columns[1]['name'] = 'Family Name'
     refcfg.s08_insert_columns[1]['name'] = 'Something else'
     filename = 'test/test_excel_list_transform/bak_compat_0_7_13_number.cfg'

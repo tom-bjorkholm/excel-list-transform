@@ -21,14 +21,16 @@ class ConfigXlsListRefmtName(ConfigExcelListTransform[str]):  # pylint: disable=
         col_to_use = ['street', 'street number', 'name', 'last name',
                       'Phone', 'Phone', 'Phone', 'Phone', 'Phone',
                       'Last Name']
+        col_to_use_row = ['Club Name', 'name', 'last name']
         colinfo = ColInfo[str](split_last='right_name', insert_last=None,
-                               s1=[{'column': 'name',
-                                    'separator': ' ',
-                                    'where': SplitWhere.RIGHTMOST,
-                                    'right_name': 'last name'}],
-                               s6=[{'column': 'Division', 'value': None},
-                                   {'column': 'Other', 'value': 'some text'}],
-                               col_to_use=col_to_use, tinfo='a')
+                               s03=[{'column': 'name',
+                                     'separator': ' ',
+                                     'where': SplitWhere.RIGHTMOST,
+                                     'right_name': 'last name'}],
+                               s08=[{'column': 'Division', 'value': None},
+                                    {'column': 'Other', 'value': 'some text'}],
+                               col_to_use=col_to_use,
+                               col_to_use_row=col_to_use_row, tinfo='a')
         self.s10_column_order: RuleOrder = \
             ['Class', 'Division', 'Nationality', 'Sail Number', 'Boat Name',
              'First Name', 'Last Name', 'Club Name', 'Email', 'Phone',

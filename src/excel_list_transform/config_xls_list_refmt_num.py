@@ -37,16 +37,18 @@ class ConfigXlsListRefmtNum(ConfigExcelListTransform[int]):  # pylint: disable=t
         self.s04_remove_columns: RuleRemove = [1, 2, 3]
         self.s06_place_columns_first: RulePlace = [7, 3, 6]
         col_to_use = [15, 16, 1, 2, 5, 5, 5, 5, 5, 6]
+        col_to_use_row = [7, 1, 2]
         colinfo: ColInfo[int] = \
             ColInfo[int](split_last='store_single', insert_last='name',
-                         s1=[{'column': 15, 'separator': ' ',
-                              'where': SplitWhere.RIGHTMOST,
-                              'store_single': SplitWhere.LEFTMOST}],
-                         s6=[{'column': 1, 'name': 'Division',
-                              'value': None},
-                             {'column': 7, 'name': 'Other',
-                              'value': 'some text'}],
-                         col_to_use=col_to_use, tinfo=2)
+                         s03=[{'column': 15, 'separator': ' ',
+                               'where': SplitWhere.RIGHTMOST,
+                               'store_single': SplitWhere.LEFTMOST}],
+                         s08=[{'column': 1, 'name': 'Division',
+                               'value': None},
+                              {'column': 7, 'name': 'Other',
+                               'value': 'some text'}],
+                         col_to_use=col_to_use,
+                         col_to_use_row=col_to_use_row, tinfo=2)
         super().__init__(col_ref=ColumnRef.BY_NUMBER,
                          colinfo=colinfo, tinfo=2,
                          from_json_text=from_json_text,

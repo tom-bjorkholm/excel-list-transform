@@ -23,7 +23,9 @@ Column = TypeVar('Column', int, str)
 SingleRule: TypeAlias = dict[str, Optional[Column | str]]
 Rule: TypeAlias = list[SingleRule[Column]]
 SingleRuleSplit: TypeAlias = dict[str, Optional[Column | str | SplitWhere]]
+SingleRuleRowSplit: TypeAlias = dict[str, Column | list[str]]
 RuleSplit: TypeAlias = list[SingleRuleSplit[Column]]
+RuleRowSplit: TypeAlias = list[SingleRuleRowSplit[Column]]
 RuleOrder: TypeAlias = list[str]
 RulePlace: TypeAlias = list[int]
 RuleRemove: TypeAlias = RulePlace
@@ -51,9 +53,10 @@ class ColInfo(NamedTuple, Generic[Column]):
 
     split_last: str
     insert_last: Optional[str]
-    s1: RuleSplit[Column]
-    s6: Rule[Column]
+    s03: RuleSplit[Column]
+    s08: Rule[Column]
     col_to_use: list[Column]
+    col_to_use_row: list[Column]
     tinfo: Column
 
 
@@ -68,6 +71,7 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
         assert isinstance(colinfo.tinfo, type(tinfo))
         self.column_ref: ColumnRef = col_ref
         col2use = deepcopy(colinfo.col_to_use)  # dont destroying caller's arg
+        col2userow = deepcopy(colinfo.col_to_use_row)
         self.max_column_read: int = 20
         self.out_csv_dialect: CsvSpec = {'name': 'csv.excel',
                                          'delimiter': ',', 'quoting': None,
@@ -87,14 +91,21 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
         self.in_excel_library: ExcelLib = ExcelLib.PYLIGHTXL
         self.out_excel_library: ExcelLib = ExcelLib.PYLIGHTXL
         self.out_type: FileType = FileType.EXCEL
-        self.s03_split_columns: RuleSplit[Column] = colinfo.s1
+        self.s01_split_rows: RuleRowSplit[Column] = \
+            [{'column': col2userow.pop(0),
+              'separators': [' ', '+'],
+              'not_separators': ['\\ ', '\\+', ' + ']}]
+        self.s02_merge_rows: RuleMerge[Column] = \
+            [{'columns': [col2userow.pop(0), col2userow.pop(0)],
+              'separator': ' + '}]
+        self.s03_split_columns: RuleSplit[Column] = colinfo.s03
         self.s05_merge_columns: RuleMerge[Column] = \
             [{'columns': [col2use.pop(0), col2use.pop(0)],
               'separator': ' '}]
         self.s07_rename_columns: Rule[Column] = \
             [{'column': col2use.pop(0), 'name': 'First Name'},
              {'column': col2use.pop(0), 'name': 'Last Name'}]
-        self.s08_insert_columns: Rule[Column] = colinfo.s6
+        self.s08_insert_columns: Rule[Column] = colinfo.s08
         self.s09_rewrite_columns: RuleRewrite[Column] = \
             [{'column': col2use.pop(0),
               'kind': RewriteKind.STRIP, 'chars': '',
@@ -148,7 +159,9 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
         return {'in_csv_encoding': 'utf_8_sig',
                 'out_csv_encoding': 'utf-8',
                 'in_excel_col_name_strip': False,
-                'in_excel_values_strip': False}
+                'in_excel_values_strip': False,
+                's01_split_rows': [],
+                's02_merge_rows': []}
 
     def _backward_compatible(self) -> list[BackwardCompatible]:
         """Get names of backward compatible config parameters."""

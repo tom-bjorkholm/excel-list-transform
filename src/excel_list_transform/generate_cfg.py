@@ -133,6 +133,8 @@ def generate_syntax_sa2r_name(filename: str, colref: ColumnRef) -> None:
                           'quotechar': '"',
                           'lineterminator': None,
                           'escapechar': None}
+    cfg.s01_split_rows = []
+    cfg.s02_merge_rows = []
     cfg.s03_split_columns = []
     cfg.s05_merge_columns = []
     cfg.s07_rename_columns = []
@@ -152,6 +154,8 @@ def generate_syntax_sw2r_name(filename: str, colref: ColumnRef) -> None:
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.EXCEL
+    cfg.s01_split_rows = []
+    cfg.s02_merge_rows = []
     cfg.s03_split_columns = [{'column': 'Name',
                               'separator': ' ',
                               'where': SplitWhere.RIGHTMOST,
@@ -184,6 +188,8 @@ def generate_syntax_sa2r_num(filename: str, colref: ColumnRef) -> None:
                           'quotechar': '"',
                           'lineterminator': None,
                           'escapechar': None}
+    cfg.s01_split_rows = []
+    cfg.s02_merge_rows = []
     cfg.s03_split_columns = []
     cfg.s04_remove_columns = []
     cfg.s05_merge_columns = []
@@ -201,6 +207,8 @@ def generate_syntax_sw2r_num(filename: str, colref: ColumnRef) -> None:
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.EXCEL
+    cfg.s01_split_rows = []
+    cfg.s02_merge_rows = []
     cfg.s03_split_columns = [{'column': 5, 'separator': ' ',
                               'where': SplitWhere.RIGHTMOST,
                               'store_single': SplitWhere.RIGHTMOST}]
@@ -227,6 +235,8 @@ def generate_syntax_o2r_name(filename: str, colref: ColumnRef) -> None:
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.EXCEL
+    cfg.s01_split_rows = []
+    cfg.s02_merge_rows = []
     cfg.s03_split_columns = []
     cfg.s05_merge_columns = []
     cfg.s07_rename_columns = [
@@ -260,6 +270,8 @@ def generate_syntax_o2r_num(filename: str, colref: ColumnRef) -> None:
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.EXCEL
+    cfg.s01_split_rows = []
+    cfg.s02_merge_rows = []
     cfg.s03_split_columns = []
     cfg.s04_remove_columns = [0, 1, 2, 3, 4, 5, 14, 15, 16, 17, 18, 19]
     cfg.s05_merge_columns = []
@@ -299,6 +311,8 @@ def generate_syntax_o2s_name(filename: str, colref: ColumnRef) -> None:
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.CSV
+    cfg.s01_split_rows = []
+    cfg.s02_merge_rows = []
     cfg.s03_split_columns = []
     cfg.s05_merge_columns = [{'columns': ['Förnamn', 'Efternamn'],
                              'separator': ' '}]
@@ -329,6 +343,8 @@ def generate_syntax_o2s_num(filename: str, colref: ColumnRef) -> None:
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.CSV
+    cfg.s01_split_rows = []
+    cfg.s02_merge_rows = []
     cfg.s03_split_columns = []
     cfg.s04_remove_columns = [0, 1, 2, 3, 4, 5, 14, 15, 16, 17, 18, 19]
     cfg.s05_merge_columns = [{'columns': [0, 1], 'separator': ' '}]
@@ -372,6 +388,8 @@ def generate_syntax_r2s_name(filename: str, colref: ColumnRef) -> None:
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.CSV
     cfg.s03_split_columns = []
+    cfg.s01_split_rows = []
+    cfg.s02_merge_rows = []
     cfg.s05_merge_columns = [{'columns': ['First Name', 'Last Name'],
                              'separator': ' '}]
     cfg.s07_rename_columns = [
@@ -403,6 +421,8 @@ def generate_syntax_r2s_num(filename: str, colref: ColumnRef) -> None:
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.CSV
+    cfg.s01_split_rows = []
+    cfg.s02_merge_rows = []
     cfg.s03_split_columns = []
     cfg.s04_remove_columns = [10]  # remove WhatsApp
     cfg.s05_merge_columns = [{'columns': [5, 6], 'separator': ' '}]

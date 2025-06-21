@@ -362,6 +362,78 @@ class Config():
                     raise KeyError(miss + in_cfg)
 
     @staticmethod
+    def check_lst_dict(paramname: str,
+                       inp: list[dict[str, Any]],
+                       key: str, key_optional: bool, valtype: type) -> None:
+        """Check that input is a list of dicts of str to list of valtype.
+
+        @param paramname The configuration parameter name (for err msg)
+        @param inp    The input to check. Expect to be list[dict[str, valtype]
+        @param key    The key to check value of in each dict in list
+        @param key_optional Is it OK that key is missing in dict?
+        @param valtype The type that is in value for key
+        """
+        errtxt = f'Error in parameter {paramname}. '
+        if not isinstance(inp, list):
+            err_txt2 = f'Expected list but found {type(inp).__name__}\n'
+            print(errtxt + err_txt2 + str(inp), file=sys.stderr)
+            sys.exit(1)
+        assert isinstance(inp, list)
+        for elem in inp:
+            if not isinstance(elem, dict):
+                err_txt3 = 'Expected dict in list but found ' + \
+                           f'{type(elem).__name__}\n'
+                print(errtxt + err_txt3 + str(elem), file=sys.stderr)
+                sys.exit(1)
+            assert isinstance(elem, dict)
+            if key not in elem:
+                if key_optional:
+                    return
+                err_txt4 = f'Expected key {key} not in dict in list\n'
+                print(errtxt + err_txt4 + str(elem), file=sys.stderr)
+                sys.exit(1)
+            val = elem[key]
+            if not isinstance(val, valtype):
+                err_txt5 = f'Value for key {key} expected to be of type ' + \
+                           f'{valtype.__name__} but is of type ' + \
+                           f'{type(val).__name__}\n'
+                print(errtxt + err_txt5 + str(val), file=sys.stderr)
+                sys.exit(1)
+
+    @staticmethod
+    def check_lst_dict_lst(paramname: str,
+                           inp: list[dict[str, Any]],
+                           key: str, key_optional: bool,
+                           valtype: type) -> None:
+        """Check that input is a list of dicts of str to list of valtype.
+
+        @param paramname The configuration parameter name (for err msg)
+        @param inp    The input to check. Expect to be list[dict[str, list[]]
+        @param key    The key to check value of in each dict in list
+        @param key_optional Is it OK that key is missing in dict?
+        @param valtype The type that is in list that is value for key
+        """
+        Config.check_lst_dict(paramname=paramname, inp=inp,
+                              key=key, key_optional=key_optional,
+                              valtype=list)
+        assert isinstance(inp, list)
+        for elem in inp:
+            assert isinstance(elem, dict)
+            if key not in elem and key_optional:
+                continue
+            assert key in elem
+            val = elem[key]
+            assert isinstance(val, list)
+            for item in val:
+                if not isinstance(item, valtype):
+                    errtxt = f'Error in parameter {paramname}.\n' + \
+                        f'Value for key {key} expected to be ' + \
+                        f'list of {valtype.__name__}\n' + \
+                        f'But element in list is {type(item).__name__}\n'
+                    print(errtxt + str(val), file=sys.stderr)
+                    sys.exit(1)
+
+    @staticmethod
     def value_of_type(input_value: Any, to_type: Any) -> Any:
         """Convert input to given type."""
         if isinstance(input_value, to_type):
@@ -394,7 +466,7 @@ class Config():
         if not isinstance(array, list):
             print(msgs.bad_arg + msgs.in_cfg + '(list_of_dicts)',
                   file=sys.stderr)
-            raise KeyError(msgs.bad_arg + msgs.in_cfg + '(list_of_dicts)')
+            sys.exit(1)
         if not isinstance(dict_of_templates, dict):
             print(msgs.bad_templ + msgs.in_cfg + '(dict_of_templates)',
                   file=sys.stderr)
@@ -409,23 +481,23 @@ class Config():
             litem = f'(list index {i})'
             if not isinstance(row, dict):
                 print(msgs.bad_arg + msgs.in_cfg + litem, file=sys.stderr)
-                raise KeyError(msgs.bad_arg + msgs.in_cfg + litem)
+                sys.exit(1)
             if kind_key not in row:
                 msg = f'Key {kind_key} not in dict'
                 print(msg + msgs.in_cfg + litem, file=sys.stderr)
-                raise KeyError(msg + msgs.in_cfg + litem)
+                sys.exit(1)
             kind = Config.value_of_type(row[kind_key], kind_type)
             for key2, valtype in dict_of_templates[kind].items():
                 if key2 not in row:
                     msg = f'Key {key2} not in dict'
                     print(msg + msgs.in_cfg + litem, file=sys.stderr)
-                    raise KeyError(msg + msgs.in_cfg + litem)
+                    sys.exit(1)
                 if not isinstance(row[key2], valtype):
                     msg = f'Value for key {key2} = {row[key2]} '
                     msg += f'is not {valtype.__name__} '
                     msg += f'it is {type(row[key2]).__name__} '
                     print(msg + msgs.in_cfg + litem, file=sys.stderr)
-                    raise KeyError(msg + msgs.in_cfg + litem)
+                    sys.exit(1)
 
     @staticmethod
     def get_converter_dict(enum_type: Type[Enum]) -> ParseConverter:

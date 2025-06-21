@@ -817,10 +817,7 @@ def test_check_array_dicts_ok(capsys, arr, kkey, ktype, tmplts):
 
 
 @pytest.mark.parametrize('arr, kkey, ktype, tmplts, msg',
-                         [('arr', 'foo', EnumInTesting,
-                           {EnumInTesting.FOOBAR:  {'a': str, 'b': int}},
-                           'argument not list of dicts'),
-                          ([], 'foo', EnumInTesting,
+                         [([], 'foo', EnumInTesting,
                            {EnumInTesting.FOOBAR:  ['a', 'b']},
                            'template not dict of dicts'),
                           ([], 'foo', EnumInTesting,
@@ -828,7 +825,24 @@ def test_check_array_dicts_ok(capsys, arr, kkey, ktype, tmplts):
                            'template not dict of dicts'),
                           ([], 'foo', EnumInTesting,
                            {EnumInTesting.FOOBAR:  ['a', 'b']},
-                           'in template for FOOBAR'),
+                           'in template for FOOBAR')])
+def test_check_array_dicts_nok1(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments,line-too-long  # noqa: E501
+                                arr, kkey, ktype, tmplts, msg):
+    """Test not ok cases for check_array_dicts."""
+    with pytest.raises(KeyError) as exc:
+        Config.check_array_dicts(name_of_cfg='test_py', array=arr,
+                                 kind_key=kkey, kind_type=ktype,
+                                 dict_of_templates=tmplts)
+    out, err = capsys.readouterr()
+    assert msg in str(exc)
+    assert out == ''
+    assert msg in err
+
+
+@pytest.mark.parametrize('arr, kkey, ktype, tmplts, msg',
+                         [('arr', 'foo', EnumInTesting,
+                           {EnumInTesting.FOOBAR:  {'a': str, 'b': int}},
+                           'argument not list of dicts'),
                           ([{'foo': EnumInTesting.BARFOO, 'c': 2, 'd': 4},
                             ['foo', EnumInTesting.FOOBAR, 'a', 'hej',
                              'b', 7]],
@@ -865,15 +879,14 @@ def test_check_array_dicts_ok(capsys, arr, kkey, ktype, tmplts):
                                                    'c': int, 'd': int}},
                            'Value for key a = 3 is not str')
                           ])
-def test_check_array_dicts_nok(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments,line-too-long  # noqa: E501
-                               arr, kkey, ktype, tmplts, msg):
+def test_check_array_dicts_nok2(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments,line-too-long  # noqa: E501
+                                arr, kkey, ktype, tmplts, msg):
     """Test not ok cases for check_array_dicts."""
-    with pytest.raises(KeyError) as exc:
+    with pytest.raises(SystemExit):
         Config.check_array_dicts(name_of_cfg='test_py', array=arr,
                                  kind_key=kkey, kind_type=ktype,
                                  dict_of_templates=tmplts)
     out, err = capsys.readouterr()
-    assert msg in str(exc)
     assert out == ''
     assert msg in err
 

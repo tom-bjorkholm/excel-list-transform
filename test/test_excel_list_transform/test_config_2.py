@@ -234,3 +234,109 @@ def test_rename_backward_compatible(capsys, ind, outd, errtxt):
     assert '' == out
     assert err == errtxt
     assert data == outd
+
+
+@pytest.mark.parametrize('par, inp, key, opt, vtype',
+                         [('parr', [{'bar': 3, 'foo': 2},
+                                    {'bar': 'b', 'foo': 3}],
+                           'foo', False, int),
+                          ('par2', [{'bar': 'b', 'foo': 2},
+                                    {'bar': 'b', 'foo': 3}],
+                           'bar', False, str),
+                          ('par3', [{'bar': 'b', 'foo': 2},
+                                    {'bar': 'b', 'foo': 3}],
+                           'foobar', True, str)])
+def test_check_list_dict_ok(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments # noqa: E501
+                            par, inp, key, opt, vtype):
+    """Test OK cases of Config.check_lst_dict."""
+    Config.check_lst_dict(paramname=par, inp=inp, key=key,
+                          key_optional=opt, valtype=vtype)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert '' == err
+
+
+@pytest.mark.parametrize('par, inp, key, opt, vtype, msgs',
+                         [('parr', {'bar': 3, 'foo': 2},
+                           'foo', False, int,
+                           ['Error in parameter parr.',
+                            'Expected list but found dict',
+                            "{'bar': 3, 'foo': 2}"]),
+                          ('par2', ['bar', 'b', 'foo', '2'],
+                           'bar', False, int,
+                           ['Error in parameter par2.',
+                            'Expected dict in list but found str',
+                            'bar']),
+                          ('par3', [{'bar': 'b', 'foo': 2},
+                                    {'bar': 'b', 'foo': 3}],
+                           'foobar', False, str,
+                           ['Error in parameter par3.',
+                            'Expected key foobar not in dict in list',
+                            "{'bar': 'b', 'foo': 2}"]),
+                          ('par4', [{'bar': 'b', 'foo': 2},
+                                    {'bar': 'b', 'foo': 3}],
+                           'bar', False, int,
+                           ['Error in parameter par4.',
+                            'Value for key bar expected to be of type',
+                            'of type int but is of type str',
+                            '\nb\n'])])
+def test_check_list_dict_nok(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments # noqa: E501
+                             par, inp, key, opt, vtype, msgs):
+    """Test not OK cases of Config.check_lst_dict."""
+    with pytest.raises(SystemExit):
+        Config.check_lst_dict(paramname=par, inp=inp, key=key,
+                              key_optional=opt, valtype=vtype)
+    out, err = capsys.readouterr()
+    assert '' == out
+    for msg in msgs:
+        assert msg in err
+
+
+@pytest.mark.parametrize('par, inp, key, opt, vtype',
+                         [('parr', [{'bar': 3, 'foo': [2, 3]},
+                                    {'bar': 'b', 'foo': [3, 5]}],
+                           'foo', False, int),
+                          ('par2', [{'bar': ['b', 'c'], 'foo': 2},
+                                    {'bar': ['b', 'e'], 'foo': 3}],
+                           'bar', False, str),
+                          ('par3', [{'bar': 'b', 'foo': 2},
+                                    {'bar': 'b', 'foo': 3}],
+                           'foobar', True, str)])
+def test_check_list_dict_lst_ok(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments # noqa: E501
+                                par, inp, key, opt, vtype):
+    """Test OK cases of Config.check_lst_dict_lst."""
+    Config.check_lst_dict_lst(paramname=par, inp=inp, key=key,
+                              key_optional=opt, valtype=vtype)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert '' == err
+
+
+@pytest.mark.parametrize('par, inp, key, opt, vtype, msgs',
+                         [('parr', [{'bar': 3, 'foo': [2, 'a']},
+                                    {'bar': 'b', 'foo': [3, 5]}],
+                           'foo', False, int,
+                           ['Error in parameter parr.',
+                            'Value for key foo expected to be list of int',
+                            'But element in list is str', "\n[2, 'a']\n"]),
+                          ('par2', [{'bar': ['a', 'c'], 'foo': 2},
+                                    {'bar': [1, 'xx'], 'foo': 'c'}],
+                           'bar', False, str,
+                           ['Error in parameter par2.',
+                            'Value for key bar expected to be list of str',
+                            'But element in list is int', "\n[1, 'xx']\n"]),
+                          ('par3', [{'bar': 'b', 'foo': 2},
+                                    {'bar': 'b', 'foo': 3}],
+                           'foobar', False, str,
+                           ['Error in parameter par3.',
+                            'Expected key foobar not in dict in list'])])
+def test_check_list_dict_lst_nok(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments # noqa: E501
+                                 par, inp, key, opt, vtype, msgs):
+    """Test not OK cases of Config.check_lst_dict_lst."""
+    with pytest.raises(SystemExit):
+        Config.check_lst_dict_lst(paramname=par, inp=inp, key=key,
+                                  key_optional=opt, valtype=vtype)
+    out, err = capsys.readouterr()
+    assert '' == out
+    for msg in msgs:
+        assert msg in err

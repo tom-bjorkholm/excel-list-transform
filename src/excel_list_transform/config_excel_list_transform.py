@@ -69,6 +69,7 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
                  from_json_filename: Optional[str] = None) -> None:
         """Construct configuration for excel list transform."""
         assert isinstance(colinfo.tinfo, type(tinfo))
+        self._columntype: type[Column] = type(tinfo)
         self.column_ref: ColumnRef = col_ref
         col2use = deepcopy(colinfo.col_to_use)  # dont destroying caller's arg
         col2userow = deepcopy(colinfo.col_to_use_row)
@@ -140,6 +141,8 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
         self.check_rewrite_configs(coltype=type(colinfo.tinfo))
         self.check_char_encoding(self.in_csv_encoding)
         self.check_char_encoding(self.out_csv_encoding)
+        self.check_split_row_cfg()
+        self.check_merge_row_cfg()
 
     def get_out_csv_dialect(self) -> type[Dialect]:
         """Get CSV dialect for output file."""
@@ -311,3 +314,57 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
                                array=self.s09_rewrite_columns,
                                kind_key='kind', kind_type=RewriteKind,
                                dict_of_templates=template)
+
+    @staticmethod
+    def check_sep_not_sep(separators: list[str],
+                          not_separators: list[str]) -> None:
+        """Check relationship between separators and not separators."""
+        for notsep in not_separators:
+            if notsep in separators:
+                print('Error in s01_split_rows:\n' +
+                      'Cannot have same string as both separator and ' +
+                      f'not separator: {notsep}', file=sys.stderr)
+                sys.exit(1)
+            found: bool = False
+            for sep in separators:
+                if sep in notsep:
+                    found = True
+                    break
+            if not found:
+                print('Error in s01_split_rows:\n' +
+                      f'Not separator "{notsep}" does not affect ' +
+                      'any separator.', file=sys.stderr)
+                sys.exit(1)
+
+    def check_split_row_cfg(self) -> None:
+        """Check the split row configuration."""
+        keys = ['column', 'separators', 'not_separators']
+        self.check_lst_dict(paramname='s01_split_rows',
+                            inp=self.s01_split_rows, key='column',
+                            key_optional=False, valtype=self._columntype)
+        self.check_array_keys('s01_split_rows', self.s01_split_rows,
+                              mandatory_keys=keys, allowed_keys=None)
+        self.check_lst_dict_lst(paramname='s01_split_rows',
+                                inp=self.s01_split_rows, key='separators',
+                                key_optional=False, valtype=str)
+        self.check_lst_dict_lst(paramname='s01_split_rows',
+                                inp=self.s01_split_rows, key='not_separators',
+                                key_optional=False, valtype=str)
+        for elem in self.s01_split_rows:
+            sep = elem['separators']
+            assert isinstance(sep, list)
+            nosep = elem['not_separators']
+            assert isinstance(nosep, list)
+            self.check_sep_not_sep(separators=sep, not_separators=nosep)
+
+    def check_merge_row_cfg(self) -> None:
+        """Check the merge rows configuration."""
+        keys = ['columns', 'separator']
+        self.check_lst_dict_lst(paramname='s02_merge_rows',
+                                inp=self.s02_merge_rows, key='columns',
+                                key_optional=False, valtype=self._columntype)
+        self.check_lst_dict(paramname='s02_merge_rows',
+                            inp=self.s02_merge_rows, key='separator',
+                            key_optional=False, valtype=str)
+        self.check_array_keys('s02_merge_rows', self.s02_merge_rows,
+                              mandatory_keys=keys, allowed_keys=None)

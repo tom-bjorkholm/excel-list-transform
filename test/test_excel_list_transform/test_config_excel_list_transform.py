@@ -7,6 +7,7 @@
 # pylint: disable=duplicate-code
 
 from collections import namedtuple
+from copy import deepcopy
 import pytest
 from excel_list_transform.config_enums import ColumnRef
 from excel_list_transform.config_excel_list_transform import \
@@ -316,3 +317,67 @@ def test_cfg_transf_enc_2_ok(capsys, in_enc, out_enc, cref):
     assert '' == err
     assert cf2.in_csv_encoding == 'utf_8_sig'
     assert cf2.out_csv_encoding == 'utf-8'
+
+
+# TODO test check_sep_not_sep
+
+
+@pytest.mark.parametrize('cref', [(ColumnRef.BY_NAME, 'a'),
+                                  (ColumnRef.BY_NUMBER, 2)])
+@pytest.mark.parametrize('rsplit',
+                         [[], [{'column': None, 'separators': [';'],
+                                'not_separators': ['\\;', ' ; ']}],
+                          [{'column': None, 'separators': [';', '+'],
+                            'not_separators': ['\\;', ' + ']}]])
+def test_check_split_row_cfg_ok(capsys, cref, rsplit):
+    """Test OK cases for check_split_row_cfg."""
+    args = get_mock_init_args(colref=cref[0])
+    cfg = ConfigExcelListTransform(col_ref=args.colref,
+                                   colinfo=args.colinfo,
+                                   tinfo=args.tinfo)
+    rsplit2 = deepcopy(rsplit)
+    for i in rsplit2:
+        i['column'] = cref[1]
+    cfg.s01_split_rows = deepcopy(rsplit2)
+    cfg.check_split_row_cfg()
+    out, err = capsys.readouterr()
+    assert rsplit2 == cfg.s01_split_rows
+    assert '' == out
+    assert '' == err
+
+
+@pytest.mark.parametrize('cref', [(ColumnRef.BY_NAME, 'a'),
+                                  (ColumnRef.BY_NUMBER, 2)])
+@pytest.mark.parametrize('rsplit, msgs',
+                         [([[]],
+                           ['Expected dict in list but found list']),
+                          ([{'column': None, 'separators': [2, 3],
+                             'not_separators': ['\\;', '\\2']}],
+                           ['But element in list is int',
+                            'key separators expected to be list of str']),
+                          ([{'separators': ['2', '3'],
+                             'not_separators': ['\\;',]}],
+                           ['Expected key column not in dict in list']),
+                          ([{'column': None, 'separators': [';', '+'],
+                            'not_separators': '\\;'}],
+                           ['Value for key not_separators expected to ',
+                            'be of type list but is of type str'])])
+def test_check_split_row_cfg_nok(capsys, cref, rsplit, msgs):
+    """Test not OK cases for check_split_row_cfg."""
+    args = get_mock_init_args(colref=cref[0])
+    cfg = ConfigExcelListTransform(col_ref=args.colref,
+                                   colinfo=args.colinfo,
+                                   tinfo=args.tinfo)
+    rsplit2 = deepcopy(rsplit)
+    for i in rsplit2:
+        if 'column' in i:
+            i['column'] = cref[1]
+    cfg.s01_split_rows = deepcopy(rsplit2)
+    with pytest.raises(SystemExit):
+        cfg.check_split_row_cfg()
+    out, err = capsys.readouterr()
+    assert '' == out
+    for msg in msgs:
+        assert msg in err
+
+# TODO test merge row cfg

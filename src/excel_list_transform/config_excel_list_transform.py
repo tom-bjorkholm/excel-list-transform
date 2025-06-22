@@ -341,15 +341,18 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
         keys = ['column', 'separators', 'not_separators']
         self.check_lst_dict(paramname='s01_split_rows',
                             inp=self.s01_split_rows, key='column',
-                            key_optional=False, valtype=self._columntype)
+                            key_optional=False, valtype=self._columntype,
+                            min_size_list=0)
         self.check_array_keys('s01_split_rows', self.s01_split_rows,
                               mandatory_keys=keys, allowed_keys=None)
         self.check_lst_dict_lst(paramname='s01_split_rows',
                                 inp=self.s01_split_rows, key='separators',
-                                key_optional=False, valtype=str)
+                                key_optional=False, valtype=str,
+                                min_size_outer_list=0, min_size_inner_list=1)
         self.check_lst_dict_lst(paramname='s01_split_rows',
                                 inp=self.s01_split_rows, key='not_separators',
-                                key_optional=False, valtype=str)
+                                key_optional=False, valtype=str,
+                                min_size_outer_list=0, min_size_inner_list=0)
         for elem in self.s01_split_rows:
             sep = elem['separators']
             assert isinstance(sep, list)
@@ -362,9 +365,11 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
         keys = ['columns', 'separator']
         self.check_lst_dict_lst(paramname='s02_merge_rows',
                                 inp=self.s02_merge_rows, key='columns',
-                                key_optional=False, valtype=self._columntype)
+                                key_optional=False, valtype=self._columntype,
+                                min_size_outer_list=0, min_size_inner_list=2)
         self.check_lst_dict(paramname='s02_merge_rows',
                             inp=self.s02_merge_rows, key='separator',
-                            key_optional=False, valtype=str)
+                            key_optional=False, valtype=str,
+                            min_size_list=0)
         self.check_array_keys('s02_merge_rows', self.s02_merge_rows,
                               mandatory_keys=keys, allowed_keys=None)

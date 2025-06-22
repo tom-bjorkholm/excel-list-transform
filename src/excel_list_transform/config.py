@@ -362,9 +362,10 @@ class Config():
                     sys.exit(1)
 
     @staticmethod
-    def check_lst_dict(paramname: str,
+    def check_lst_dict(paramname: str,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
                        inp: list[dict[str, Any]],
-                       key: str, key_optional: bool, valtype: type) -> None:
+                       key: str, key_optional: bool, valtype: type,
+                       min_size_list: int) -> None:
         """Check that input is a list of dicts of str to list of valtype.
 
         @param paramname The configuration parameter name (for err msg)
@@ -372,6 +373,7 @@ class Config():
         @param key    The key to check value of in each dict in list
         @param key_optional Is it OK that key is missing in dict?
         @param valtype The type that is in value for key
+        @param min_size_list Minimum number of elements in list
         """
         errtxt = f'Error in parameter {paramname}. '
         if not isinstance(inp, list):
@@ -379,6 +381,11 @@ class Config():
             print(errtxt + err_txt2 + str(inp), file=sys.stderr)
             sys.exit(1)
         assert isinstance(inp, list)
+        if len(inp) < min_size_list:
+            sizeerr: str = f'\nMinimum {min_size_list} elements needed ' + \
+                           f'in list but only {len(inp)} found.'
+            print(errtxt + sizeerr, file=sys.stderr)
+            sys.exit(1)
         for elem in inp:
             if not isinstance(elem, dict):
                 err_txt3 = 'Expected dict in list but found ' + \
@@ -401,10 +408,11 @@ class Config():
                 sys.exit(1)
 
     @staticmethod
-    def check_lst_dict_lst(paramname: str,
+    def check_lst_dict_lst(paramname: str,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
                            inp: list[dict[str, Any]],
                            key: str, key_optional: bool,
-                           valtype: type) -> None:
+                           valtype: type, min_size_outer_list: int,
+                           min_size_inner_list: int) -> None:
         """Check that input is a list of dicts of str to list of valtype.
 
         @param paramname The configuration parameter name (for err msg)
@@ -412,11 +420,14 @@ class Config():
         @param key    The key to check value of in each dict in list
         @param key_optional Is it OK that key is missing in dict?
         @param valtype The type that is in list that is value for key
+        @param min_size_outer_list Minimum number of elements in outer list
+        @param min_size_inner_list Minimum number of elements in inner list
         """
         Config.check_lst_dict(paramname=paramname, inp=inp,
                               key=key, key_optional=key_optional,
-                              valtype=list)
+                              valtype=list, min_size_list=min_size_outer_list)
         assert isinstance(inp, list)
+        errtxt = f'Error in parameter {paramname}.\n'
         for elem in inp:
             assert isinstance(elem, dict)
             if key not in elem and key_optional:
@@ -424,13 +435,18 @@ class Config():
             assert key in elem
             val = elem[key]
             assert isinstance(val, list)
+            if len(val) < min_size_inner_list:
+                errtxt2 = f'List for key {key} shall be minimum ' + \
+                          f'{min_size_inner_list} elements.\nBut it ' + \
+                          f'is {len(val)} elements only.\n'
+                print(errtxt + errtxt2 + str(val), file=sys.stderr)
+                sys.exit(1)
             for item in val:
                 if not isinstance(item, valtype):
-                    errtxt = f'Error in parameter {paramname}.\n' + \
-                        f'Value for key {key} expected to be ' + \
-                        f'list of {valtype.__name__}\n' + \
-                        f'But element in list is {type(item).__name__}\n'
-                    print(errtxt + str(val), file=sys.stderr)
+                    errtxt3 = f'Value for key {key} expected to be ' + \
+                              f'list of {valtype.__name__}\n' + \
+                              f'But element in list is {type(item).__name__}\n'
+                    print(errtxt + errtxt3 + str(val), file=sys.stderr)
                     sys.exit(1)
 
     @staticmethod

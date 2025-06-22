@@ -6,6 +6,7 @@
 
 # pylint: disable=duplicate-code
 
+from copy import deepcopy
 import pytest
 from excel_list_transform.config_xls_list_refmt_num \
     import ConfigXlsListRefmtNum
@@ -103,3 +104,107 @@ def test_bak_compat_0_7_13_num(capsys):
     assert cfg.s08_insert_columns[1]['name'] == 'Something else'
     assert '' == out
     assert '' == err
+
+
+@pytest.mark.parametrize('splitr',
+                         [[],
+                          [{'column': 2, 'separators': [';'],
+                            'not_separators': ['\\;']}],
+                          [{'column': 3, 'separators': ['+'],
+                            'not_separators': [' + ']},
+                           {'column': 4, 'separators': ['+', '-'],
+                            'not_separators': [' + ', '--']}]])
+@pytest.mark.parametrize('merger',
+                         [[],
+                          [{'columns': [1, 2], 'separator': ' '}],
+                          [{'columns': [3, 4], 'separator': ' '},
+                           {'columns': [5, 6], 'separator': ';'}]])
+def test_row_split_merge_cfg_nu_ok(capsys, splitr, merger):
+    """Test OK cases of row split and merge config."""
+    cfg1 = ConfigXlsListRefmtNum()
+    cfg1.s01_split_rows = deepcopy(splitr)
+    cfg1.s02_merge_rows = deepcopy(merger)
+    txt = cfg1.as_json_string()
+    cfg2 = ConfigXlsListRefmtNum(from_json_text=txt)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert '' == err
+    assert cfg1.__dict__ == cfg2.__dict__
+    assert splitr == cfg2.s01_split_rows
+    assert merger == cfg2.s02_merge_rows
+
+
+@pytest.mark.parametrize('splitr, msgs',
+                         [([{'column': 2, 'separators': [],
+                            'not_separators': []}],
+                           ['Error in parameter s01_split_rows.',
+                            'List for key separators shall be ' +
+                            'minimum 1 elements',
+                            'But it is 0 elements']),
+                          ([{'column': 3, 'separators': [],
+                            'not_separators': [], 'start': 2}],
+                           ['Found non-allowed key "start" in ',
+                            ' config of s01_split_rows']),
+                          ([{'column': 'foo', 'separators': [';'],
+                            'not_separators': [';;']}],
+                           ['Error in parameter s01_split_rows.',
+                            'Value for key column expected to be of ' +
+                            'type int but is of type str']),
+                          ([{'separators': ['+'],
+                             'not_separators': [' + ']}],
+                           ['Error in parameter s01_split_rows.',
+                            'Expected key column not in dict in list']),
+                          ([{'column': 4, 'separators': ['+', '-'],
+                             'not_separators': [' + ', '--', '*']}],
+                           ['Error in s01_split_rows:',
+                            'Not separator "*" does not affect ' +
+                            'any separator.'])])
+def test_row_split_cfg_nu_nok(capsys, splitr, msgs):
+    """Test OK cases of row split and merge config."""
+    cfg1 = ConfigXlsListRefmtNum()
+    cfg1.s01_split_rows = deepcopy(splitr)
+    txt = cfg1.as_json_string()
+    with pytest.raises(SystemExit):
+        _ = ConfigXlsListRefmtNum(from_json_text=txt)
+    out, err = capsys.readouterr()
+    assert '' == out
+    for msg in msgs:
+        assert msg in err
+
+
+@pytest.mark.parametrize('merger,msgs',
+                         [([{'columns': [1], 'separator': ' '}],
+                           ['Error in parameter s02_merge_rows.',
+                            'List for key columns shall be minimum 2 eleme',
+                            'But it is 1 elements only.']),
+                          ([{'columns': [3, 4], 'separator': [' ']}],
+                           ['Error in parameter s02_merge_rows.',
+                            'Value for key separator expected to ' +
+                            'be of type str but is of type list']),
+                          ([{'columns': [5, 6], 'separator': ' ',
+                             'split': 2}],
+                           ['Found non-allowed key "split" ',
+                            'in config of s02_merge_rows']),
+                          ([{'columns': ['foo', 'bar'], 'separator': ' '}],
+                           ['Error in parameter s02_merge_rows.',
+                            'Value for key columns expected to be list of int',
+                            'But element in list is str']),
+                          ([{'columns': [7, 8], 'separator': 3}],
+                           ['Error in parameter s02_merge_rows.',
+                            'Value for key separator expected to be ' +
+                            'of type str but is of type int']),
+                          ([{'columns': 9, 'separator': ' '}],
+                           ['Error in parameter s02_merge_rows.',
+                            'Value for key columns expected to be ' +
+                            'of type list but is of type int'])])
+def test_row_merge_cfg_na_nok(capsys, merger, msgs):
+    """Test OK cases of row split and merge config."""
+    cfg1 = ConfigXlsListRefmtNum()
+    cfg1.s02_merge_rows = deepcopy(merger)
+    txt = cfg1.as_json_string()
+    with pytest.raises(SystemExit):
+        _ = ConfigXlsListRefmtNum(from_json_text=txt)
+    out, err = capsys.readouterr()
+    assert '' == out
+    for msg in msgs:
+        assert msg in err

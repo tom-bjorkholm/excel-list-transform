@@ -354,12 +354,12 @@ class Config():
                 if used_key not in to_allow:
                     bad_k = f'Found non-allowed key "{used_key}"'
                     print(bad_k + in_cfg, file=sys.stderr)
-                    raise KeyError(bad_k + in_cfg)
+                    sys.exit(1)
             for k in mandatory_keys:
                 if k not in list(i.keys()):
                     miss = f'Missing key "{k}"'
                     print(miss + in_cfg, file=sys.stderr)
-                    raise KeyError(miss + in_cfg)
+                    sys.exit(1)
 
     @staticmethod
     def check_lst_dict(paramname: str,

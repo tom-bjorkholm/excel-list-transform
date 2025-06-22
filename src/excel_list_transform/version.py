@@ -58,8 +58,8 @@ class Version():
         """Print instructions for how to upgrade Python and app."""
         pip = 'pip3'
         applic = list(versions.keys())[0].replace('_', '-')
-        if sys.platform.startswith('win') \
-                or sys.platform.startswith('Win'):
+        if sys.platform.lower().startswith('win') \
+                or sys.platform.lower().startswith('nt'):
             pip = 'pip'
         txt = '\nYou are running an old Python version.\n'
         txt += 'Upgrade Python to a new version.\n'
@@ -89,7 +89,8 @@ class Version():
     def get_app_support_expires(self) -> SupportExpires:
         """Get which python version is no loger supported at date."""
         support_end = {date(year=2025, month=10, day=1): '3.10',
-                       date(year=2025, month=12, day=1): '3.11'}
+                       date(year=2025, month=12, day=1): '3.11',
+                       date(year=2026, month=3, day=1): '3.12'}
         return support_end
 
     def _today(self) -> date:

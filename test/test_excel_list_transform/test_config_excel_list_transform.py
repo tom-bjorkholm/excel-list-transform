@@ -319,7 +319,35 @@ def test_cfg_transf_enc_2_ok(capsys, in_enc, out_enc, cref):
     assert cf2.out_csv_encoding == 'utf-8'
 
 
-# TODO test check_sep_not_sep
+@pytest.mark.parametrize('sep, nosep',
+                         [([';'], ['\\;']),
+                          ([';', '+'], ['\\;', '++', ' + '])])
+def test_check_sep_not_sep_ok(capsys, sep, nosep):
+    """Test OK cases of check_sep_not_sep."""
+    ConfigExcelListTransform.check_sep_not_sep(separators=sep,
+                                               not_separators=nosep)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert '' == err
+
+
+@pytest.mark.parametrize('sep, nosep, msgs',
+                         [([';'], ['\\;', ';'],
+                           ['Cannot have same string as both separator and ',
+                            'separator and not separator: ;']),
+                          ([';', '+'], ['\\;', '++', ' '],
+                           ['Not separator " " does not affect any separator'
+                            ])])
+def test_check_sep_not_sep_nok(capsys, sep, nosep, msgs):
+    """Test OK cases of check_sep_not_sep."""
+    with pytest.raises(SystemExit):
+        ConfigExcelListTransform.check_sep_not_sep(separators=sep,
+                                                   not_separators=nosep)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert 'Error in s01_split_rows:\n' in err
+    for msg in msgs:
+        assert msg in err
 
 
 @pytest.mark.parametrize('cref', [(ColumnRef.BY_NAME, 'a'),
@@ -377,7 +405,67 @@ def test_check_split_row_cfg_nok(capsys, cref, rsplit, msgs):
         cfg.check_split_row_cfg()
     out, err = capsys.readouterr()
     assert '' == out
+    assert 'Error in parameter s01_split_rows.' in err
     for msg in msgs:
         assert msg in err
 
-# TODO test merge row cfg
+
+@pytest.mark.parametrize('cref', [(ColumnRef.BY_NAME, ['a', 'b']),
+                                  (ColumnRef.BY_NUMBER, [2, 4])])
+@pytest.mark.parametrize('rmerg',
+                         [[], [{'columns': None, 'separator': ';'}],
+                          [{'columns': None, 'separator': '+'}],
+                          [{'columns': None, 'separator': ';'},
+                           {'columns': None, 'separator': ' '}]])
+def test_check_merge_row_cfg_ok(capsys, cref, rmerg):
+    """Test OK cases for check_split_row_cfg."""
+    args = get_mock_init_args(colref=cref[0])
+    cfg = ConfigExcelListTransform(col_ref=args.colref,
+                                   colinfo=args.colinfo,
+                                   tinfo=args.tinfo)
+    rsplit2 = deepcopy(rmerg)
+    for i in rsplit2:
+        i['columns'] = cref[1]
+    cfg.s02_merge_rows = deepcopy(rsplit2)
+    cfg.check_merge_row_cfg()
+    out, err = capsys.readouterr()
+    assert rsplit2 == cfg.s02_merge_rows
+    assert '' == out
+    assert '' == err
+
+
+@pytest.mark.parametrize('cref', [(ColumnRef.BY_NAME, ['a', 'b']),
+                                  (ColumnRef.BY_NUMBER, [2, 4])])
+@pytest.mark.parametrize('rmerg, msgs',
+                         [([{'columns': None}],
+                           ['Expected key separator not in dict in list',
+                            'Error in parameter s02_merge_rows.']),
+                          ([{'separator': ';'}],
+                           ['Expected key columns not in dict in list',
+                            'Error in parameter s02_merge_rows.']),
+                          ([{'columns': None, 'separator': ['a', 'b']}],
+                           ['Value for key separator expected to be of ',
+                            ' to be of type str but is of type list',
+                            'Error in parameter s02_merge_rows.']),
+                          ([{'columns': None, 'separator': '+',
+                             'not_separator': '\\+'}],
+                           ['Found non-allowed key "not_separator" ',
+                            'in config of s02_merge_rows'])])
+def test_check_merge_row_cfg_nok(capsys, cref, rmerg, msgs):
+    """Test not OK cases for check_split_row_cfg."""
+    args = get_mock_init_args(colref=cref[0])
+    cfg = ConfigExcelListTransform(col_ref=args.colref,
+                                   colinfo=args.colinfo,
+                                   tinfo=args.tinfo)
+    rsplit2 = deepcopy(rmerg)
+    for i in rsplit2:
+        if 'columns' in i:
+            i['columns'] = cref[1]
+    cfg.s02_merge_rows = deepcopy(rsplit2)
+    with pytest.raises(SystemExit):
+        cfg.check_merge_row_cfg()
+    out, err = capsys.readouterr()
+    assert rsplit2 == cfg.s02_merge_rows
+    assert '' == out
+    for msg in msgs:
+        assert msg in err

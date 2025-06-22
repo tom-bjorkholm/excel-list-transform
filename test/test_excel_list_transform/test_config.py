@@ -249,10 +249,9 @@ def test_config_something_cha_bad(capsys, abc_not_pqr, value, exm):
     else:
         xst.pqr = value
     scfg = xst.as_json_string()
-    with pytest.raises(KeyError) as exc:
+    with pytest.raises(SystemExit):
         _ = ConfigSomething(from_json_text=scfg)
     out, err = capsys.readouterr()
-    assert exm in str(exc)
     assert out == ''
     assert exm in err
 
@@ -785,12 +784,11 @@ def test_check_array_keys_ok(capsys, arr, mand, allow):
                            'Missing key "foo"')])
 def test_check_array_keys_nok(capsys, arr, mand, allow, msg):
     """Test not ok cases for check_array_keys."""
-    with pytest.raises(KeyError) as exc:
+    with pytest.raises(SystemExit):
         Config.check_array_keys(name_of_cfg='test_py', array=arr,
                                 mandatory_keys=mand, allowed_keys=allow)
     out, err = capsys.readouterr()
     assert out == ''
-    assert msg in str(exc)
     assert msg in err
 
 

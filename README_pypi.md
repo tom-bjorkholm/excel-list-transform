@@ -393,3 +393,10 @@ Old keywords according to the table below are automatically renamed to the new k
 ## Source code
 
 Source code and tests are available at [https://bitbucket.org/tom-bjorkholm/excel-list-transform](https://bitbucket.org/tom-bjorkholm/excel-list-transform).
+
+## Test summary
+
+Test result: 3789 passed in 11.42s
+No Flake8 warnings.
+No mypy issues found.
+0.7.14 built and tested using python version: Python 3.13.4

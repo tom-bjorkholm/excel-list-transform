@@ -10,13 +10,13 @@ If you want to use it install it using pip from [https://pypi.org/project/excel-
 
 ### Installing on mac and Linux
 
-````
+````sh
 pip3 install --upgrade excel-list-transform
 ````
 
 ### Installing on Microsoft Windows
 
-````
+````sh
 pip install --upgrade excel-list-transform
 ````
 
@@ -76,3 +76,10 @@ The "testing" includes pytest, pylint, flake8 and mypy.
 After running doBuild.zsh you can open reports/index.htm to see all test reports.
 
 After running doBuild.zsh you can do manual test of the built and installed application in the virtual environment ./venv
+
+## Test summary
+
+Test result: 3789 passed in 11.42s
+No Flake8 warnings.
+No mypy issues found.
+0.7.14 built and tested using python version: Python 3.13.4

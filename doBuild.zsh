@@ -30,6 +30,7 @@ VENVOKMARK=(./venv/lib/python*/site-packages/openpyxl(NnOn))
 VENVSITEPKGS=./venv/lib/${PYTHON}.10/site-packages
 DOCOUTDIR=reports
 DOCINDEX=${DOCOUTDIR}/index.html
+TSUMFILE=${DOCOUTDIR}/test_summary.md
 FLAKEOUTDIR=${DOCOUTDIR}/flake_report
 MYPYOUTDIR=${DOCOUTDIR}/mypy_report
 MYPYOUTFILE=${DOCOUTDIR}/mypy_errors.txt
@@ -82,7 +83,12 @@ cat > ${DOCINDEX} <<EOF
 EOF
 date +"<h1>excel_list_transform ${VER} test report %Y-%m-%d %H:%M </h1> " >> ${DOCINDEX}
 echo "<h2>Building version ${VER}</h2>" >> ${DOCINDEX}
-grep 'passed' < ${PYTESTLOG} | tail -1 >> ${DOCINDEX}
+echo '## Test summary' > ${TSUMFILE}
+echo '' >> ${TSUMFILE}
+TRES=`grep 'passed' < ${PYTESTLOG} | tail -1 | sed 's/=//g' | sed 's/^ //g' | sed 's/ $//g'`
+echo ${TRES} >> ${DOCINDEX}
+echo 'Test result:' ${TRES} >> ${TSUMFILE}
+skipped=`grep 'passed' < ${PYTESTLOG} | tail -1 | grep skipped | wc -l`
 failed=`grep 'passed' < ${PYTESTLOG} | tail -1 | grep failed | wc -l`
 if [[ ${failed} -ne 0 ]] ; then
   echo "Pytest/pylint errors" >&2
@@ -90,20 +96,26 @@ if [[ ${failed} -ne 0 ]] ; then
 fi
 if ! grep 'No flake8 errors found' ${FLAKEOUTDIR}/index.html > /dev/null
 then
-  echo "Flake8 errors/warnings" >&2
+  echo "Flake8 errors/warnings." >&2
+  echo "Flake8 errors/warnings." >> ${TSUMFILE}
   echo "<br>Flake8 errors/warnings<br>" >> ${DOCINDEX}
   testStatus=1
+else 
+  echo "No Flake8 warnings." >> ${TSUMFILE}
 fi
 if grep 'Success: no issues found' < ${MYPYOUTFILE} >/dev/null
 then
-  echo "No mypy issues found" >&2
+  echo "No mypy issues found." >&2
+  echo "No mypy issues found." >> ${TSUMFILE}
   echo "<br>No mypy issues found<br>" >> ${DOCINDEX}
 else
   echo "mypy errors" >&2
+  echo "mypy errors" >> ${TSUMFILE}
   echo "<br>mypy errors<br>" >> ${DOCINDEX}
   testStatus=1
 fi
 echo "Build and test using python version:" `${PYTHON} --version` >> ${DOCINDEX}
+echo "${VER} built and tested using python version:" `${PYTHON} --version` >> ${TSUMFILE}
 cat >> ${DOCINDEX} <<EOF
 <ul>
 <li><a href="pytest_report.html?visible=failed,error,xfailed,xpassed,rerun">pytest report</a></li>
@@ -118,4 +130,11 @@ cat >> ${DOCINDEX} <<EOF
 </html>
 EOF
 echo "Build and test using python version:" `${PYTHON} --version`
+if [[ ${skipped} -eq 0 ]] ; then
+  for i in README.md README_pypi.md ; do
+    sed -n '/## Test summary/q;p' < ${i} > ${i}.new
+    cat ${i}.new ${TSUMFILE} > ${i}
+    rm ${i}.new
+  done
+fi
 exit $testStatus

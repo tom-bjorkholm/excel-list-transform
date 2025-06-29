@@ -87,7 +87,7 @@ echo '## Test summary' > ${TSUMFILE}
 echo '' >> ${TSUMFILE}
 TRES=`grep 'passed' < ${PYTESTLOG} | tail -1 | sed 's/=//g' | sed 's/^ //g' | sed 's/ $//g'`
 echo ${TRES} >> ${DOCINDEX}
-echo 'Test result:' ${TRES} >> ${TSUMFILE}
+echo '* Test result:' ${TRES} >> ${TSUMFILE}
 skipped=`grep 'passed' < ${PYTESTLOG} | tail -1 | grep skipped | wc -l`
 failed=`grep 'passed' < ${PYTESTLOG} | tail -1 | grep failed | wc -l`
 if [[ ${failed} -ne 0 ]] ; then
@@ -97,25 +97,25 @@ fi
 if ! grep 'No flake8 errors found' ${FLAKEOUTDIR}/index.html > /dev/null
 then
   echo "Flake8 errors/warnings." >&2
-  echo "Flake8 errors/warnings." >> ${TSUMFILE}
+  echo "* Flake8 errors/warnings." >> ${TSUMFILE}
   echo "<br>Flake8 errors/warnings<br>" >> ${DOCINDEX}
   testStatus=1
 else 
-  echo "No Flake8 warnings." >> ${TSUMFILE}
+  echo "* No Flake8 warnings." >> ${TSUMFILE}
 fi
 if grep 'Success: no issues found' < ${MYPYOUTFILE} >/dev/null
 then
-  echo "No mypy issues found." >&2
-  echo "No mypy issues found." >> ${TSUMFILE}
+  echo "No mypy errors found." >&2
+  echo "* No mypy errors found." >> ${TSUMFILE}
   echo "<br>No mypy issues found<br>" >> ${DOCINDEX}
 else
   echo "mypy errors" >&2
-  echo "mypy errors" >> ${TSUMFILE}
+  echo "* mypy errors" >> ${TSUMFILE}
   echo "<br>mypy errors<br>" >> ${DOCINDEX}
   testStatus=1
 fi
 echo "Build and test using python version:" `${PYTHON} --version` >> ${DOCINDEX}
-echo "${VER} built and tested using python version:" `${PYTHON} --version` >> ${TSUMFILE}
+echo "* ${VER} built and tested using python version:" `${PYTHON} --version` >> ${TSUMFILE}
 cat >> ${DOCINDEX} <<EOF
 <ul>
 <li><a href="pytest_report.html?visible=failed,error,xfailed,xpassed,rerun">pytest report</a></li>

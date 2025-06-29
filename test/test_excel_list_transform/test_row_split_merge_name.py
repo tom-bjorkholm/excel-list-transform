@@ -6,7 +6,7 @@
 
 import pytest
 from excel_list_transform.row_split_merge_name import get_nosep_pos, \
-    in_nosep_pos, split_one_str, one_split_one_row_name
+    in_nosep_pos, split_one_str, one_split_one_row_name, one_split_name
 
 
 @pytest.mark.parametrize('instr,nseps,res',
@@ -96,6 +96,50 @@ def test_one_split_one_na_nok1(capsys,  # pylint: disable=too-many-arguments,too
     with pytest.raises(SystemExit):
         _ = one_split_one_row_name(inrow=inrow, column=col,
                                    separators=seps, not_separators=noseps)
+    out, err = capsys.readouterr()
+    assert '' == out
+    for msg in msgs:
+        assert msg in err
+
+
+@pytest.mark.parametrize('indata,col,seps,noseps,res',
+                         [([{'a': 'b', 'c': 'd e', 'f': 'g'}], 'c',
+                           ['+', ' ', '-'], ['  ', '++'],
+                          [{'a': 'b', 'c': 'd', 'f': 'g'},
+                           {'a': 'b', 'c': 'e', 'f': 'g'}]),
+                          ([{'a': 'b', 'c': 'd e+x', 'f': 'g'},
+                            {'a': 'h', 'c': 'i+j', 'f': 'k'}], 'c',
+                           ['+', ' ', '-'], ['  ', '++'],
+                          [{'a': 'b', 'c': 'd', 'f': 'g'},
+                           {'a': 'b', 'c': 'e', 'f': 'g'},
+                           {'a': 'b', 'c': 'x', 'f': 'g'},
+                           {'a': 'h', 'c': 'i', 'f': 'k'},
+                           {'a': 'h', 'c': 'j', 'f': 'k'}]),
+                          ([{'a': 'b', 'c': 'de', 'f': 'g'}], 'c',
+                           ['+', ' ', '-'], ['  ', '++'],
+                           [{'a': 'b', 'c': 'de', 'f': 'g'}])])
+def test_one_split_name_ok1(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
+                            indata, col, seps, noseps, res):
+    """Test OK cases of one_split_name."""
+    ret = one_split_name(indata=indata, column=col,
+                         separators=seps, not_separators=noseps)
+    out, err = capsys.readouterr()
+    assert ret == res
+    assert '' == out
+    assert '' == err
+
+
+@pytest.mark.parametrize('indata,col,seps,noseps,msgs',
+                         [([{'a': 'b', 'c': 'd e', 'f': 2}], 'k',
+                           ['+', ' ', '-'], ['  ', '++'],
+                           ['Trying to split lines based on column "k"',
+                            'but no such column in data'])])
+def test_one_split_name_nok1(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
+                             indata, col, seps, noseps, msgs):
+    """Test not OK cases of one_split_name."""
+    with pytest.raises(SystemExit):
+        _ = one_split_name(indata=indata, column=col,
+                           separators=seps, not_separators=noseps)
     out, err = capsys.readouterr()
     assert '' == out
     for msg in msgs:

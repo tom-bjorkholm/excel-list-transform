@@ -97,8 +97,10 @@ def one_split_one_row_name(inrow: NameRow, column: str, separators: list[str],
 def one_split_name(indata: NameData, column: str, separators: list[str],
                    not_separators: list[str]) -> NameData:
     """Handle one of the split row directives."""
+    if not indata:
+        return indata
     if column not in indata[0]:
-        print(f'Trying to split lines based on column "{column},"' +
+        print(f'Trying to split lines based on column "{column}",' +
               ' but no such column in data.\n',
               file=sys.stderr)
         sys.exit(1)

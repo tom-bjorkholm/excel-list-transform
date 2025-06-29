@@ -8,6 +8,8 @@ import sys
 from copy import deepcopy
 from excel_list_transform.commontypes import NameData, NameRow
 from excel_list_transform.config_excel_list_transform import RuleRowSplit
+from excel_list_transform.config_xls_list_refmt_name import \
+    ConfigXlsListRefmtName
 
 
 def get_nosep_pos(instr: str,
@@ -128,3 +130,10 @@ def split_rows_name(indata: NameData,
                                 not_separators=notsep)
         data = result
     return result
+
+
+def split_rows_namecfg(indata: NameData,
+                       cfg: ConfigXlsListRefmtName) -> NameData:
+    """Split rows according to configuration."""
+    return split_rows_name(indata=indata,
+                           directives=cfg.s01_split_rows)

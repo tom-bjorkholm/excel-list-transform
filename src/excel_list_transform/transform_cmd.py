@@ -1,4 +1,5 @@
 #! /usr/local/bin/python3
+# PYTHON_ARGCOMPLETE_OK
 """Command to transform list in excel or CSV file."""
 
 # Copyright (c) 2024-2025 Tom Björkholm
@@ -9,6 +10,7 @@ from copy import deepcopy
 from sys import argv as sys_argv
 from typing import Optional, TypeAlias
 import argparse
+import argcomplete
 from excel_list_transform.transform_func import transform_named_files
 from excel_list_transform.generate_cfg import generate_examplecfg
 from excel_list_transform.generate_cfg import get_example_names
@@ -169,6 +171,7 @@ def transform_cmd(arguments: Optional[list[str]] = None) -> None:
     gen_cfg_args(subparsers)
     transf_args(subparsers)
     version_args(subparsers)
+    argcomplete.autocomplete(parser)
     args = parser.parse_args(args=fixed_args)
     _ = args.func(args)
 

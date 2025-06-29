@@ -18,6 +18,7 @@ setup(
     'types-openpyxl >= 3.1.5.20250602',
     'pylightxl >= 1.61',
     'XlsxWriter >= 3.2.3',
+    'argcomplete >= 3.6.2',
     'pip >= 25.0.1',
     'setuptools >= 80.9.0',
     'build >= 1.2.2.post1',

@@ -85,7 +85,7 @@ date +"<h1>excel_list_transform ${VER} test report %Y-%m-%d %H:%M </h1> " >> ${D
 echo "<h2>Building version ${VER}</h2>" >> ${DOCINDEX}
 echo '## Test summary' > ${TSUMFILE}
 echo '' >> ${TSUMFILE}
-TRES=`grep 'passed' < ${PYTESTLOG} | tail -1 | sed 's/=//g' | sed 's/^ //g' | sed 's/ $//g'`
+TRES=`grep 'passed' < ${PYTESTLOG} | tail -1 | sed 's/=//g' | sed 's/^ //g' | sed 's/.[0-9][0-9]s/s/g' | sed 's/ $//g'`
 echo ${TRES} >> ${DOCINDEX}
 echo '* Test result:' ${TRES} >> ${TSUMFILE}
 skipped=`grep 'passed' < ${PYTESTLOG} | tail -1 | grep skipped | wc -l`

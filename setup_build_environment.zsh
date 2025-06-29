@@ -58,6 +58,7 @@ ${PYTHON} -m pip install --upgrade pytest-skip-slow
 ${PYTHON} -m pip install --upgrade flake8-docstrings
 ${PYTHON} -m pip install --upgrade pytest-pylint
 ${PYTHON} -m pip install --upgrade pytest-cov
+${PYTHON} -m pip install --upgrade argcomplete
 ${PYTHON} -m pip install --upgrade openpyxl
 ${PYTHON} -m pip install --upgrade types-openpyxl
 ${PYTHON} -m pip install --upgrade pylightxl

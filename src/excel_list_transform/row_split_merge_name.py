@@ -164,3 +164,21 @@ def merge_strings(to_merge: list[Value], sep: str) -> Value:
             ret += sep
         ret += str(i)
     return ret
+
+
+def merge_identified_rows_name(rows: NameData, row_numbers: list[int],
+                               separator: str) -> NameData:
+    """Merge rows identified by row numbers."""
+    if len(rows) <= 1:
+        return rows
+    if len(row_numbers) <= 1:
+        return rows
+    for colname in rows[0].keys():
+        to_merge: list[Value] = []
+        for rownum in row_numbers:
+            to_merge.append(deepcopy(rows[rownum][colname]))
+        rows[row_numbers[0]][colname] = merge_strings(to_merge=to_merge,
+                                                      sep=separator)
+    for rownum in sorted(row_numbers[1:], reverse=True):
+        del rows[rownum]
+    return rows

@@ -9,7 +9,8 @@ from datetime import datetime
 import pytest
 from excel_list_transform.row_split_merge_name import get_nosep_pos, \
     in_nosep_pos, split_one_str, one_split_one_row_name, one_split_name, \
-    split_rows_name, split_rows_namecfg, merge_strings
+    split_rows_name, split_rows_namecfg, merge_strings, \
+    merge_identified_rows_name
 from excel_list_transform.config_xls_list_refmt_name import \
     ConfigXlsListRefmtName
 
@@ -271,6 +272,45 @@ def test_split_rows_namecfg_ok1(capsys, indata, direc, res):
 def test_merge_strings(capsys, inlst, sep, res):
     """Test OK cases of merge_strings."""
     ret = merge_strings(to_merge=inlst, sep=sep)
+    out, err = capsys.readouterr()
+    assert ret == res
+    assert '' == out
+    assert '' == err
+
+
+@pytest.mark.parametrize('data,rowidxs,sep,res',
+                         [([], [], '+', []),
+                          ([], [2, 4], '+', []),
+                          ([{'a': 'x', 'b': 'y', 'c': 'z'},
+                            {'a': 1, 'b': 2, 'c': 3}],
+                           [], '+',
+                           [{'a': 'x', 'b': 'y', 'c': 'z'},
+                            {'a': 1, 'b': 2, 'c': 3}]),
+                          ([{'a': 'x', 'b': 'y', 'c': 'z'},
+                            {'a': 1, 'b': 2, 'c': 3}],
+                           [1], '+',
+                           [{'a': 'x', 'b': 'y', 'c': 'z'},
+                            {'a': 1, 'b': 2, 'c': 3}]),
+                          ([{'a': 'x', 'b': 'y', 'c': 'z'},
+                            {'a': 1, 'b': 2, 'c': 3},
+                            {'a': 'x1', 'b': 'y', 'c': 'z1'},
+                            {'a': 4, 'b': 5, 'c': 6}],
+                           [0, 2, 3], '+',
+                           [{'a': 'x+x1+4', 'b': 'y+5', 'c': 'z+z1+6'},
+                            {'a': 1, 'b': 2, 'c': 3}]),
+                          ([{'a': 'x', 'b': 'y', 'c': 'z'},
+                            {'a': 1, 'b': 2, 'c': 3},
+                            {'a': 'x1', 'b': 'y', 'c': 'z1'},
+                            {'a': 4, 'b': 5, 'c': 6}],
+                           [2, 0], '-',
+                           [{'a': 1, 'b': 2, 'c': 3},
+                            {'a': 'x1-x', 'b': 'y', 'c': 'z1-z'},
+                            {'a': 4, 'b': 5, 'c': 6}])])
+def test_merge_ident_rows_name(capsys, data, rowidxs, sep, res):
+    """Test OK cases of merge_identified_rows_name."""
+    ret = merge_identified_rows_name(rows=deepcopy(data),
+                                     row_numbers=deepcopy(rowidxs),
+                                     separator=sep)
     out, err = capsys.readouterr()
     assert ret == res
     assert '' == out

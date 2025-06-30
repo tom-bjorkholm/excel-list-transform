@@ -6,7 +6,7 @@
 
 import sys
 from copy import deepcopy
-from excel_list_transform.commontypes import NameData, NameRow
+from excel_list_transform.commontypes import NameData, NameRow, Value
 from excel_list_transform.config_excel_list_transform import RuleRowSplit
 from excel_list_transform.config_xls_list_refmt_name import \
     ConfigXlsListRefmtName
@@ -137,3 +137,30 @@ def split_rows_namecfg(indata: NameData,
     """Split rows according to configuration."""
     return split_rows_name(indata=indata,
                            directives=cfg.s01_split_rows)
+
+
+def merge_strings(to_merge: list[Value], sep: str) -> Value:
+    """Merge list of strings to one cell value.
+
+    If two or more values are on several position it will be
+    merged only once. If two positions have different values
+    the values will be converted to str and concatenated with
+    the separator sep.
+    @param to_merge A list of the cell values for one column for the rows
+                    that are subject to the merge.
+    @param sep      The separator between values when merged.
+    """
+    uniq: list[Value] = []
+    for i in to_merge:
+        if i not in uniq:
+            uniq.append(deepcopy(i))
+    if not uniq:
+        return None
+    if len(uniq) == 1:
+        return uniq[0]
+    ret = str(uniq[0])
+    for i in uniq[1:]:
+        if ret:
+            ret += sep
+        ret += str(i)
+    return ret

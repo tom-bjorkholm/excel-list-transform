@@ -5,10 +5,11 @@
 # MIT License
 
 from copy import deepcopy
+from datetime import datetime
 import pytest
 from excel_list_transform.row_split_merge_name import get_nosep_pos, \
     in_nosep_pos, split_one_str, one_split_one_row_name, one_split_name, \
-    split_rows_name, split_rows_namecfg
+    split_rows_name, split_rows_namecfg, merge_strings
 from excel_list_transform.config_xls_list_refmt_name import \
     ConfigXlsListRefmtName
 
@@ -250,6 +251,26 @@ def test_split_rows_namecfg_ok1(capsys, indata, direc, res):
     jsontxt = cfg1.as_json_string()
     cfg2 = ConfigXlsListRefmtName(from_json_text=jsontxt)
     ret = split_rows_namecfg(indata=deepcopy(indata), cfg=cfg2)
+    out, err = capsys.readouterr()
+    assert ret == res
+    assert '' == out
+    assert '' == err
+
+
+@pytest.mark.parametrize('inlst,sep,res',
+                         [(['a', 'b', 2, 'b', 'a'], ' ', 'a b 2'),
+                          ([], ';', None),
+                          ([1, 1, 1, 1], '+', 1),
+                          ([1.23, 'a', 1.23, datetime(year=2025, month=6,
+                                                      day=1, hour=12,
+                                                      minute=13, second=14),
+                            1.23, 'a', 1.23, datetime(year=2025, month=6,
+                                                      day=1, hour=12,
+                                                      minute=13, second=14)],
+                           '@', '1.23@a@2025-06-01 12:13:14')])
+def test_merge_strings(capsys, inlst, sep, res):
+    """Test OK cases of merge_strings."""
+    ret = merge_strings(to_merge=inlst, sep=sep)
     out, err = capsys.readouterr()
     assert ret == res
     assert '' == out

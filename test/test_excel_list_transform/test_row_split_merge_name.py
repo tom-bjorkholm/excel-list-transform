@@ -10,7 +10,7 @@ import pytest
 from excel_list_transform.row_split_merge_name import get_nosep_pos, \
     in_nosep_pos, split_one_str, one_split_one_row_name, one_split_name, \
     split_rows_name, split_rows_namecfg, merge_strings, \
-    merge_identified_rows_name
+    merge_identified_rows_name, identify_rows_to_merge
 from excel_list_transform.config_xls_list_refmt_name import \
     ConfigXlsListRefmtName
 
@@ -311,6 +311,32 @@ def test_merge_ident_rows_name(capsys, data, rowidxs, sep, res):
     ret = merge_identified_rows_name(rows=deepcopy(data),
                                      row_numbers=deepcopy(rowidxs),
                                      separator=sep)
+    out, err = capsys.readouterr()
+    assert ret == res
+    assert '' == out
+    assert '' == err
+
+
+DATA1 = [{'a': 'aa', 'b': 'bb', 'c': 3},
+         {'a': 'ff', 'b': 'bc', 'c': 5},
+         {'a': 'aa', 'b': 'bd', 'c': 3},
+         {'a': 'ff', 'b': 'be', 'c': 5},
+         {'a': 'gg', 'b': 'bf', 'c': 5},
+         {'a': 'aa', 'b': 'bg', 'c': 7},
+         {'a': 'aa', 'b': 'bh', 'c': 3}]
+
+
+@pytest.mark.parametrize('data,cols,res',
+                         [(DATA1, ['a', 'c'],
+                           [[0, 2, 6], [1, 3]]),
+                          (DATA1, ['b'], []),
+                          (DATA1, [],
+                           [[0, 1, 2, 3, 4, 5, 6]]),
+                          (DATA1, ['c'],
+                           [[0, 2, 6], [1, 3, 4]])])
+def test_iden_rows_to_merge1(capsys, data, cols, res):
+    """Test OK cases of merge identified rows."""
+    ret = identify_rows_to_merge(columns_to_cmp=cols, rows=data)
     out, err = capsys.readouterr()
     assert ret == res
     assert '' == out

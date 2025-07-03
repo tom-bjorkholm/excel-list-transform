@@ -182,3 +182,37 @@ def merge_identified_rows_name(rows: NameData, row_numbers: list[int],
     for rownum in sorted(row_numbers[1:], reverse=True):
         del rows[rownum]
     return rows
+
+
+def identify_rows_to_merge(columns_to_cmp: list[str],
+                           rows: NameData) -> list[list[int]]:
+    """Identify rows to merge.
+
+    Find rows that have identical values in the columns to compare.
+    @param columns_to_compare  List of column names for columns to
+                               compare values in..
+    @param rows  The data rows to look for values in.
+    @return List of lists of columns with identical values in
+            columns being compared.
+    """
+    numrows = len(rows)
+    ret: list[list[int]] = []
+    used_in_merge: list[int] = []
+    for startnum, startrow in enumerate(rows):
+        if startnum in used_in_merge:
+            continue
+        candidates = [startnum]
+        for othernum in range(startnum+1, numrows):
+            if othernum in used_in_merge:
+                continue
+            otherrow = rows[othernum]
+            differs = False
+            for col in columns_to_cmp:
+                if startrow[col] != otherrow[col]:
+                    differs = True
+            if not differs:
+                candidates.append(othernum)
+        if len(candidates) >= 2:
+            ret.append(candidates)
+            used_in_merge += candidates
+    return ret

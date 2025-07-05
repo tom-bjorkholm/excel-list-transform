@@ -7,7 +7,8 @@
 import sys
 from copy import deepcopy
 from excel_list_transform.commontypes import NameData, NameRow, Value
-from excel_list_transform.config_excel_list_transform import RuleRowSplit
+from excel_list_transform.config_excel_list_transform import RuleRowSplit, \
+    SingleRuleMerge, RuleMerge
 from excel_list_transform.config_xls_list_refmt_name import \
     ConfigXlsListRefmtName
 
@@ -166,26 +167,32 @@ def merge_strings(to_merge: list[Value], sep: str) -> Value:
     return ret
 
 
-def merge_identified_rows_name(rows: NameData, row_numbers: list[int],
+def merge_identified_rows_name(rows: NameData, row_numbers: list[list[int]],
                                separator: str) -> NameData:
     """Merge rows identified by row numbers."""
     if len(rows) <= 1:
         return rows
-    if len(row_numbers) <= 1:
+    if len(row_numbers) < 1:
         return rows
     for colname in rows[0].keys():
-        to_merge: list[Value] = []
-        for rownum in row_numbers:
-            to_merge.append(deepcopy(rows[rownum][colname]))
-        rows[row_numbers[0]][colname] = merge_strings(to_merge=to_merge,
-                                                      sep=separator)
-    for rownum in sorted(row_numbers[1:], reverse=True):
+        for merge_set in row_numbers:
+            if len(merge_set) <= 1:
+                continue
+            to_merge: list[Value] = []
+            for rownum in merge_set:
+                to_merge.append(deepcopy(rows[rownum][colname]))
+            rows[merge_set[0]][colname] = merge_strings(to_merge=to_merge,
+                                                        sep=separator)
+    rows_to_del: list[int] = []
+    for merge_set in row_numbers:
+        rows_to_del += merge_set[1:]
+    for rownum in sorted(rows_to_del, reverse=True):
         del rows[rownum]
     return rows
 
 
-def identify_rows_to_merge(columns_to_cmp: list[str],
-                           rows: NameData) -> list[list[int]]:
+def identify_rows_to_merge_name(rows: NameData,
+                                columns_to_cmp: list[str]) -> list[list[int]]:
     """Identify rows to merge.
 
     Find rows that have identical values in the columns to compare.
@@ -216,3 +223,43 @@ def identify_rows_to_merge(columns_to_cmp: list[str],
             ret.append(candidates)
             used_in_merge += candidates
     return ret
+
+
+def one_merge_rows_name(indata: NameData,
+                        columns_to_cmp: list[str],
+                        separator: str) -> NameData:
+    """Merge rows based on content of single rule."""
+    rows_to_merge = identify_rows_to_merge_name(rows=indata,
+                                                columns_to_cmp=columns_to_cmp)
+    data = deepcopy(indata)
+    data = merge_identified_rows_name(rows=data, row_numbers=rows_to_merge,
+                                      separator=separator)
+    return data
+
+
+def one_rule_merge_rows_name(indata: NameData,
+                             rule: SingleRuleMerge[str]) -> NameData:
+    """Merge rows based on a single rule."""
+    assert 'columns' in rule
+    columns = rule['columns']
+    assert isinstance(columns, list)
+    assert 'separator' in rule
+    separator = rule['separator']
+    assert isinstance(separator, str)
+    return one_merge_rows_name(indata=indata,
+                               columns_to_cmp=columns,
+                               separator=separator)
+
+
+def merge_rows_name(indata: NameData, rules: RuleMerge[str]) -> NameData:
+    """Merge rows based on rules."""
+    data = deepcopy(indata)
+    for rule in rules:
+        data = one_rule_merge_rows_name(indata=data, rule=rule)
+    return data
+
+
+def merge_rows_namecfg(indata: NameData,
+                       cfg: ConfigXlsListRefmtName) -> NameData:
+    """Merge rows based on configuration."""
+    return merge_rows_name(indata=indata, rules=cfg.s02_merge_rows)

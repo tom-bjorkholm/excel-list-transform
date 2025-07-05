@@ -10,7 +10,9 @@ import pytest
 from excel_list_transform.row_split_merge_name import get_nosep_pos, \
     in_nosep_pos, split_one_str, one_split_one_row_name, one_split_name, \
     split_rows_name, split_rows_namecfg, merge_strings, \
-    merge_identified_rows_name, identify_rows_to_merge
+    merge_identified_rows_name, identify_rows_to_merge_name, \
+    one_merge_rows_name, one_rule_merge_rows_name, merge_rows_name, \
+    merge_rows_namecfg
 from excel_list_transform.config_xls_list_refmt_name import \
     ConfigXlsListRefmtName
 
@@ -280,7 +282,8 @@ def test_merge_strings(capsys, inlst, sep, res):
 
 @pytest.mark.parametrize('data,rowidxs,sep,res',
                          [([], [], '+', []),
-                          ([], [2, 4], '+', []),
+                          ([], [[]], '+', []),
+                          ([], [[2, 4]], '+', []),
                           ([{'a': 'x', 'b': 'y', 'c': 'z'},
                             {'a': 1, 'b': 2, 'c': 3}],
                            [], '+',
@@ -288,24 +291,44 @@ def test_merge_strings(capsys, inlst, sep, res):
                             {'a': 1, 'b': 2, 'c': 3}]),
                           ([{'a': 'x', 'b': 'y', 'c': 'z'},
                             {'a': 1, 'b': 2, 'c': 3}],
-                           [1], '+',
+                           [[]], '+',
+                           [{'a': 'x', 'b': 'y', 'c': 'z'},
+                            {'a': 1, 'b': 2, 'c': 3}]),
+                          ([{'a': 'x', 'b': 'y', 'c': 'z'},
+                            {'a': 1, 'b': 2, 'c': 3}],
+                           [[1]], '+',
                            [{'a': 'x', 'b': 'y', 'c': 'z'},
                             {'a': 1, 'b': 2, 'c': 3}]),
                           ([{'a': 'x', 'b': 'y', 'c': 'z'},
                             {'a': 1, 'b': 2, 'c': 3},
                             {'a': 'x1', 'b': 'y', 'c': 'z1'},
                             {'a': 4, 'b': 5, 'c': 6}],
-                           [0, 2, 3], '+',
+                           [[0, 2, 3]], '+',
                            [{'a': 'x+x1+4', 'b': 'y+5', 'c': 'z+z1+6'},
                             {'a': 1, 'b': 2, 'c': 3}]),
                           ([{'a': 'x', 'b': 'y', 'c': 'z'},
                             {'a': 1, 'b': 2, 'c': 3},
                             {'a': 'x1', 'b': 'y', 'c': 'z1'},
                             {'a': 4, 'b': 5, 'c': 6}],
-                           [2, 0], '-',
+                           [[2, 0]], '-',
                            [{'a': 1, 'b': 2, 'c': 3},
                             {'a': 'x1-x', 'b': 'y', 'c': 'z1-z'},
-                            {'a': 4, 'b': 5, 'c': 6}])])
+                            {'a': 4, 'b': 5, 'c': 6}]),
+                          ([{'a': 'x', 'b': 'y', 'c': 'z'},
+                            {'a': 1, 'b': 2, 'c': 3},
+                            {'a': 'x1', 'b': 'y', 'c': 'z1'},
+                            {'a': 4, 'b': 5, 'c': 6}],
+                           [[0, 2], [1]], '-',
+                           [{'a': 'x-x1', 'b': 'y', 'c': 'z-z1'},
+                            {'a': 1, 'b': 2, 'c': 3},
+                            {'a': 4, 'b': 5, 'c': 6}]),
+                          ([{'a': 'x', 'b': 'y', 'c': 'z'},
+                            {'a': 1, 'b': 2, 'c': 3},
+                            {'a': 'x1', 'b': 'y', 'c': 'z1'},
+                            {'a': 4, 'b': 5, 'c': 6}],
+                           [[0, 2], [1, 3]], '-',
+                           [{'a': 'x-x1', 'b': 'y', 'c': 'z-z1'},
+                            {'a': '1-4', 'b': '2-5', 'c': '3-6'}])])
 def test_merge_ident_rows_name(capsys, data, rowidxs, sep, res):
     """Test OK cases of merge_identified_rows_name."""
     ret = merge_identified_rows_name(rows=deepcopy(data),
@@ -336,7 +359,162 @@ DATA1 = [{'a': 'aa', 'b': 'bb', 'c': 3},
                            [[0, 2, 6], [1, 3, 4]])])
 def test_iden_rows_to_merge1(capsys, data, cols, res):
     """Test OK cases of merge identified rows."""
-    ret = identify_rows_to_merge(columns_to_cmp=cols, rows=data)
+    ret = identify_rows_to_merge_name(rows=deepcopy(data),
+                                      columns_to_cmp=deepcopy(cols))
+    out, err = capsys.readouterr()
+    assert ret == res
+    assert '' == out
+    assert '' == err
+
+
+DATA1ACP = [{'a': 'aa', 'b': 'bb+bd+bh', 'c': 3},
+            {'a': 'ff', 'b': 'bc+be', 'c': 5},
+            {'a': 'gg', 'b': 'bf', 'c': 5},
+            {'a': 'aa', 'b': 'bg', 'c': 7}]
+
+DATA2ACCPM = [{'a': 'aa', 'b': 'bb+bd+bh', 'c': 3},
+              {'a': 'ff-gg', 'b': 'bc+be-bf', 'c': 5},
+              {'a': 'aa', 'b': 'bg', 'c': 7}]
+
+DATA1NP = [{'a': 'aa+ff+gg', 'b': 'bb+bc+bd+be+bf+bg+bh', 'c': '3+5+7'}]
+
+DATA1CP = [{'a': 'aa', 'b': 'bb+bd+bh', 'c': 3},
+           {'a': 'ff+gg', 'b': 'bc+be+bf', 'c': 5},
+           {'a': 'aa', 'b': 'bg', 'c': 7}]
+
+DATA1ACS = [{'a': 'aa', 'b': 'bb bd bh', 'c': 3},
+            {'a': 'ff', 'b': 'bc be', 'c': 5},
+            {'a': 'gg', 'b': 'bf', 'c': 5},
+            {'a': 'aa', 'b': 'bg', 'c': 7}]
+
+DATA1NS = [{'a': 'aa ff gg', 'b': 'bb bc bd be bf bg bh', 'c': '3 5 7'}]
+
+DATA1CS = [{'a': 'aa', 'b': 'bb bd bh', 'c': 3},
+           {'a': 'ff gg', 'b': 'bc be bf', 'c': 5},
+           {'a': 'aa', 'b': 'bg', 'c': 7}]
+
+
+@pytest.mark.parametrize('data,cols,sep,res',
+                         [(DATA1, ['a', 'c'], '+',
+                           DATA1ACP),
+                          (DATA1, ['b'], '+', DATA1),
+                          (DATA1, [], '+', DATA1NP),
+                          (DATA1, ['c'], '+', DATA1CP),
+                          (DATA1, ['a', 'c'], ' ',
+                           DATA1ACS),
+                          (DATA1, ['b'], ' ', DATA1),
+                          (DATA1, [], ' ', DATA1NS),
+                          (DATA1, ['c'], ' ', DATA1CS)])
+def test_one_merge_rows_name_ok1(capsys, data, cols, sep, res):
+    """Test OK cases of one merge rows name."""
+    ret = one_merge_rows_name(indata=deepcopy(data),
+                              columns_to_cmp=deepcopy(cols),
+                              separator=deepcopy(sep))
+    out, err = capsys.readouterr()
+    assert ret == res
+    assert '' == out
+    assert '' == err
+
+
+@pytest.mark.parametrize('data,cols,sep,res',
+                         [(DATA1, ['a', 'c'], '+',
+                           DATA1ACP),
+                          (DATA1, ['b'], '+', DATA1),
+                          (DATA1, [], '+', DATA1NP),
+                          (DATA1, ['c'], '+', DATA1CP),
+                          (DATA1, ['a', 'c'], ' ',
+                           DATA1ACS),
+                          (DATA1, ['b'], ' ', DATA1),
+                          (DATA1, [], ' ', DATA1NS),
+                          (DATA1, ['c'], ' ', DATA1CS)])
+def test_one_rule_merge_rows_na_ok1(capsys, data, cols, sep, res):
+    """Test OK cases of one merge rows name."""
+    rule = {'columns': deepcopy(cols), 'separator': deepcopy(sep)}
+    ret = one_rule_merge_rows_name(indata=deepcopy(data), rule=rule)
+    out, err = capsys.readouterr()
+    assert ret == res
+    assert '' == out
+    assert '' == err
+
+
+@pytest.mark.parametrize('data,cols,sep,res',
+                         [(DATA1, ['a', 'c'], '+',
+                           DATA1ACP),
+                          (DATA1, ['b'], '+', DATA1),
+                          (DATA1, ['c'], '+', DATA1CP),
+                          (DATA1, ['a', 'c'], ' ',
+                           DATA1ACS),
+                          (DATA1, ['b'], ' ', DATA1),
+                          (DATA1, ['c'], ' ', DATA1CS)])
+def test_merge_rows_name_ok1(capsys, data, cols, sep, res):
+    """Test OK cases of merge rows name."""
+    rule = {'columns': deepcopy(cols), 'separator': deepcopy(sep)}
+    cfg1 = ConfigXlsListRefmtName()
+    cfg1.s02_merge_rows = [rule]
+    txt = cfg1.as_json_string()
+    cfg2 = ConfigXlsListRefmtName(from_json_text=txt)
+    ret = merge_rows_name(indata=deepcopy(data), rules=cfg2.s02_merge_rows)
+    out, err = capsys.readouterr()
+    assert ret == res
+    assert '' == out
+    assert '' == err
+
+
+@pytest.mark.parametrize('data,rule,res',
+                         [(DATA1, [{'columns': ['a', 'c'],
+                                    'separator': '+'},
+                                   {'columns': ['c'],
+                                    'separator': '-'}],
+                           DATA2ACCPM)])
+def test_merge_rows_name_ok2(capsys, data, rule, res):
+    """Test OK cases of merge rows name more than one rule."""
+    cfg1 = ConfigXlsListRefmtName()
+    cfg1.s02_merge_rows = deepcopy(rule)
+    txt = cfg1.as_json_string()
+    cfg2 = ConfigXlsListRefmtName(from_json_text=txt)
+    ret = merge_rows_name(indata=deepcopy(data), rules=cfg2.s02_merge_rows)
+    out, err = capsys.readouterr()
+    assert ret == res
+    assert '' == out
+    assert '' == err
+
+
+@pytest.mark.parametrize('data,cols,sep,res',
+                         [(DATA1, ['a', 'c'], '+',
+                           DATA1ACP),
+                          (DATA1, ['b'], '+', DATA1),
+                          (DATA1, ['c'], '+', DATA1CP),
+                          (DATA1, ['a', 'c'], ' ',
+                           DATA1ACS),
+                          (DATA1, ['b'], ' ', DATA1),
+                          (DATA1, ['c'], ' ', DATA1CS)])
+def test_merge_rows_name_ok3(capsys, data, cols, sep, res):
+    """Test OK cases of merge rows name."""
+    rule = {'columns': deepcopy(cols), 'separator': deepcopy(sep)}
+    cfg1 = ConfigXlsListRefmtName()
+    cfg1.s02_merge_rows = [rule]
+    txt = cfg1.as_json_string()
+    cfg2 = ConfigXlsListRefmtName(from_json_text=txt)
+    ret = merge_rows_namecfg(indata=deepcopy(data), cfg=cfg2)
+    out, err = capsys.readouterr()
+    assert ret == res
+    assert '' == out
+    assert '' == err
+
+
+@pytest.mark.parametrize('data,rule,res',
+                         [(DATA1, [{'columns': ['a', 'c'],
+                                    'separator': '+'},
+                                   {'columns': ['c'],
+                                    'separator': '-'}],
+                           DATA2ACCPM)])
+def test_merge_rows_name_ok4(capsys, data, rule, res):
+    """Test OK cases of merge rows name more than one rule."""
+    cfg1 = ConfigXlsListRefmtName()
+    cfg1.s02_merge_rows = deepcopy(rule)
+    txt = cfg1.as_json_string()
+    cfg2 = ConfigXlsListRefmtName(from_json_text=txt)
+    ret = merge_rows_namecfg(indata=deepcopy(data), cfg=cfg2)
     out, err = capsys.readouterr()
     assert ret == res
     assert '' == out

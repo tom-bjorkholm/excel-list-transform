@@ -175,10 +175,10 @@ def test_row_split_cfg_na_nok(capsys, splitr, msgs):
 
 
 @pytest.mark.parametrize('merger,msgs',
-                         [([{'columns': ['foo'], 'separator': ' '}],
+                         [([{'columns': [], 'separator': ' '}],
                            ['Error in parameter s02_merge_rows.',
-                            'List for key columns shall be minimum 2 eleme',
-                            'But it is 1 elements only.']),
+                            'List for key columns shall be minimum 1 eleme',
+                            'But it is 0 elements only.']),
                           ([{'columns': ['foo', 'bar'], 'separator': [' ']}],
                            ['Error in parameter s02_merge_rows.',
                             'Value for key separator expected to ' +

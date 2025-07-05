@@ -366,7 +366,7 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
         self.check_lst_dict_lst(paramname='s02_merge_rows',
                                 inp=self.s02_merge_rows, key='columns',
                                 key_optional=False, valtype=self._columntype,
-                                min_size_outer_list=0, min_size_inner_list=2)
+                                min_size_outer_list=0, min_size_inner_list=1)
         self.check_lst_dict(paramname='s02_merge_rows',
                             inp=self.s02_merge_rows, key='separator',
                             key_optional=False, valtype=str,

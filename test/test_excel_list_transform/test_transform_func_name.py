@@ -20,8 +20,8 @@ from excel_list_transform.config_excel_list_transform import \
     SplitWhere, FileType
 from excel_list_transform.handle_excel import read_excel_num, write_excel_named
 from excel_list_transform.handle_csv import read_csv_num, write_csv_named
-from excel_list_transform.config_xls_list_refmt_name import \
-    ConfigXlsListRefmtName
+from excel_list_transform.config_xls_list_transf_name import \
+    ConfigXlsListTransfName
 from excel_list_transform.commontypes import NameData
 from excel_list_transform.config_enums import RewriteKind, CaseSensitivity
 from excel_list_transform.transform_func_common import col_must_exist_name, \
@@ -127,7 +127,7 @@ def assert_data_is_equal(left: NameData, right: NameData) -> None:
                              'e': 'k+l+p', 'g h': 'm n'}])])
 def test_split_columns_name(capsys, ind, split, exp):
     """Test splitting of columns (column names)."""
-    cfg = ConfigXlsListRefmtName()
+    cfg = ConfigXlsListTransfName()
     cfg.s03_split_columns = split
     ret = split_columns(indata=ind, cfg=cfg, tinfo='a')
     out, err = capsys.readouterr()
@@ -151,7 +151,7 @@ def test_split_columns_name(capsys, ind, split, exp):
                            'Column "z" has value of type int')])
 def test_split_columns_nok_name(capsys, ind, split, msg):
     """Test not OK splitting of columns (column numbers)."""
-    cfg = ConfigXlsListRefmtName()
+    cfg = ConfigXlsListTransfName()
     cfg.s03_split_columns = split
     with pytest.raises(SystemExit):
         _ = split_columns(indata=ind, cfg=cfg, tinfo='a')
@@ -211,7 +211,7 @@ def test_split_columns_nok_name(capsys, ind, split, msg):
                             {'x': None, 'y': None, 'z': 'm'}])])
 def test_merge_columns_ok_name(capsys, ind, merg, exp):
     """Test merging of columns with name ref."""
-    cfg = ConfigXlsListRefmtName()
+    cfg = ConfigXlsListTransfName()
     cfg.s05_merge_columns = merg
     ret = merge_columns(indata=ind, cfg=cfg, tinfo='a')
     out, err = capsys.readouterr()
@@ -227,7 +227,7 @@ def test_merge_columns_ok_name(capsys, ind, merg, exp):
                            's05_merge_columns: no column named "q" in data')])
 def test_merge_columns_nok_name(capsys, ind, merg, msg):
     """Test not OK merging of columns with number ref."""
-    cfg = ConfigXlsListRefmtName()
+    cfg = ConfigXlsListTransfName()
     cfg.s05_merge_columns = merg
     with pytest.raises(SystemExit):
         _ = merge_columns(indata=ind, cfg=cfg, tinfo='a')
@@ -250,7 +250,7 @@ def test_merge_columns_nok_name(capsys, ind, merg, msg):
                             {'x': 'd', 'One': 'e', 'Zwei': 'f'}])])
 def test_rename_columns_ok_name(capsys, ind, nam, exp):
     """Test ok renaming of columns."""
-    cfg = ConfigXlsListRefmtName()
+    cfg = ConfigXlsListTransfName()
     cfg.s07_rename_columns = nam
     ret = rename_columns_name(indata=ind, cfg=cfg)
     out, err = capsys.readouterr()
@@ -270,7 +270,7 @@ def test_rename_columns_ok_name(capsys, ind, nam, exp):
                            {'x': 'd', 'y': 'e', 'z': 'f'}]])
 def test_rename_columns_nok_name(capsys, ind, nam, msg):
     """Test nok renaming of columns."""
-    cfg = ConfigXlsListRefmtName()
+    cfg = ConfigXlsListTransfName()
     cfg.s07_rename_columns = nam
     with pytest.raises(SystemExit):
         _ = rename_columns_name(indata=ind, cfg=cfg)
@@ -295,7 +295,7 @@ def test_rename_columns_nok_name(capsys, ind, nam, msg):
                              'x': 'd', 'y': 'e', 'z': 'f'}])])
 def test_insert_columns_ok_name(capsys, ind, ins, exp):
     """Test ok insertion of columns (name refs)."""
-    cfg = ConfigXlsListRefmtName()
+    cfg = ConfigXlsListTransfName()
     cfg.s08_insert_columns = ins
     ret = insert_columns_name(indata=ind, cfg=cfg)
     out, err = capsys.readouterr()
@@ -315,7 +315,7 @@ def test_insert_columns_ok_name(capsys, ind, ins, exp):
                            {'x': 'd', 'y': 'e', 'z': 'f'}]])
 def test_insert_columns_nok_name(capsys, ind, ins, msg):
     """Test nok inserting of columns (name refs)."""
-    cfg = ConfigXlsListRefmtName()
+    cfg = ConfigXlsListTransfName()
     cfg.s08_insert_columns = ins
     with pytest.raises(SystemExit):
         _ = insert_columns_name(indata=ind, cfg=cfg)
@@ -342,7 +342,7 @@ def test_insert_columns_nok_name(capsys, ind, ins, msg):
                             {'x': 'xba', 'y': 'e', 'z': 'f'}])])
 def test_rewrite_columns_ok_name(capsys, ind, spec, exp):
     """Test ok insertion of columns (name refs)."""
-    cfg = ConfigXlsListRefmtName()
+    cfg = ConfigXlsListTransfName()
     cfg.s09_rewrite_columns = spec
     ret = rewrite_columns(indata=ind, cfg=cfg, tinfo='a')
     out, err = capsys.readouterr()
@@ -362,7 +362,7 @@ def test_rewrite_columns_ok_name(capsys, ind, spec, exp):
                              'case': CaseSensitivity.IGNORE_CASE}])])
 def test_rewrite_columns_nok_name(capsys, ind, spec):
     """Test not ok insertion of columns (name refs)."""
-    cfg = ConfigXlsListRefmtName()
+    cfg = ConfigXlsListTransfName()
     cfg.s09_rewrite_columns = spec
     with pytest.raises(SystemExit):
         _ = rewrite_columns(indata=ind, cfg=cfg, tinfo='a')
@@ -520,7 +520,7 @@ def get_test_data_name(written_result: bool) -> DataToUseName:
 @pytest.mark.smoke
 def test_transform_data_ok_name(capsys):
     """Test transform_data with OK input (num refs)."""
-    cfg = ConfigXlsListRefmtName()
+    cfg = ConfigXlsListTransfName()
     test_data = get_test_data_name(written_result=False)
     cfg.s03_split_columns = test_data.split_cols
     cfg.s05_merge_columns = test_data.merge_cols
@@ -537,7 +537,7 @@ def test_transform_data_ok_name(capsys):
 @pytest.mark.parametrize('enc', ['utf-8', 'iso8859-1'])
 def test_rfmt_nmd_files_xl2cs_name(capsys, enc):
     """Test transform_name_files from xlsx to csv (named refs)."""
-    cfg = ConfigXlsListRefmtName()
+    cfg = ConfigXlsListTransfName()
     cfg.out_csv_encoding = enc
     test_data = get_test_data_name(written_result=True)
     cfg.s03_split_columns = test_data.split_cols
@@ -571,7 +571,7 @@ def test_rfmt_nmd_files_xl2cs_name(capsys, enc):
 @pytest.mark.parametrize('enc', ['utf-8', 'iso8859-1'])
 def test_rfmt_nmd_files_cs2xl_name(capsys, enc):
     """Test transform_name_files from csv to xlsx (name refs)."""
-    cfg = ConfigXlsListRefmtName()
+    cfg = ConfigXlsListTransfName()
     cfg.in_csv_encoding = enc
     test_data = get_test_data_name(written_result=True)
     cfg.s03_split_columns = test_data.split_cols

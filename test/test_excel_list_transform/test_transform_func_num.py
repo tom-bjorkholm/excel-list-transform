@@ -20,8 +20,8 @@ from excel_list_transform.transform_func_num import \
 from excel_list_transform.transform_func import transform_named_files
 from excel_list_transform.handle_excel import write_excel_num, read_excel_num
 from excel_list_transform.handle_csv import read_csv_num, write_csv_num
-from excel_list_transform.config_xls_list_refmt_num import \
-    ConfigXlsListRefmtNum
+from excel_list_transform.config_xls_list_transf_num import \
+    ConfigXlsListTransfNum
 from excel_list_transform.transform_func_common import col_must_exist_num, \
     store_col_split_num, split_columns, merge_columns, rewrite_columns
 
@@ -139,7 +139,7 @@ def test_store_col_split_num(capsys,  # pylint: disable=too-many-arguments,too-m
                             ['h i', None, 'j', 'k l p', 'm n']])])
 def test_split_columns_num(capsys, ind, split, exp):
     """Test OK splitting of columns (column numbers)."""
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     cfg.s03_split_columns = split
     ret = split_columns(indata=ind, cfg=cfg, tinfo=2)
     out, err = capsys.readouterr()
@@ -169,7 +169,7 @@ def test_split_columns_num(capsys, ind, split, exp):
                            'column index 4 out of range [0, 3]')])
 def test_split_columns_nok_num(capsys, ind, split, msg):
     """Test not OK splitting of columns (column numbers)."""
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     cfg.s03_split_columns = split
     with pytest.raises(SystemExit):
         _ = split_columns(indata=ind, cfg=cfg, tinfo=2)
@@ -208,7 +208,7 @@ def test_split_columns_nok_num(capsys, ind, split, msg):
                            [[], []])])
 def test_remove_columns_ok(capsys, ind, rem, exp):
     """Test OK cases of removal of columns."""
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     cfg.s04_remove_columns = rem
     ret = remove_columns_num(indata=ind, cfg=cfg)
     out, err = capsys.readouterr()
@@ -224,7 +224,7 @@ def test_remove_columns_ok(capsys, ind, rem, exp):
                            [-2], 'column index -2 out of range [0, 2].')])
 def test_remove_columns_nok(capsys, ind, rem, msg):
     """Test not OK cases of removal of columns."""
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     cfg.s04_remove_columns = rem
     with pytest.raises(SystemExit):
         _ = remove_columns_num(indata=ind, cfg=cfg)
@@ -260,7 +260,7 @@ def test_remove_columns_nok(capsys, ind, rem, msg):
                             [None, 'h', 'j'], [None, None, 'm']])])
 def test_merge_columns_ok_num(capsys, ind, merg, exp):
     """Test merging of columns with number ref."""
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     cfg.s05_merge_columns = merg
     ret = merge_columns(indata=ind, cfg=cfg, tinfo=2)
     out, err = capsys.readouterr()
@@ -278,7 +278,7 @@ def test_merge_columns_ok_num(capsys, ind, merg, exp):
                            'column index -1 out of range [0, 2]')])
 def test_merge_columns_nok_num(capsys, ind, merg, msg):
     """Test not OK merging of columns with number ref."""
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     cfg.s05_merge_columns = merg
     with pytest.raises(SystemExit):
         _ = merge_columns(indata=ind, cfg=cfg, tinfo=2)
@@ -309,7 +309,7 @@ def test_merge_columns_nok_num(capsys, ind, merg, msg):
                           ])
 def test_place_columns_first_ok(capsys, ind, pla, exp):
     """Test placind of columns first."""
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     cfg.s06_place_columns_first = pla
     ret = place_columns_first(indata=ind, cfg=cfg)
     out, err = capsys.readouterr()
@@ -322,7 +322,7 @@ def test_place_columns_first_ok(capsys, ind, pla, exp):
 @pytest.mark.parametrize('ind', [([['a', 'b', 'c'], ['d', 'e', 'f']])])
 def test_place_columns_first_nok(capsys, ind, pla):
     """Test not OK placing of columns firs."""
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     cfg.s06_place_columns_first = pla
     with pytest.raises(SystemExit):
         _ = place_columns_first(indata=ind, cfg=cfg)
@@ -341,7 +341,7 @@ def test_place_columns_first_nok(capsys, ind, pla):
                            [['a', 'One', 'Zwei'], ['d', 'e', 'f']])])
 def test_rename_columns_ok_num(capsys, ind, nam, exp):
     """Test ok renaming of columns."""
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     cfg.s07_rename_columns = nam
     ret = rename_columns_num(indata=ind, cfg=cfg)
     out, err = capsys.readouterr()
@@ -364,7 +364,7 @@ def test_rename_columns_ok_num(capsys, ind, nam, exp):
                           [['a', 'b', 'c'], ['d', 'e', 'f']]])
 def test_rename_columns_nok_num(capsys, ind, nam, msg):
     """Test nok renaming of columns."""
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     cfg.s07_rename_columns = nam
     with pytest.raises(SystemExit):
         _ = rename_columns_num(indata=ind, cfg=cfg)
@@ -384,7 +384,7 @@ def test_rename_columns_nok_num(capsys, ind, nam, msg):
                             ['d', None, 'e', 'f', 'text']])])
 def test_insert_columns_ok_num(capsys, ind, ins, exp):
     """Test ok insertion of columns (number refs)."""
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     cfg.s08_insert_columns = ins
     ret = insert_columns_num(indata=ind, cfg=cfg)
     out, err = capsys.readouterr()
@@ -407,7 +407,7 @@ def test_insert_columns_ok_num(capsys, ind, ins, exp):
                           [['a', 'b', 'c'], ['d', 'e', 'f']]])
 def test_insert_columns_nok_num(capsys, ind, ins, msg):
     """Test nok inserting of columns (number refs)."""
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     cfg.s08_insert_columns = ins
     with pytest.raises(SystemExit):
         _ = insert_columns_num(indata=ind, cfg=cfg)
@@ -430,7 +430,7 @@ def test_insert_columns_nok_num(capsys, ind, ins, msg):
                            [['x', 'b', 'c'], ['xba', 'e', 'f']])])
 def test_rewrite_columns_ok_num(capsys, ind, spec, exp):
     """Test ok insertion of columns (name refs)."""
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     cfg.s09_rewrite_columns = spec
     ret = rewrite_columns(indata=ind, cfg=cfg, tinfo=2)
     out, err = capsys.readouterr()
@@ -449,7 +449,7 @@ def test_rewrite_columns_ok_num(capsys, ind, spec, exp):
                              'case': CaseSensitivity.IGNORE_CASE}])])
 def test_rewrite_columns_nok_num(capsys, ind, spec):
     """Test not ok insertion of columns (name refs)."""
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     cfg.s09_rewrite_columns = spec
     with pytest.raises(SystemExit):
         _ = rewrite_columns(indata=ind, cfg=cfg, tinfo=2)
@@ -576,7 +576,7 @@ def get_test_data_num() -> DataToUseNum:
 @pytest.mark.smoke
 def test_transform_data_ok_num(capsys):
     """Test transform_data with OK input (num refs)."""
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     test_data = get_test_data_num()
     cfg.s03_split_columns = test_data.split_cols
     cfg.s04_remove_columns = test_data.rem_cols
@@ -595,7 +595,7 @@ def test_transform_data_ok_num(capsys):
 @pytest.mark.parametrize('enc', ['utf-8', 'iso8859-1'])
 def test_rfmt_nmd_files_xl2cs_num(capsys, enc):
     """Test transform_name_files from xlsx to csv (num refs)."""
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     cfg.out_csv_encoding = enc
     test_data = get_test_data_num()
     cfg.s03_split_columns = test_data.split_cols
@@ -628,7 +628,7 @@ def test_rfmt_nmd_files_xl2cs_num(capsys, enc):
 @pytest.mark.parametrize('enc', ['utf-8', 'iso8859-1'])
 def test_rfmt_nmd_files_cs2xl_num(capsys, enc):
     """Test transform_name_files from csv to xlsx (num refs)."""
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     cfg.in_csv_encoding = enc
     test_data = get_test_data_num()
     cfg.s03_split_columns = test_data.split_cols

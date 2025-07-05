@@ -12,8 +12,8 @@ from excel_list_transform.handle_excel import read_excel_num, write_excel_num
 from excel_list_transform.config_enums import FileType
 from excel_list_transform.commontypes import NumData, get_checked_type
 from excel_list_transform.config import Config
-from excel_list_transform.config_xls_list_refmt_num import \
-    ConfigXlsListRefmtNum
+from excel_list_transform.config_xls_list_transf_num import \
+    ConfigXlsListTransfNum
 from excel_list_transform.check_indata_common import check_indata_common
 from excel_list_transform.transform_func_common import \
     cols_must_exist_dict, cols_must_exist_lst, split_columns, merge_columns, \
@@ -21,7 +21,7 @@ from excel_list_transform.transform_func_common import \
 
 
 def remove_columns_num(indata: NumData,
-                       cfg: ConfigXlsListRefmtNum) -> NumData:
+                       cfg: ConfigXlsListTransfNum) -> NumData:
     """Remove columns in the list in indata with column number refs."""
     if len(cfg.s04_remove_columns) == 0:
         return indata
@@ -37,7 +37,7 @@ def remove_columns_num(indata: NumData,
 
 
 def place_columns_first(indata: NumData,
-                        cfg: ConfigXlsListRefmtNum) -> NumData:
+                        cfg: ConfigXlsListTransfNum) -> NumData:
     """Place columns first in the list in indata."""
     if len(cfg.s06_place_columns_first) == 0:
         return indata
@@ -59,7 +59,7 @@ def place_columns_first(indata: NumData,
 
 
 def rename_columns_num(indata: NumData,
-                       cfg: ConfigXlsListRefmtNum) -> NumData:
+                       cfg: ConfigXlsListTransfNum) -> NumData:
     """Rename columns in the list in indata with column number refs."""
     assert isinstance(cfg.s07_rename_columns, list)
     if len(cfg.s07_rename_columns) == 0:
@@ -75,7 +75,7 @@ def rename_columns_num(indata: NumData,
 
 
 def insert_columns_num(indata: NumData,
-                       cfg: ConfigXlsListRefmtNum) -> NumData:
+                       cfg: ConfigXlsListTransfNum) -> NumData:
     """Insert columns in the list in indata with column number refs."""
     assert isinstance(cfg.s08_insert_columns, list)
     if len(cfg.s08_insert_columns) == 0:
@@ -121,7 +121,7 @@ def check_indata_num(indata: NumData) -> None:
 
 
 def transform_data_num(indata: NumData,
-                       cfg: ConfigXlsListRefmtNum) -> NumData:
+                       cfg: ConfigXlsListTransfNum) -> NumData:
     """Transform list in the data with column number refs."""
     check_indata_num(indata=indata)
     ret = split_columns(indata=indata, cfg=cfg, tinfo=2)
@@ -137,8 +137,8 @@ def transform_data_num(indata: NumData,
 def transform_named_files_num(infilename: str, outfilename: str,
                               cfg: Config) -> None:
     """Transform list in the named excel file to named file."""
-    cfgn: ConfigXlsListRefmtNum = \
-        get_checked_type(value=cfg, istype=ConfigXlsListRefmtNum)
+    cfgn: ConfigXlsListTransfNum = \
+        get_checked_type(value=cfg, istype=ConfigXlsListTransfNum)
     indata = None
     if cfgn.in_type == FileType.CSV:
         indata = read_csv_num(infilename, cfgn.get_in_csv_dialect(),

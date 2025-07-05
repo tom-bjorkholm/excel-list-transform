@@ -11,7 +11,7 @@ from excel_list_transform.config_excel_list_transform import \
     ConfigExcelListTransform, RuleOrder, ColInfo
 
 
-class ConfigXlsListRefmtName(ConfigExcelListTransform[str]):  # pylint: disable=too-many-instance-attributes, line-too-long # noqa: E501
+class ConfigXlsListTransfName(ConfigExcelListTransform[str]):  # pylint: disable=too-many-instance-attributes, line-too-long # noqa: E501
     """Class with configuration for excel list transform."""
 
     def __init__(self,

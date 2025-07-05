@@ -8,8 +8,8 @@
 
 from copy import deepcopy
 import pytest
-from excel_list_transform.config_xls_list_refmt_num \
-    import ConfigXlsListRefmtNum
+from excel_list_transform.config_xls_list_transf_num \
+    import ConfigXlsListTransfNum
 from excel_list_transform.config_excel_list_transform \
     import FileType, SplitWhere
 
@@ -17,7 +17,7 @@ from excel_list_transform.config_excel_list_transform \
 @pytest.mark.smoke
 def test_config_xls_list_refmt_def(capsys):
     """Test default values of ConfigXlsListRefmtNum."""
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     assert isinstance(cfg.s03_split_columns, list)
     assert isinstance(cfg.s04_remove_columns, list)
     assert isinstance(cfg.s05_merge_columns, list)
@@ -36,9 +36,9 @@ def test_config_xls_list_refmt_def(capsys):
     str_cfg = cfg.as_json_string()
     assert len(str_cfg) > 1
     assert 'in_type' in str_cfg
-    zcfg = ConfigXlsListRefmtNum()
+    zcfg = ConfigXlsListTransfNum()
     assert cfg.__dict__ == zcfg.__dict__
-    ycfg = ConfigXlsListRefmtNum(from_json_text=str_cfg)
+    ycfg = ConfigXlsListTransfNum(from_json_text=str_cfg)
     assert ycfg.__dict__ == cfg.__dict__
     out, err = capsys.readouterr()
     assert out == ''
@@ -50,7 +50,7 @@ def test_config_xls_list_refmt_def(capsys):
                           ('{"s04_remove_columns" : [21, 14]}', [21, 14])])
 def test_config_xls_list_refmt_read_incomplete3(capsys, t, val):
     """Test ConfigXlsListRefmtNum read incomplete 3."""
-    ycfg = ConfigXlsListRefmtNum()
+    ycfg = ConfigXlsListTransfNum()
     ycfg.parse_json(t, ok_to_use_defaults=True)
     assert ycfg.s04_remove_columns == val
     out, err = capsys.readouterr()
@@ -63,7 +63,7 @@ def test_config_xls_list_refmt_read_incomplete3(capsys, t, val):
                           '{"outfilen" : "out.dat"}'])
 def test_config_xls_list_refmt_read_incomplete4(capsys, t):
     """Test ConfigXlsListRefmtNum read incomplete 4."""
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     with pytest.raises(KeyError) as exc_info:
         cfg.parse_json(t, ok_to_use_defaults=True)
     assert exc_info.type is KeyError
@@ -78,7 +78,7 @@ def test_config_xls_list_refmt_read_incomplete4(capsys, t):
                            'Unexpected dictionary for')])
 def test_config_xls_list_refmt_read_dict_mismatch(capsys, t, errtxt):
     """Test ConfigXlsListRefmtNum read dict mismatch."""
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     with pytest.raises(KeyError) as exc_info:
         cfg.parse_json(t, ok_to_use_defaults=True)
     assert exc_info.type is KeyError
@@ -89,7 +89,7 @@ def test_config_xls_list_refmt_read_dict_mismatch(capsys, t, errtxt):
 
 def test_bak_compat_0_7_13_num(capsys):
     """Test backward compatible reading om 0.7.13 config file."""
-    refcfg = ConfigXlsListRefmtNum()
+    refcfg = ConfigXlsListTransfNum()
     refcfg.out_type = FileType.CSV
     refcfg.in_csv_dialect['name'] = 'csv.unix_dialect'
     refcfg.s01_split_rows = []
@@ -97,7 +97,7 @@ def test_bak_compat_0_7_13_num(capsys):
     refcfg.s07_rename_columns[1]['name'] = 'Family Name'
     refcfg.s08_insert_columns[1]['name'] = 'Something else'
     filename = 'test/test_excel_list_transform/bak_compat_0_7_13_number.cfg'
-    cfg = ConfigXlsListRefmtNum(from_json_filename=filename)
+    cfg = ConfigXlsListTransfNum(from_json_filename=filename)
     out, err = capsys.readouterr()
     assert refcfg.__dict__ == cfg.__dict__
     assert cfg.s07_rename_columns[1]['name'] == 'Family Name'
@@ -121,11 +121,11 @@ def test_bak_compat_0_7_13_num(capsys):
                            {'columns': [5, 6], 'separator': ';'}]])
 def test_row_split_merge_cfg_nu_ok(capsys, splitr, merger):
     """Test OK cases of row split and merge config."""
-    cfg1 = ConfigXlsListRefmtNum()
+    cfg1 = ConfigXlsListTransfNum()
     cfg1.s01_split_rows = deepcopy(splitr)
     cfg1.s02_merge_rows = deepcopy(merger)
     txt = cfg1.as_json_string()
-    cfg2 = ConfigXlsListRefmtNum(from_json_text=txt)
+    cfg2 = ConfigXlsListTransfNum(from_json_text=txt)
     out, err = capsys.readouterr()
     assert '' == out
     assert '' == err
@@ -161,11 +161,11 @@ def test_row_split_merge_cfg_nu_ok(capsys, splitr, merger):
                             'any separator.'])])
 def test_row_split_cfg_nu_nok(capsys, splitr, msgs):
     """Test OK cases of row split and merge config."""
-    cfg1 = ConfigXlsListRefmtNum()
+    cfg1 = ConfigXlsListTransfNum()
     cfg1.s01_split_rows = deepcopy(splitr)
     txt = cfg1.as_json_string()
     with pytest.raises(SystemExit):
-        _ = ConfigXlsListRefmtNum(from_json_text=txt)
+        _ = ConfigXlsListTransfNum(from_json_text=txt)
     out, err = capsys.readouterr()
     assert '' == out
     for msg in msgs:
@@ -199,11 +199,11 @@ def test_row_split_cfg_nu_nok(capsys, splitr, msgs):
                             'of type list but is of type int'])])
 def test_row_merge_cfg_na_nok(capsys, merger, msgs):
     """Test OK cases of row split and merge config."""
-    cfg1 = ConfigXlsListRefmtNum()
+    cfg1 = ConfigXlsListTransfNum()
     cfg1.s02_merge_rows = deepcopy(merger)
     txt = cfg1.as_json_string()
     with pytest.raises(SystemExit):
-        _ = ConfigXlsListRefmtNum(from_json_text=txt)
+        _ = ConfigXlsListTransfNum(from_json_text=txt)
     out, err = capsys.readouterr()
     assert '' == out
     for msg in msgs:

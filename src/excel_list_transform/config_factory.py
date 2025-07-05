@@ -10,10 +10,10 @@ import sys
 from json import loads as json_loads
 from json import JSONDecodeError
 from excel_list_transform.config_enums import ColumnRef
-from excel_list_transform.config_xls_list_refmt_name import \
-    ConfigXlsListRefmtName
-from excel_list_transform.config_xls_list_refmt_num import \
-    ConfigXlsListRefmtNum
+from excel_list_transform.config_xls_list_transf_name import \
+    ConfigXlsListTransfName
+from excel_list_transform.config_xls_list_transf_num import \
+    ConfigXlsListTransfNum
 from excel_list_transform.str_to_enum import string_to_enum_best_match
 from excel_list_transform.commontypes import JsonType
 from excel_list_transform.file_must_exist import file_must_exist
@@ -21,11 +21,11 @@ from excel_list_transform.file_must_exist import file_must_exist
 
 Configs: TypeAlias = \
     dict[ColumnRef,
-         type[ConfigXlsListRefmtName] | type[ConfigXlsListRefmtNum]]
-DerivedConfig: TypeAlias = ConfigXlsListRefmtName | ConfigXlsListRefmtNum
+         type[ConfigXlsListTransfName] | type[ConfigXlsListTransfNum]]
+DerivedConfig: TypeAlias = ConfigXlsListTransfName | ConfigXlsListTransfNum
 
-_CONFIGS: Configs = {ColumnRef.BY_NAME: ConfigXlsListRefmtName,
-                     ColumnRef.BY_NUMBER: ConfigXlsListRefmtNum}
+_CONFIGS: Configs = {ColumnRef.BY_NAME: ConfigXlsListTransfName,
+                     ColumnRef.BY_NUMBER: ConfigXlsListTransfNum}
 
 
 def config_factory_from_enum(numerator: ColumnRef) -> DerivedConfig:

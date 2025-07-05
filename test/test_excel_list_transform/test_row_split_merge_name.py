@@ -13,8 +13,8 @@ from excel_list_transform.row_split_merge_name import get_nosep_pos, \
     merge_identified_rows_name, identify_rows_to_merge_name, \
     one_merge_rows_name, one_rule_merge_rows_name, merge_rows_name, \
     merge_rows_namecfg
-from excel_list_transform.config_xls_list_refmt_name import \
-    ConfigXlsListRefmtName
+from excel_list_transform.config_xls_list_transf_name import \
+    ConfigXlsListTransfName
 
 
 @pytest.mark.parametrize('instr,nseps,res',
@@ -249,10 +249,10 @@ def test_slit_rows_name_nok1(capsys, direc, err, msg):
                             {'a': 'n', 'c': 'o', 'f': 'p'}])])
 def test_split_rows_namecfg_ok1(capsys, indata, direc, res):
     """Test OK cases for split_rows_namecfg."""
-    cfg1 = ConfigXlsListRefmtName()
+    cfg1 = ConfigXlsListTransfName()
     cfg1.s01_split_rows = direc
     jsontxt = cfg1.as_json_string()
-    cfg2 = ConfigXlsListRefmtName(from_json_text=jsontxt)
+    cfg2 = ConfigXlsListTransfName(from_json_text=jsontxt)
     ret = split_rows_namecfg(indata=deepcopy(indata), cfg=cfg2)
     out, err = capsys.readouterr()
     assert ret == res
@@ -449,10 +449,10 @@ def test_one_rule_merge_rows_na_ok1(capsys, data, cols, sep, res):
 def test_merge_rows_name_ok1(capsys, data, cols, sep, res):
     """Test OK cases of merge rows name."""
     rule = {'columns': deepcopy(cols), 'separator': deepcopy(sep)}
-    cfg1 = ConfigXlsListRefmtName()
+    cfg1 = ConfigXlsListTransfName()
     cfg1.s02_merge_rows = [rule]
     txt = cfg1.as_json_string()
-    cfg2 = ConfigXlsListRefmtName(from_json_text=txt)
+    cfg2 = ConfigXlsListTransfName(from_json_text=txt)
     ret = merge_rows_name(indata=deepcopy(data), rules=cfg2.s02_merge_rows)
     out, err = capsys.readouterr()
     assert ret == res
@@ -468,10 +468,10 @@ def test_merge_rows_name_ok1(capsys, data, cols, sep, res):
                            DATA2ACCPM)])
 def test_merge_rows_name_ok2(capsys, data, rule, res):
     """Test OK cases of merge rows name more than one rule."""
-    cfg1 = ConfigXlsListRefmtName()
+    cfg1 = ConfigXlsListTransfName()
     cfg1.s02_merge_rows = deepcopy(rule)
     txt = cfg1.as_json_string()
-    cfg2 = ConfigXlsListRefmtName(from_json_text=txt)
+    cfg2 = ConfigXlsListTransfName(from_json_text=txt)
     ret = merge_rows_name(indata=deepcopy(data), rules=cfg2.s02_merge_rows)
     out, err = capsys.readouterr()
     assert ret == res
@@ -491,10 +491,10 @@ def test_merge_rows_name_ok2(capsys, data, rule, res):
 def test_merge_rows_name_ok3(capsys, data, cols, sep, res):
     """Test OK cases of merge rows name."""
     rule = {'columns': deepcopy(cols), 'separator': deepcopy(sep)}
-    cfg1 = ConfigXlsListRefmtName()
+    cfg1 = ConfigXlsListTransfName()
     cfg1.s02_merge_rows = [rule]
     txt = cfg1.as_json_string()
-    cfg2 = ConfigXlsListRefmtName(from_json_text=txt)
+    cfg2 = ConfigXlsListTransfName(from_json_text=txt)
     ret = merge_rows_namecfg(indata=deepcopy(data), cfg=cfg2)
     out, err = capsys.readouterr()
     assert ret == res
@@ -510,10 +510,10 @@ def test_merge_rows_name_ok3(capsys, data, cols, sep, res):
                            DATA2ACCPM)])
 def test_merge_rows_name_ok4(capsys, data, rule, res):
     """Test OK cases of merge rows name more than one rule."""
-    cfg1 = ConfigXlsListRefmtName()
+    cfg1 = ConfigXlsListTransfName()
     cfg1.s02_merge_rows = deepcopy(rule)
     txt = cfg1.as_json_string()
-    cfg2 = ConfigXlsListRefmtName(from_json_text=txt)
+    cfg2 = ConfigXlsListTransfName(from_json_text=txt)
     ret = merge_rows_namecfg(indata=deepcopy(data), cfg=cfg2)
     out, err = capsys.readouterr()
     assert ret == res

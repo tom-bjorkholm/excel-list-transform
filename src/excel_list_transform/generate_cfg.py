@@ -12,10 +12,10 @@ from excel_list_transform.config_factory import config_factory_from_enum
 from excel_list_transform.generate_txt import generate_syntax_txt
 from excel_list_transform.config_excel_list_transform import \
     Column, SingleRuleRewrite, RuleRewrite
-from excel_list_transform.config_xls_list_refmt_name import \
-    ConfigXlsListRefmtName
-from excel_list_transform.config_xls_list_refmt_num import \
-    ConfigXlsListRefmtNum
+from excel_list_transform.config_xls_list_transf_name import \
+    ConfigXlsListTransfName
+from excel_list_transform.config_xls_list_transf_num import \
+    ConfigXlsListTransfNum
 
 syntax_phone_fix: str = '''
 The phone number has to be in international format '+' followed by only
@@ -90,12 +90,12 @@ format of the phone number and save to excel.
 ''' + syntax_phone_fix
 
 
-def rewrite_phone_46_cfg(cfg: ConfigXlsListRefmtName | ConfigXlsListRefmtNum,
+def rewrite_phone_46_cfg(cfg: ConfigXlsListTransfName | ConfigXlsListTransfNum,
                          column: Column, append: bool) -> None:
     """Add configuration to rewrite +46 phone numbers."""
-    assert (isinstance(cfg, ConfigXlsListRefmtName) and
+    assert (isinstance(cfg, ConfigXlsListTransfName) and
             isinstance(column, str)) or \
-           (isinstance(cfg, ConfigXlsListRefmtNum) and
+           (isinstance(cfg, ConfigXlsListTransfNum) and
             isinstance(column, int))
     assert isinstance(append, bool)
     rules: RuleRewrite[Column] = [
@@ -123,7 +123,7 @@ def rewrite_phone_46_cfg(cfg: ConfigXlsListRefmtName | ConfigXlsListRefmtNum,
 def generate_syntax_sa2r_name(filename: str, colref: ColumnRef) -> None:
     """Generate config example for sa_to_rrs."""
     assert colref == ColumnRef.BY_NAME
-    cfg = ConfigXlsListRefmtName()
+    cfg = ConfigXlsListTransfName()
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.CSV
     cfg.out_type = FileType.EXCEL
@@ -150,7 +150,7 @@ def generate_syntax_sa2r_name(filename: str, colref: ColumnRef) -> None:
 def generate_syntax_sw2r_name(filename: str, colref: ColumnRef) -> None:
     """Generate config example for sw_to_rrs."""
     assert colref == ColumnRef.BY_NAME
-    cfg = ConfigXlsListRefmtName()
+    cfg = ConfigXlsListTransfName()
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.EXCEL
@@ -178,7 +178,7 @@ TXT_SA2R_NAME = syntax_sa2r_common + by_name_common
 def generate_syntax_sa2r_num(filename: str, colref: ColumnRef) -> None:
     """Generate config example for sa_to_rrs."""
     assert colref == ColumnRef.BY_NUMBER
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.CSV
     cfg.out_type = FileType.EXCEL
@@ -203,7 +203,7 @@ def generate_syntax_sa2r_num(filename: str, colref: ColumnRef) -> None:
 def generate_syntax_sw2r_num(filename: str, colref: ColumnRef) -> None:
     """Generate config example for sw_to_rrs."""
     assert colref == ColumnRef.BY_NUMBER
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.EXCEL
@@ -231,7 +231,7 @@ TXT_SA2R_NUM = syntax_sa2r_common + by_number_common
 def generate_syntax_o2r_name(filename: str, colref: ColumnRef) -> None:
     """Generate config example for office_forms_to_rrs."""
     assert colref == ColumnRef.BY_NAME
-    cfg = ConfigXlsListRefmtName()
+    cfg = ConfigXlsListTransfName()
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.EXCEL
@@ -266,7 +266,7 @@ TXT_O2R_NAME = syntax_o2r_common + by_name_common
 def generate_syntax_o2r_num(filename: str, colref: ColumnRef) -> None:
     """Generate config example for office_forms_to_rrs."""
     assert colref == ColumnRef.BY_NUMBER
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.EXCEL
@@ -307,7 +307,7 @@ syntax_o2s_common: str = syntax_only_o2s_common + syntax_o2x_common
 def generate_syntax_o2s_name(filename: str, colref: ColumnRef) -> None:
     """Generate config example for office_forms_to_sw."""
     assert colref == ColumnRef.BY_NAME
-    cfg = ConfigXlsListRefmtName()
+    cfg = ConfigXlsListTransfName()
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.CSV
@@ -339,7 +339,7 @@ TXT_O2S_NAME = syntax_o2s_common + by_name_common
 def generate_syntax_o2s_num(filename: str, colref: ColumnRef) -> None:
     """Generate config example for office_forms_to_sw."""
     assert colref == ColumnRef.BY_NUMBER
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.CSV
@@ -383,7 +383,7 @@ format, except that the '+' is missing.
 def generate_syntax_r2s_name(filename: str, colref: ColumnRef) -> None:
     """Generate config example for rrs_to_sw."""
     assert colref == ColumnRef.BY_NAME
-    cfg = ConfigXlsListRefmtName()
+    cfg = ConfigXlsListTransfName()
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.CSV
@@ -417,7 +417,7 @@ TXT_R2S_NAME = syntax_r2s_common + by_name_common
 def generate_syntax_r2s_num(filename: str, colref: ColumnRef) -> None:
     """Generate config example for rrs_to_sw."""
     assert colref == ColumnRef.BY_NUMBER
-    cfg = ConfigXlsListRefmtNum()
+    cfg = ConfigXlsListTransfNum()
     cfg.out_excel_library = ExcelLib.OPENPYXL
     cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.CSV

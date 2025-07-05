@@ -27,7 +27,7 @@ def get_merge_first_column(rule: SingleRuleMerge[int]) -> int:
     return ret
 
 
-class ConfigXlsListRefmtNum(ConfigExcelListTransform[int]):  # pylint: disable=too-many-instance-attributes, line-too-long # noqa: E501
+class ConfigXlsListTransfNum(ConfigExcelListTransform[int]):  # pylint: disable=too-many-instance-attributes, line-too-long # noqa: E501
     """Class with configuration for excel list transform."""
 
     def __init__(self,

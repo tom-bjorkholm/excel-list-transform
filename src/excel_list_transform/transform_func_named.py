@@ -13,8 +13,8 @@ from excel_list_transform.handle_excel import \
 from excel_list_transform.config_enums import \
     FileType
 from excel_list_transform.config import Config
-from excel_list_transform.config_xls_list_refmt_name import \
-    ConfigXlsListRefmtName
+from excel_list_transform.config_xls_list_transf_name import \
+    ConfigXlsListTransfName
 from excel_list_transform.check_indata_common import check_indata_common
 from excel_list_transform.commontypes import NameData, get_checked_type
 from excel_list_transform.transform_func_common import \
@@ -22,7 +22,7 @@ from excel_list_transform.transform_func_common import \
 
 
 def rename_columns_name(indata: NameData,
-                        cfg: ConfigXlsListRefmtName) -> NameData:
+                        cfg: ConfigXlsListTransfName) -> NameData:
     """Rename columns in the list in indata with column name refs."""
     if len(cfg.s07_rename_columns) == 0:
         return indata
@@ -39,7 +39,7 @@ def rename_columns_name(indata: NameData,
 
 
 def insert_columns_name(indata: NameData,
-                        cfg: ConfigXlsListRefmtName) -> NameData:
+                        cfg: ConfigXlsListTransfName) -> NameData:
     """Insert columns in the list in indata with column name refs."""
     if len(cfg.s08_insert_columns) == 0:
         return indata
@@ -100,7 +100,7 @@ def check_indata_name(indata: NameData) -> None:
 
 
 def transform_data_name(indata: NameData,
-                        cfg: ConfigXlsListRefmtName) -> NameData:
+                        cfg: ConfigXlsListTransfName) -> NameData:
     """Transform list in the data with column number refs."""
     check_indata_name(indata=indata)
     ret = split_columns(indata=indata, cfg=cfg, tinfo='a')
@@ -114,8 +114,8 @@ def transform_data_name(indata: NameData,
 def transform_named_files_name(infilename: str, outfilename: str,
                                cfg: Config) -> None:
     """Transform list in the named excel file to named file."""
-    cfgn: ConfigXlsListRefmtName = \
-        get_checked_type(value=cfg, istype=ConfigXlsListRefmtName)
+    cfgn: ConfigXlsListTransfName = \
+        get_checked_type(value=cfg, istype=ConfigXlsListTransfName)
     indata = None
     if cfgn.in_type == FileType.CSV:
         indata = read_csv_named(infilename, cfgn.get_in_csv_dialect(),

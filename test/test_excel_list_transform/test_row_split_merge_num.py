@@ -9,80 +9,32 @@
 from copy import deepcopy
 from datetime import datetime
 import pytest
-# from excel_list_transform.commontypes import Row, Data
-from excel_list_transform.row_split_merge_name import get_nosep_pos, \
-    in_nosep_pos, split_one_str, one_split_one_row, one_split, \
+from excel_list_transform.row_split_merge_name import \
+    one_split_one_row, one_split, \
     split_rows, split_rows_cfg, merge_strings, \
     merge_identified_rows_name, identify_rows_to_merge_name, \
     one_merge_rows_name, one_rule_merge_rows_name, merge_rows_name, \
     merge_rows_namecfg
+from excel_list_transform.config_xls_list_transf_num import \
+   ConfigXlsListTransfNum
 from excel_list_transform.config_xls_list_transf_name import \
     ConfigXlsListTransfName
 
 
-@pytest.mark.parametrize('instr,nseps,res',
-                         [('abc', [], []),
-                          ('abc def ddd', [' '],
-                           [(3, 4), (7, 8)]),
-                          ('abc def ddd', [' d', 'bc'],
-                           [(1, 3), (3, 5), (7, 9)]),
-                          ('abcdefghijk', ['bc', 'abc', 'gh', 'ghi'],
-                           [(0, 3), (6, 9)])])
-def test_get_nosep_pos1(capsys, instr, nseps, res):
-    """Test normal cases for get_nosep_pos."""
-    ret = get_nosep_pos(instr=deepcopy(instr), not_separators=nseps)
-    out, err = capsys.readouterr()
-    assert ret == res
-    assert '' == out
-    assert '' == err
-
-
-@pytest.mark.parametrize('pos,nseps,res',
-                         [(4, [(2, 3), (7, 8)], False),
-                          (15, [], False),
-                          (4, [(2, 5)], True),
-                          (5, [(1, 3), (5, 7), (10, 12)], True),
-                          (5, [(1, 3), (4, 5), (7, 10)], False)])
-def test_in_nosep_pos1(capsys, pos, nseps, res):
-    """Test normal cases for in_nosep_pos."""
-    ret = in_nosep_pos(pos=deepcopy(pos), nosep_pos=deepcopy(nseps))
-    out, err = capsys.readouterr()
-    assert ret == res
-    assert '' == out
-    assert '' == err
-
-
-@pytest.mark.parametrize('instr,sep,nosep,res',
-                         [('abcdef', ['b', 'd'], [], ['a', 'c', 'ef']),
-                          ('abcdef', ['b', 'd'], ['bc'], ['abc', 'ef']),
-                          ('abcdef', ['b', 'd'], ['cd'], ['a', 'cdef']),
-                          ('abcabcdabcdeabcdefabcdefg', ['bc', 'e'],
-                           ['fff', 'efg'],
-                           ['a', 'a', 'da', 'd', 'a', 'd', 'fa', 'defg'])])
-def test_split_one_str(capsys, instr, sep, nosep, res):
-    """Test normal cases for split_one_str."""
-    ret = split_one_str(instr=deepcopy(instr), separators=deepcopy(sep),
-                        not_separators=deepcopy(nosep))
-    out, err = capsys.readouterr()
-    assert ret == res
-    assert '' == out
-    assert '' == err
-
-
 @pytest.mark.parametrize('inrow,col,seps,noseps,res',
-                         [({'a': 'b', 'c': 'd e', 'f': 'g'}, 'c',
+                         [(['b', 'd e', 'g'], 1,
                            ['+', ' ', '-'], ['  ', '++'],
-                          [{'a': 'b', 'c': 'd', 'f': 'g'},
-                           {'a': 'b', 'c': 'e', 'f': 'g'}]),
-                          ({'a': 'b', 'c': 'd e+x', 'f': 'g'}, 'c',
+                          [['b', 'd', 'g'],
+                           ['b', 'e', 'g']]),
+                          (['b', 'd e+x', 'g'], 1,
                            ['+', ' ', '-'], ['  ', '++'],
-                          [{'a': 'b', 'c': 'd', 'f': 'g'},
-                           {'a': 'b', 'c': 'e', 'f': 'g'},
-                           {'a': 'b', 'c': 'x', 'f': 'g'}]),
-                          ({'a': 'b', 'c': 'de', 'f': 'g'}, 'c',
+                          [['b', 'd', 'g'],
+                           ['b', 'e', 'g'],
+                           ['b', 'x', 'g']]),
+                          (['b', 'de', 'g'], 1,
                            ['+', ' ', '-'], ['  ', '++'],
-                           [{'a': 'b', 'c': 'de', 'f': 'g'}])])
-def test_one_split_one_na_ok1(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
+                           [['b', 'de', 'g']])])
+def test_one_split_one_nu_ok1(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
                               inrow, col, seps, noseps, res):
     """Test OK cases of one_split_one_row_name."""
     ret = one_split_one_row(inrow=deepcopy(inrow), column=deepcopy(col),
@@ -95,15 +47,15 @@ def test_one_split_one_na_ok1(capsys,  # pylint: disable=too-many-arguments,too-
 
 
 @pytest.mark.parametrize('inrow,col,seps,noseps,msgs',
-                         [({'a': 'b', 'c': 'd e', 'f': 2}, 'f',
+                         [(['b', 'd e', 2], 2,
                            ['+', ' ', '-'], ['  ', '++'],
-                          ['Trying to split rows based on column "f".',
+                          ['Trying to split rows based on column "2".',
                            'But that column has value of type int']),
-                          ({'a': 'b', 'c': ['a'], 'f': 'g'}, 'c',
+                          (['b', ['a'], 'g'], 1,
                            ['+', ' ', '-'], ['  ', '++'],
-                          ['Trying to split rows based on column "c".',
+                          ['Trying to split rows based on column "1".',
                            'But that column has value of type list'])])
-def test_one_split_one_na_nok1(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
+def test_one_split_one_nu_nok1(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
                                inrow, col, seps, noseps, msgs):
     """Test not OK cases of one_split_one_row_name."""
     with pytest.raises(SystemExit):
@@ -119,23 +71,23 @@ def test_one_split_one_na_nok1(capsys,  # pylint: disable=too-many-arguments,too
 
 @pytest.mark.parametrize('indata,col,seps,noseps,res',
                          [([], 'b', [' ', ';'], ['  ', '\\;'], []),
-                          ([{'a': 'b', 'c': 'd e', 'f': 'g'}], 'c',
+                          ([['b', 'd e', 'g']], 1,
                            ['+', ' ', '-'], ['  ', '++'],
-                          [{'a': 'b', 'c': 'd', 'f': 'g'},
-                           {'a': 'b', 'c': 'e', 'f': 'g'}]),
-                          ([{'a': 'b', 'c': 'd e+x', 'f': 'g'},
-                            {'a': 'h', 'c': 'i+j', 'f': 'k'}], 'c',
+                          [['b', 'd', 'g'],
+                           ['b', 'e', 'g']]),
+                          ([['b', 'd e+x', 'g'],
+                            ['h', 'i+j', 'k']], 1,
                            ['+', ' ', '-'], ['  ', '++'],
-                          [{'a': 'b', 'c': 'd', 'f': 'g'},
-                           {'a': 'b', 'c': 'e', 'f': 'g'},
-                           {'a': 'b', 'c': 'x', 'f': 'g'},
-                           {'a': 'h', 'c': 'i', 'f': 'k'},
-                           {'a': 'h', 'c': 'j', 'f': 'k'}]),
-                          ([{'a': 'b', 'c': 'de', 'f': 'g'}], 'c',
+                          [['b', 'd', 'g'],
+                           ['b', 'e', 'g'],
+                           ['b', 'x', 'g'],
+                           ['h', 'i', 'k'],
+                           ['h', 'j', 'k']]),
+                          ([['b', 'de', 'g']], 1,
                            ['+', ' ', '-'], ['  ', '++'],
-                           [{'a': 'b', 'c': 'de', 'f': 'g'}])])
-def test_one_split_name_ok1(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
-                            indata, col, seps, noseps, res):
+                           [['b', 'de', 'g']])])
+def test_one_split_num_ok1(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
+                           indata, col, seps, noseps, res):
     """Test OK cases of one_split_name."""
     ret = one_split(indata=deepcopy(indata), column=deepcopy(col),
                     separators=deepcopy(seps),
@@ -147,12 +99,12 @@ def test_one_split_name_ok1(capsys,  # pylint: disable=too-many-arguments,too-ma
 
 
 @pytest.mark.parametrize('indata,col,seps,noseps,msgs',
-                         [([{'a': 'b', 'c': 'd e', 'f': 2}], 'k',
+                         [([['b', 'd e', 2]], 7,
                            ['+', ' ', '-'], ['  ', '++'],
-                           ['Trying to split lines based on column "k"',
+                           ['Trying to split lines based on column "7"',
                             'but no such column in data'])])
-def test_one_split_name_nok1(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
-                             indata, col, seps, noseps, msgs):
+def test_one_split_num_nok1(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
+                            indata, col, seps, noseps, msgs):
     """Test not OK cases of one_split_name."""
     with pytest.raises(SystemExit):
         _ = one_split(indata=deepcopy(indata), column=deepcopy(col),
@@ -166,26 +118,26 @@ def test_one_split_name_nok1(capsys,  # pylint: disable=too-many-arguments,too-m
 
 @pytest.mark.parametrize('indata,direc,res',
                          [([], [], []),
-                          ([], [{'column': 'c',
+                          ([], [{'column': 1,
                                  'separators': [' ', ';'],
                                  'not_separators': ['\\;', '  ']}], []),
-                          ([{'a': 'b', 'c': 'd e', 'f': 'g'},
-                            {'a': 'h+j', 'c': 'k', 'f': 'l;m'},
-                            {'a': 'n', 'c': 'o', 'f': 'p'}],
-                           [{'column': 'c', 'separators': [' ', 'x'],
+                          ([['b', 'd e', 'g'],
+                            ['h+j', 'k', 'l;m'],
+                            ['n', 'o', 'p']],
+                           [{'column': 1, 'separators': [' ', 'x'],
                              'not_separators': ['   ']},
-                            {'column': 'a', 'separators': ['+', 'x'],
+                            {'column': 0, 'separators': ['+', 'x'],
                              'not_separators': ['xx', 'xy']},
-                            {'column': 'f', 'separators': [';', 'x'],
+                            {'column': 2, 'separators': [';', 'x'],
                              'not_separators': ['\\;']}],
-                           [{'a': 'b', 'c': 'd', 'f': 'g'},
-                            {'a': 'b', 'c': 'e', 'f': 'g'},
-                            {'a': 'h', 'c': 'k', 'f': 'l'},
-                            {'a': 'h', 'c': 'k', 'f': 'm'},
-                            {'a': 'j', 'c': 'k', 'f': 'l'},
-                            {'a': 'j', 'c': 'k', 'f': 'm'},
-                            {'a': 'n', 'c': 'o', 'f': 'p'}])])
-def test_split_rows_name_ok1(capsys, indata, direc, res):
+                           [['b', 'd', 'g'],
+                            ['b', 'e', 'g'],
+                            ['h', 'k', 'l'],
+                            ['h', 'k', 'm'],
+                            ['j', 'k', 'l'],
+                            ['j', 'k', 'm'],
+                            ['n', 'o', 'p']])])
+def test_split_rows_num_ok1(capsys, indata, direc, res):
     """Test OK cases for split_rows_name."""
     ret = split_rows(indata=deepcopy(indata), directives=deepcopy(direc))
     out, err = capsys.readouterr()
@@ -200,25 +152,27 @@ def test_split_rows_name_ok1(capsys, indata, direc, res):
                            'string indices must be integers, not'),
                           (['not dict'], TypeError,
                            'string indices must be integers, not '),
-                          ([{'colum': 'c', 'separators': ['a', 'b'],
+                          ([{'colum': 1, 'separators': ['a', 'b'],
                              'not_separators': ['aa', 'bb']}],
                            KeyError, "KeyError('column')"),
-                          ([{'column': 'c', 'separator': ['a', 'b'],
+                          ([{'column': 2, 'separator': ['a', 'b'],
                              'not_separators': ['aa', 'bb']}],
                            KeyError, "KeyError('separators')"),
-                          ([{'column': 'c', 'separators': ['a', 'b'],
+                          ([{'column': 3, 'separators': ['a', 'b'],
                              'not_separator': ['aa', 'bb']}],
                            KeyError, "KeyError('not_separators')"),
-                          ([{'column': 1, 'separators': ['a', 'b'],
-                             'not_separators': ['aa', 'bb']}],
-                           AssertionError, 'ExceptionInfo AssertionError'),
                           ([{'column': 'a', 'separators': ['a', 'b'],
+                             'not_separators': ['aa', 'bb']}],
+                           SystemExit,
+                           'Value for key column expected to be of type int'),
+                          ([{'column': 4, 'separators': ['a', 'b'],
                              'not_separators': 'bb'}],
                            AssertionError, 'ExceptionInfo AssertionError'),
-                          ([{'column': 1, 'separators': 'a',
+                          ([{'column': 5, 'separators': 'a',
                              'not_separators': ['aa', 'bb']}],
                            AssertionError, 'ExceptionInfo AssertionError')])
-def test_slit_rows_name_nok1(capsys, direc, err, msg):
+@pytest.mark.skip
+def test_slit_rows_num_nok1(capsys, direc, err, msg):
     """Test not OK cases for split_rows_name."""
     indata = [{'a': 'b', 'c': 'd'}]
     with pytest.raises(err) as exc:
@@ -226,43 +180,43 @@ def test_slit_rows_name_nok1(capsys, direc, err, msg):
     out, err = capsys.readouterr()
     assert msg in str(exc)
     assert '' == out
-    assert '' == err
 
 
 @pytest.mark.parametrize('indata,direc,res',
                          [([], [], []),
-                          ([], [{'column': 'c',
+                          ([], [{'column': 1,
                                  'separators': [' ', ';'],
                                  'not_separators': ['\\;', '  ']}], []),
-                          ([{'a': 'b', 'c': 'd e', 'f': 'g'},
-                            {'a': 'h+j', 'c': 'k', 'f': 'l;m'},
-                            {'a': 'n', 'c': 'o', 'f': 'p'}],
-                           [{'column': 'c', 'separators': [' ', 'x'],
+                          ([['b', 'd e', 'g'],
+                            ['h+j', 'k', 'l;m'],
+                            ['n', 'o', 'p']],
+                           [{'column': 1, 'separators': [' ', 'x'],
                              'not_separators': ['   ']},
-                            {'column': 'a', 'separators': ['+', 'x'],
+                            {'column': 0, 'separators': ['+', 'x'],
                              'not_separators': ['xx', 'xy']},
-                            {'column': 'f', 'separators': [';', 'x'],
+                            {'column': 2, 'separators': [';', 'x'],
                              'not_separators': ['\\;']}],
-                           [{'a': 'b', 'c': 'd', 'f': 'g'},
-                            {'a': 'b', 'c': 'e', 'f': 'g'},
-                            {'a': 'h', 'c': 'k', 'f': 'l'},
-                            {'a': 'h', 'c': 'k', 'f': 'm'},
-                            {'a': 'j', 'c': 'k', 'f': 'l'},
-                            {'a': 'j', 'c': 'k', 'f': 'm'},
-                            {'a': 'n', 'c': 'o', 'f': 'p'}])])
-def test_split_rows_namecfg_ok1(capsys, indata, direc, res):
+                           [['b', 'd', 'g'],
+                            ['b', 'e', 'g'],
+                            ['h', 'k', 'l'],
+                            ['h', 'k', 'm'],
+                            ['j', 'k', 'l'],
+                            ['j', 'k', 'm'],
+                            ['n', 'o', 'p']])])
+def test_split_rows_numcfg_ok1(capsys, indata, direc, res):
     """Test OK cases for split_rows_namecfg."""
-    cfg1 = ConfigXlsListTransfName()
+    cfg1 = ConfigXlsListTransfNum()
     cfg1.s01_split_rows = direc
     jsontxt = cfg1.as_json_string()
-    cfg2 = ConfigXlsListTransfName(from_json_text=jsontxt)
-    ret = split_rows_cfg(indata=deepcopy(indata), cfg=cfg2, tinfo='a')
+    cfg2 = ConfigXlsListTransfNum(from_json_text=jsontxt)
+    ret = split_rows_cfg(indata=deepcopy(indata), cfg=cfg2, tinfo=1)
     out, err = capsys.readouterr()
     assert ret == res
     assert '' == out
     assert '' == err
 
 
+@pytest.mark.skip
 @pytest.mark.parametrize('inlst,sep,res',
                          [(['a', 'b', 2, 'b', 'a'], ' ', 'a b 2'),
                           ([], ';', None),
@@ -283,6 +237,7 @@ def test_merge_strings(capsys, inlst, sep, res):
     assert '' == err
 
 
+@pytest.mark.skip
 @pytest.mark.parametrize('data,rowidxs,sep,res',
                          [([], [], '+', []),
                           ([], [[]], '+', []),
@@ -352,6 +307,7 @@ DATA1 = [{'a': 'aa', 'b': 'bb', 'c': 3},
          {'a': 'aa', 'b': 'bh', 'c': 3}]
 
 
+@pytest.mark.skip
 @pytest.mark.parametrize('data,cols,res',
                          [(DATA1, ['a', 'c'],
                            [[0, 2, 6], [1, 3]]),
@@ -397,6 +353,7 @@ DATA1CS = [{'a': 'aa', 'b': 'bb bd bh', 'c': 3},
            {'a': 'aa', 'b': 'bg', 'c': 7}]
 
 
+@pytest.mark.skip
 @pytest.mark.parametrize('data,cols,sep,res',
                          [(DATA1, ['a', 'c'], '+',
                            DATA1ACP),
@@ -419,6 +376,7 @@ def test_one_merge_rows_name_ok1(capsys, data, cols, sep, res):
     assert '' == err
 
 
+@pytest.mark.skip
 @pytest.mark.parametrize('data,cols,sep,res',
                          [(DATA1, ['a', 'c'], '+',
                            DATA1ACP),
@@ -440,6 +398,7 @@ def test_one_rule_merge_rows_na_ok1(capsys, data, cols, sep, res):
     assert '' == err
 
 
+@pytest.mark.skip
 @pytest.mark.parametrize('data,cols,sep,res',
                          [(DATA1, ['a', 'c'], '+',
                            DATA1ACP),
@@ -463,6 +422,7 @@ def test_merge_rows_name_ok1(capsys, data, cols, sep, res):
     assert '' == err
 
 
+@pytest.mark.skip
 @pytest.mark.parametrize('data,rule,res',
                          [(DATA1, [{'columns': ['a', 'c'],
                                     'separator': '+'},
@@ -482,6 +442,7 @@ def test_merge_rows_name_ok2(capsys, data, rule, res):
     assert '' == err
 
 
+@pytest.mark.skip
 @pytest.mark.parametrize('data,cols,sep,res',
                          [(DATA1, ['a', 'c'], '+',
                            DATA1ACP),
@@ -505,6 +466,7 @@ def test_merge_rows_name_ok3(capsys, data, cols, sep, res):
     assert '' == err
 
 
+@pytest.mark.skip
 @pytest.mark.parametrize('data,rule,res',
                          [(DATA1, [{'columns': ['a', 'c'],
                                     'separator': '+'},

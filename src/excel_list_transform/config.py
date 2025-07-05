@@ -10,7 +10,8 @@ import json
 import sys
 import csv
 from collections import Counter
-from typing import Any, Optional, Type, TypeVar, Mapping, NamedTuple, Callable
+from typing import Any, Optional, Type, TypeVar, Mapping, NamedTuple, \
+    Callable, Sequence
 from enum import Enum, IntEnum
 from tempfile import TemporaryFile
 from excel_list_transform.str_to_enum import string_to_enum_best_match
@@ -332,7 +333,7 @@ class Config():
         return ret
 
     @staticmethod
-    def check_array_keys(name_of_cfg: str, array: list[dict[str, Any]],
+    def check_array_keys(name_of_cfg: str, array: Sequence[Mapping[str, Any]],
                          mandatory_keys: list[str],
                          allowed_keys: Optional[list[str]] = None) -> None:
         """Check an array of dicts that all keys match allowed/mandatory.
@@ -363,7 +364,7 @@ class Config():
 
     @staticmethod
     def check_lst_dict(paramname: str,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
-                       inp: list[dict[str, Any]],
+                       inp: Sequence[Mapping[str, Any]],
                        key: str, key_optional: bool, valtype: type,
                        min_size_list: int) -> None:
         """Check that input is a list of dicts of str to list of valtype.
@@ -409,7 +410,7 @@ class Config():
 
     @staticmethod
     def check_lst_dict_lst(paramname: str,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
-                           inp: list[dict[str, Any]],
+                           inp: Sequence[Mapping[str, Any]],
                            key: str, key_optional: bool,
                            valtype: type, min_size_outer_list: int,
                            min_size_inner_list: int) -> None:

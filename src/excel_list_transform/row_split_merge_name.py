@@ -5,12 +5,16 @@
 # MIT License
 
 import sys
+from typing import overload, cast
 from copy import deepcopy
-from excel_list_transform.commontypes import NameData, NameRow, Value
+from excel_list_transform.commontypes import NameData, Value, \
+    Row, NumRow, NameRow, Data
 from excel_list_transform.config_excel_list_transform import RuleRowSplit, \
-    SingleRuleMerge, RuleMerge
+    SingleRuleMerge, RuleMerge, Column
 from excel_list_transform.config_xls_list_transf_name import \
     ConfigXlsListTransfName
+from excel_list_transform.config_xls_list_transf_num import \
+    ConfigXlsListTransfNum
 
 
 def get_nosep_pos(instr: str,
@@ -73,9 +77,24 @@ def split_one_str(instr: str, separators: list[str],
     return ret
 
 
-def one_split_one_row_name(inrow: NameRow, column: str, separators: list[str],
-                           not_separators: list[str]) -> NameData:
+@overload
+def one_split_one_row(inrow: NumRow, column: int,
+                      separators: list[str],
+                      not_separators: list[str]) -> Data[NumRow]: ...
+
+
+@overload
+def one_split_one_row(inrow: NameRow, column: str,
+                      separators: list[str],
+                      not_separators: list[str]) -> Data[NameRow]: ...
+
+
+def one_split_one_row(inrow: Row, column: Column,
+                      separators: list[str],
+                      not_separators: list[str]) -> Data[Row]:
     """Handle one split row directive for one row."""
+    assert (isinstance(inrow, list) and isinstance(column, int)) or \
+        (isinstance(inrow, dict) and isinstance(column, str))
     instr = inrow[column]
     if not isinstance(instr, str):
         print(f'Trying to split rows based on column "{column}".\n' +
@@ -89,55 +108,125 @@ def one_split_one_row_name(inrow: NameRow, column: str, separators: list[str],
                                         not_separators=not_separators)
     if len(splitted) <= 1:
         return [inrow]
-    result: NameData = []
+    result: Data[Row] = []
     for part in splitted:
-        row: NameRow = deepcopy(inrow)
+        row: Row = deepcopy(inrow)
         row[column] = part
         result.append(row)
     return result
 
 
-def one_split_name(indata: NameData, column: str, separators: list[str],
-                   not_separators: list[str]) -> NameData:
+@overload
+def column_in_row(col: int, row: NumRow) -> bool: ...
+
+
+@overload
+def column_in_row(col: str, row: NameRow) -> bool: ...
+
+
+def column_in_row(col: Column, row: Row) -> bool:
+    """Test if column exists in row."""
+    if isinstance(row, dict):
+        assert isinstance(row, dict)
+        assert isinstance(col, str)
+        return col in row
+    assert isinstance(row, list)
+    assert isinstance(col, int)
+    if col < 0:
+        return False
+    return col < len(row)
+
+
+@overload
+def one_split(indata: Data[NameRow], column: str, separators: list[str],
+              not_separators: list[str]) -> Data[NameRow]: ...
+
+
+@overload
+def one_split(indata: Data[NumRow], column: int, separators: list[str],
+              not_separators: list[str]) -> Data[NumRow]: ...
+
+
+def one_split(indata: Data[Row], column: Column, separators: list[str],
+              not_separators: list[str]) -> Data[Row]:
     """Handle one of the split row directives."""
     if not indata:
         return indata
-    if column not in indata[0]:
+    assert (isinstance(indata[0], dict) and isinstance(column, str)) or \
+        (isinstance(indata[0], list) and isinstance(column, int))
+    if not column_in_row(column, indata[0]):
         print(f'Trying to split lines based on column "{column}",' +
               ' but no such column in data.\n',
               file=sys.stderr)
         sys.exit(1)
-    result: NameData = []
+    result: Data[Row] = []
     for row in indata:
-        result += one_split_one_row_name(inrow=row, column=column,
-                                         separators=separators,
-                                         not_separators=not_separators)
+        result += one_split_one_row(inrow=row, column=column,
+                                    separators=separators,
+                                    not_separators=not_separators)
     return result
 
 
-def split_rows_name(indata: NameData,
-                    directives: RuleRowSplit[str]) -> NameData:
+@overload
+def split_rows(indata: Data[NameRow],
+               directives: RuleRowSplit[str]) -> Data[NameRow]: ...
+
+
+@overload
+def split_rows(indata: Data[NumRow],
+               directives: RuleRowSplit[int]) -> Data[NumRow]: ...
+
+
+def split_rows(indata: Data[Row],
+               directives: RuleRowSplit[Column]) -> Data[Row]:
     """Split rows according to configuration."""
-    result: NameData = indata
-    data: NameData = indata
+    if not indata:
+        return indata
+    result: Data[Row] = indata
+    data: Data[Row] = indata
     for directive in directives:
         col = directive['column']
-        assert isinstance(col, str)
+        assert (isinstance(indata[0], list) and isinstance(col, int)) or\
+            (isinstance(indata[0], dict) and isinstance(col, str))
         sep = directive['separators']
         assert isinstance(sep, list)
         notsep = directive['not_separators']
         assert isinstance(notsep, list)
-        result = one_split_name(indata=data, column=col, separators=sep,
-                                not_separators=notsep)
+        result = one_split(indata=data, column=col, separators=sep,
+                           not_separators=notsep)
         data = result
     return result
 
 
-def split_rows_namecfg(indata: NameData,
-                       cfg: ConfigXlsListTransfName) -> NameData:
+@overload
+def split_rows_cfg(indata: Data[NameRow],
+                   cfg: ConfigXlsListTransfName,
+                   tinfo: str) -> Data[NameRow]: ...
+
+
+@overload
+def split_rows_cfg(indata: Data[NumRow],
+                   cfg: ConfigXlsListTransfNum,
+                   tinfo: int) -> Data[NumRow]: ...
+
+
+def split_rows_cfg(indata: Data[Row],
+                   cfg: ConfigXlsListTransfName | ConfigXlsListTransfNum,
+                   tinfo: Column) -> Data[Row]:
     """Split rows according to configuration."""
-    return split_rows_name(indata=indata,
-                           directives=cfg.s01_split_rows)
+    if not indata:
+        return indata
+    if not cfg.s01_split_rows:
+        return indata
+    assert (isinstance(indata[0], dict) and isinstance(tinfo, str)) or \
+           (isinstance(indata[0], list) and isinstance(tinfo, int))
+    assert (isinstance(tinfo, str) and
+            isinstance(cfg.s01_split_rows[0]['column'], str)) or \
+           (isinstance(tinfo, int) and
+            isinstance(cfg.s01_split_rows[0]['column'], int))
+    direc: RuleRowSplit[Column] = \
+        cast(RuleRowSplit[Column], cfg.s01_split_rows)
+    return split_rows(indata=indata, directives=direc)
 
 
 def merge_strings(to_merge: list[Value], sep: str) -> Value:

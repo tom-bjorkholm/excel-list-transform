@@ -8,7 +8,8 @@
 import sys
 from copy import deepcopy
 from enum import Enum
-from typing import Optional, Callable, TypeAlias, TypeVar, NamedTuple, Generic
+from typing import Optional, Callable, TypeAlias, TypeVar, NamedTuple, \
+    Generic, TypedDict
 from csv import Dialect
 from excel_list_transform.config import Config, ParseConverter, \
     BackwardCompatible
@@ -23,7 +24,10 @@ Column = TypeVar('Column', int, str)
 SingleRule: TypeAlias = dict[str, Optional[Column | str]]
 Rule: TypeAlias = list[SingleRule[Column]]
 SingleRuleSplit: TypeAlias = dict[str, Optional[Column | str | SplitWhere]]
-SingleRuleRowSplit: TypeAlias = dict[str, Column | list[str]]
+SingleRuleRowSplit = \
+    TypedDict('SingleRuleRowSplit', {'column': Column,
+                                     'separators': list[str],
+                                     'not_separators': list[str]})
 RuleSplit: TypeAlias = list[SingleRuleSplit[Column]]
 RuleRowSplit: TypeAlias = list[SingleRuleRowSplit[Column]]
 RuleOrder: TypeAlias = list[str]

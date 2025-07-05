@@ -13,8 +13,7 @@ from excel_list_transform.config_excel_list_transform import Column, \
     ConfigExcelListTransform
 from excel_list_transform.rewrite_value import rewrite_value
 from excel_list_transform.commontypes import  \
-    NumRow, NameRow, NumRowSeq, NameRowMap, Data, Value
-# NumData, NumDataSeq, NameData, NameDataMap,
+    NumRow, NameRow, NumRowSeq, NameRowMap, Data, Row, Value
 
 
 def col_must_exist_num(col: int, row: NumRowSeq, param: str) -> None:
@@ -116,8 +115,8 @@ def pop_from_row(row: NumRow | NameRow, colref: Column) -> Value:
     return row.pop(colref)
 
 
-def split_columns(indata: Data, cfg: ConfigExcelListTransform[Column],
-                  tinfo: Column) -> Data:
+def split_columns(indata: Data[Row], cfg: ConfigExcelListTransform[Column],
+                  tinfo: Column) -> Data[Row]:
     """Split columns in the in indata."""
     if len(cfg.s03_split_columns) == 0:
         return indata
@@ -170,8 +169,8 @@ def insert_into_row(row: NumRow | NameRow, colref: Column, val: Value) -> None:
     row[colref] = val
 
 
-def merge_columns(indata: Data, cfg: ConfigExcelListTransform[Column],
-                  tinfo: Column) -> Data:
+def merge_columns(indata: Data[Row], cfg: ConfigExcelListTransform[Column],
+                  tinfo: Column) -> Data[Row]:
     """Merge columns in the list in indata with column number refs."""
     if len(cfg.s05_merge_columns) == 0:
         return indata
@@ -202,7 +201,7 @@ def merge_columns(indata: Data, cfg: ConfigExcelListTransform[Column],
     return ret
 
 
-def row_element(row: NumRow | NameRow, idx: Column, tinfo: Column) -> Value:
+def row_element(row: Row, idx: Column, tinfo: Column) -> Value:
     """Keep mypy happy with accessing element in dict or list."""
     assert isinstance(idx, type(tinfo))
     if isinstance(idx, int):
@@ -214,7 +213,7 @@ def row_element(row: NumRow | NameRow, idx: Column, tinfo: Column) -> Value:
     return row[idx]
 
 
-def set_row_element(row: NumRow | NameRow, idx: Column, tinfo: Column,
+def set_row_element(row: Row, idx: Column, tinfo: Column,
                     val: Value) -> None:
     """Keep mypy happy with accessing element in dict or list."""
     assert isinstance(idx, type(tinfo))
@@ -228,8 +227,8 @@ def set_row_element(row: NumRow | NameRow, idx: Column, tinfo: Column,
     row[idx] = val
 
 
-def rewrite_columns(indata: Data, cfg: ConfigExcelListTransform[Column],
-                    tinfo: Column) -> Data:
+def rewrite_columns(indata: Data[Row], cfg: ConfigExcelListTransform[Column],
+                    tinfo: Column) -> Data[Row]:
     """Rewrite columns in the list in indata with column number refs."""
     if len(cfg.s09_rewrite_columns) == 0:
         return indata

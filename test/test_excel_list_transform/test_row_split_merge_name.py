@@ -13,9 +13,9 @@ import pytest
 from excel_list_transform.row_split_merge_name import get_nosep_pos, \
     in_nosep_pos, split_one_str, one_split_one_row, one_split, \
     split_rows, split_rows_cfg, merge_strings, \
-    merge_identified_rows_name, identify_rows_to_merge_name, \
-    one_merge_rows_name, one_rule_merge_rows_name, merge_rows_name, \
-    merge_rows_namecfg
+    merge_identified_rows, identify_rows_to_merge, \
+    one_merge_rows, one_rule_merge_rows, merge_rows, \
+    merge_rows_cfg
 from excel_list_transform.config_xls_list_transf_name import \
     ConfigXlsListTransfName
 
@@ -333,10 +333,10 @@ def test_merge_strings(capsys, inlst, sep, res):
                            [{'a': 'x-x1', 'b': 'y', 'c': 'z-z1'},
                             {'a': '1-4', 'b': '2-5', 'c': '3-6'}])])
 def test_merge_ident_rows_name(capsys, data, rowidxs, sep, res):
-    """Test OK cases of merge_identified_rows_name."""
-    ret = merge_identified_rows_name(rows=deepcopy(data),
-                                     row_numbers=deepcopy(rowidxs),
-                                     separator=sep)
+    """Test OK cases of merge_identified_rows."""
+    ret = merge_identified_rows(rows=deepcopy(data),
+                                row_numbers=deepcopy(rowidxs),
+                                separator=sep, tinfo='a')
     out, err = capsys.readouterr()
     assert ret == res
     assert '' == out
@@ -362,8 +362,9 @@ DATA1 = [{'a': 'aa', 'b': 'bb', 'c': 3},
                            [[0, 2, 6], [1, 3, 4]])])
 def test_iden_rows_to_merge1(capsys, data, cols, res):
     """Test OK cases of merge identified rows."""
-    ret = identify_rows_to_merge_name(rows=deepcopy(data),
-                                      columns_to_cmp=deepcopy(cols))
+    ret = identify_rows_to_merge(rows=deepcopy(data),
+                                 columns_to_cmp=deepcopy(cols),
+                                 tinfo='a')
     out, err = capsys.readouterr()
     assert ret == res
     assert '' == out
@@ -410,9 +411,9 @@ DATA1CS = [{'a': 'aa', 'b': 'bb bd bh', 'c': 3},
                           (DATA1, ['c'], ' ', DATA1CS)])
 def test_one_merge_rows_name_ok1(capsys, data, cols, sep, res):
     """Test OK cases of one merge rows name."""
-    ret = one_merge_rows_name(indata=deepcopy(data),
-                              columns_to_cmp=deepcopy(cols),
-                              separator=deepcopy(sep))
+    ret = one_merge_rows(indata=deepcopy(data),
+                         columns_to_cmp=deepcopy(cols),
+                         separator=deepcopy(sep), tinfo='a')
     out, err = capsys.readouterr()
     assert ret == res
     assert '' == out
@@ -433,7 +434,7 @@ def test_one_merge_rows_name_ok1(capsys, data, cols, sep, res):
 def test_one_rule_merge_rows_na_ok1(capsys, data, cols, sep, res):
     """Test OK cases of one merge rows name."""
     rule = {'columns': deepcopy(cols), 'separator': deepcopy(sep)}
-    ret = one_rule_merge_rows_name(indata=deepcopy(data), rule=rule)
+    ret = one_rule_merge_rows(indata=deepcopy(data), rule=rule, tinfo='a')
     out, err = capsys.readouterr()
     assert ret == res
     assert '' == out
@@ -456,7 +457,8 @@ def test_merge_rows_name_ok1(capsys, data, cols, sep, res):
     cfg1.s02_merge_rows = [rule]
     txt = cfg1.as_json_string()
     cfg2 = ConfigXlsListTransfName(from_json_text=txt)
-    ret = merge_rows_name(indata=deepcopy(data), rules=cfg2.s02_merge_rows)
+    ret = merge_rows(indata=deepcopy(data), rules=cfg2.s02_merge_rows,
+                     tinfo='a')
     out, err = capsys.readouterr()
     assert ret == res
     assert '' == out
@@ -475,7 +477,8 @@ def test_merge_rows_name_ok2(capsys, data, rule, res):
     cfg1.s02_merge_rows = deepcopy(rule)
     txt = cfg1.as_json_string()
     cfg2 = ConfigXlsListTransfName(from_json_text=txt)
-    ret = merge_rows_name(indata=deepcopy(data), rules=cfg2.s02_merge_rows)
+    ret = merge_rows(indata=deepcopy(data), rules=cfg2.s02_merge_rows,
+                     tinfo='a')
     out, err = capsys.readouterr()
     assert ret == res
     assert '' == out
@@ -498,7 +501,7 @@ def test_merge_rows_name_ok3(capsys, data, cols, sep, res):
     cfg1.s02_merge_rows = [rule]
     txt = cfg1.as_json_string()
     cfg2 = ConfigXlsListTransfName(from_json_text=txt)
-    ret = merge_rows_namecfg(indata=deepcopy(data), cfg=cfg2)
+    ret = merge_rows_cfg(indata=deepcopy(data), cfg=cfg2, tinfo='a')
     out, err = capsys.readouterr()
     assert ret == res
     assert '' == out
@@ -517,7 +520,7 @@ def test_merge_rows_name_ok4(capsys, data, rule, res):
     cfg1.s02_merge_rows = deepcopy(rule)
     txt = cfg1.as_json_string()
     cfg2 = ConfigXlsListTransfName(from_json_text=txt)
-    ret = merge_rows_namecfg(indata=deepcopy(data), cfg=cfg2)
+    ret = merge_rows_cfg(indata=deepcopy(data), cfg=cfg2, tinfo='a')
     out, err = capsys.readouterr()
     assert ret == res
     assert '' == out

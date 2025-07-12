@@ -7,7 +7,7 @@
 import sys
 from typing import overload, cast
 from copy import deepcopy
-from excel_list_transform.commontypes import NameData, Value, \
+from excel_list_transform.commontypes import Value, \
     Row, NumRow, NameRow, Data
 from excel_list_transform.config_excel_list_transform import RuleRowSplit, \
     SingleRuleMerge, RuleMerge, Column
@@ -256,14 +256,37 @@ def merge_strings(to_merge: list[Value], sep: str) -> Value:
     return ret
 
 
-def merge_identified_rows_name(rows: NameData, row_numbers: list[list[int]],
-                               separator: str) -> NameData:
+def columns_in_row(row: Row, tinfo: Column) -> list[Column]:
+    """Get list of columns in row."""
+    if isinstance(row, dict):
+        assert isinstance(row, dict)
+        assert isinstance(tinfo, str)
+        return list(row.keys())
+    assert isinstance(row, list)
+    assert isinstance(tinfo, int)
+    return list(range(0, len(row)))
+
+
+@overload
+def merge_identified_rows(rows: Data[NameRow], row_numbers: list[list[int]],
+                          separator: str, tinfo: str) -> Data[NameRow]: ...
+
+
+@overload
+def merge_identified_rows(rows: Data[NumRow], row_numbers: list[list[int]],
+                          separator: str, tinfo: int) -> Data[NumRow]: ...
+
+
+def merge_identified_rows(rows: Data[Row], row_numbers: list[list[int]],
+                          separator: str, tinfo: Column) -> Data[Row]:
     """Merge rows identified by row numbers."""
     if len(rows) <= 1:
         return rows
     if len(row_numbers) < 1:
         return rows
-    for colname in rows[0].keys():
+    assert (isinstance(tinfo, int) and isinstance(rows[0], list)) or \
+        (isinstance(tinfo, str) and isinstance(rows[0], dict))
+    for colname in columns_in_row(row=rows[0], tinfo=tinfo):
         for merge_set in row_numbers:
             if len(merge_set) <= 1:
                 continue
@@ -280,8 +303,18 @@ def merge_identified_rows_name(rows: NameData, row_numbers: list[list[int]],
     return rows
 
 
-def identify_rows_to_merge_name(rows: NameData,
-                                columns_to_cmp: list[str]) -> list[list[int]]:
+@overload
+def identify_rows_to_merge(rows: Data[NameRow], columns_to_cmp: list[str],
+                           tinfo: str) -> list[list[int]]: ...
+
+
+@overload
+def identify_rows_to_merge(rows: Data[NumRow], columns_to_cmp: list[int],
+                           tinfo: int) -> list[list[int]]: ...
+
+
+def identify_rows_to_merge(rows: Data[Row], columns_to_cmp: list[Column],
+                           tinfo: Column) -> list[list[int]]:
     """Identify rows to merge.
 
     Find rows that have identical values in the columns to compare.
@@ -293,6 +326,10 @@ def identify_rows_to_merge_name(rows: NameData,
     """
     numrows = len(rows)
     ret: list[list[int]] = []
+    if numrows < 2:
+        return ret
+    assert (isinstance(tinfo, int) and isinstance(rows[0], list)) or \
+        (isinstance(tinfo, str) and isinstance(rows[0], dict))
     used_in_merge: list[int] = []
     for startnum, startrow in enumerate(rows):
         if startnum in used_in_merge:
@@ -314,41 +351,82 @@ def identify_rows_to_merge_name(rows: NameData,
     return ret
 
 
-def one_merge_rows_name(indata: NameData,
-                        columns_to_cmp: list[str],
-                        separator: str) -> NameData:
+@overload
+def one_merge_rows(indata: Data[NameRow],
+                   columns_to_cmp: list[str],
+                   separator: str, tinfo: str) -> Data[NameRow]: ...
+
+
+@overload
+def one_merge_rows(indata: Data[NumRow],
+                   columns_to_cmp: list[int],
+                   separator: str, tinfo: int) -> Data[NumRow]: ...
+
+
+def one_merge_rows(indata: Data[Row],
+                   columns_to_cmp: list[Column],
+                   separator: str, tinfo: Column) -> Data[Row]:
     """Merge rows based on content of single rule."""
-    rows_to_merge = identify_rows_to_merge_name(rows=indata,
-                                                columns_to_cmp=columns_to_cmp)
+    if len(indata) < 2:
+        return indata
+    assert (isinstance(tinfo, int) and isinstance(indata[0], list)) or \
+        (isinstance(tinfo, str) and isinstance(indata[0], dict))
+    rows_to_merge = identify_rows_to_merge(rows=indata,
+                                           columns_to_cmp=columns_to_cmp,
+                                           tinfo=tinfo)
     data = deepcopy(indata)
-    data = merge_identified_rows_name(rows=data, row_numbers=rows_to_merge,
-                                      separator=separator)
+    data = merge_identified_rows(rows=data, row_numbers=rows_to_merge,
+                                 separator=separator, tinfo=tinfo)
     return data
 
 
-def one_rule_merge_rows_name(indata: NameData,
-                             rule: SingleRuleMerge[str]) -> NameData:
+def one_rule_merge_rows(indata: Data[Row],
+                        rule: SingleRuleMerge[Column],
+                        tinfo: Column) -> Data[Row]:
     """Merge rows based on a single rule."""
+    if len(indata) < 2:
+        return indata
+    assert (isinstance(tinfo, int) and isinstance(indata[0], list)) or \
+        (isinstance(tinfo, str) and isinstance(indata[0], dict))
     assert 'columns' in rule
     columns = rule['columns']
     assert isinstance(columns, list)
     assert 'separator' in rule
     separator = rule['separator']
     assert isinstance(separator, str)
-    return one_merge_rows_name(indata=indata,
-                               columns_to_cmp=columns,
-                               separator=separator)
+    return one_merge_rows(indata=indata,
+                          columns_to_cmp=columns,
+                          separator=separator, tinfo=tinfo)
 
 
-def merge_rows_name(indata: NameData, rules: RuleMerge[str]) -> NameData:
+def merge_rows(indata: Data[Row], rules: RuleMerge[Column],
+               tinfo: Column) -> Data[Row]:
     """Merge rows based on rules."""
+    if len(indata) < 2:
+        return indata
+    assert (isinstance(tinfo, int) and isinstance(indata[0], list)) or \
+        (isinstance(tinfo, str) and isinstance(indata[0], dict))
+    if len(indata) < 2:
+        return indata
+    assert (isinstance(tinfo, int) and isinstance(indata[0], list)) or \
+        (isinstance(tinfo, str) and isinstance(indata[0], dict))
     data = deepcopy(indata)
     for rule in rules:
-        data = one_rule_merge_rows_name(indata=data, rule=rule)
+        data = one_rule_merge_rows(indata=data, rule=rule, tinfo=tinfo)
     return data
 
 
-def merge_rows_namecfg(indata: NameData,
-                       cfg: ConfigXlsListTransfName) -> NameData:
+def merge_rows_cfg(indata: Data[Row],
+                   cfg: ConfigXlsListTransfName | ConfigXlsListTransfNum,
+                   tinfo: Column) -> Data[Row]:
     """Merge rows based on configuration."""
-    return merge_rows_name(indata=indata, rules=cfg.s02_merge_rows)
+    assert (isinstance(tinfo, int) and
+            isinstance(cfg, ConfigXlsListTransfNum)) or \
+        (isinstance(tinfo, str) and isinstance(cfg, ConfigXlsListTransfName))
+    if len(indata) < 2:
+        return indata
+    assert (isinstance(tinfo, int) and isinstance(indata[0], list)) or \
+        (isinstance(tinfo, str) and isinstance(indata[0], dict))
+    assert (isinstance(tinfo, int) and isinstance(indata[0], list)) or \
+        (isinstance(tinfo, str) and isinstance(indata[0], dict))
+    return merge_rows(indata=indata, rules=cfg.s02_merge_rows, tinfo=tinfo)

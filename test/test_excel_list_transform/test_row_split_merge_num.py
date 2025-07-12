@@ -9,7 +9,7 @@
 from copy import deepcopy
 from datetime import datetime
 import pytest
-from excel_list_transform.row_split_merge_name import \
+from excel_list_transform.row_split_merge import \
     one_split_one_row, one_split, \
     split_rows, split_rows_cfg, merge_strings, \
     merge_identified_rows, identify_rows_to_merge, \
@@ -165,15 +165,14 @@ def test_split_rows_num_ok1(capsys, indata, direc, res):
                            KeyError, "KeyError('not_separators')"),
                           ([{'column': 'a', 'separators': ['a', 'b'],
                              'not_separators': ['aa', 'bb']}],
-                           SystemExit,
-                           'Value for key column expected to be of type int'),
+                           AssertionError,
+                           'ExceptionInfo AssertionError'),
                           ([{'column': 4, 'separators': ['a', 'b'],
                              'not_separators': 'bb'}],
                            AssertionError, 'ExceptionInfo AssertionError'),
                           ([{'column': 5, 'separators': 'a',
                              'not_separators': ['aa', 'bb']}],
                            AssertionError, 'ExceptionInfo AssertionError')])
-@pytest.mark.skip
 def test_split_rows_num_nok1(capsys, direc, err, msg):
     """Test not OK cases for split_rows num."""
     indata = [['b', 'd']]
@@ -377,13 +376,12 @@ def test_one_merge_rows_num_ok1(capsys, data, cols, sep, res):
     assert '' == err
 
 
-@pytest.mark.skip
 @pytest.mark.parametrize('data,cols,sep,res',
                          [(DATA1, [0, 2], '+',
                            DATA1ACP),
                           (DATA1, [1], '+', DATA1),
                           (DATA1, [], '+', DATA1NP),
-                          (DATA1, [3], '+', DATA1CP),
+                          (DATA1, [2], '+', DATA1CP),
                           (DATA1, [0, 2], ' ',
                            DATA1ACS),
                           (DATA1, [1], ' ', DATA1),
@@ -400,7 +398,6 @@ def test_one_rule_merge_rows_nu_ok1(capsys, data, cols, sep, res):
     assert '' == err
 
 
-@pytest.mark.skip
 @pytest.mark.parametrize('data,cols,sep,res',
                          [(DATA1, [0, 2], '+',
                            DATA1ACP),
@@ -425,11 +422,10 @@ def test_merge_rows_num_ok1(capsys, data, cols, sep, res):
     assert '' == err
 
 
-@pytest.mark.skip
 @pytest.mark.parametrize('data,rule,res',
                          [(DATA1, [{'columns': [0, 2],
                                     'separator': '+'},
-                                   {'columns': [3],
+                                   {'columns': [2],
                                     'separator': '-'}],
                            DATA2ACCPM)])
 def test_merge_rows_num_ok2(capsys, data, rule, res):
@@ -446,7 +442,6 @@ def test_merge_rows_num_ok2(capsys, data, rule, res):
     assert '' == err
 
 
-@pytest.mark.skip
 @pytest.mark.parametrize('data,cols,sep,res',
                          [(DATA1, [0, 2], '+',
                            DATA1ACP),
@@ -470,11 +465,10 @@ def test_merge_rows_num_ok3(capsys, data, cols, sep, res):
     assert '' == err
 
 
-@pytest.mark.skip
 @pytest.mark.parametrize('data,rule,res',
                          [(DATA1, [{'columns': [0, 2],
                                     'separator': '+'},
-                                   {'columns': ['2'],
+                                   {'columns': [2],
                                     'separator': '-'}],
                            DATA2ACCPM)])
 def test_merge_rows_num_ok4(capsys, data, rule, res):

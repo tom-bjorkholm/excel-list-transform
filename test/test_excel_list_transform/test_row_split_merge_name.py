@@ -10,7 +10,7 @@ from copy import deepcopy
 from datetime import datetime
 import pytest
 # from excel_list_transform.commontypes import Row, Data
-from excel_list_transform.row_split_merge_name import get_nosep_pos, \
+from excel_list_transform.row_split_merge import get_nosep_pos, \
     in_nosep_pos, split_one_str, one_split_one_row, one_split, \
     split_rows, split_rows_cfg, merge_strings, \
     merge_identified_rows, identify_rows_to_merge, \

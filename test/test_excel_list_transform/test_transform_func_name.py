@@ -522,6 +522,8 @@ def test_transform_data_ok_name(capsys):
     """Test transform_data with OK input (num refs)."""
     cfg = ConfigXlsListTransfName()
     test_data = get_test_data_name(written_result=False)
+    cfg.s01_split_rows = []
+    cfg.s02_merge_rows = []
     cfg.s03_split_columns = test_data.split_cols
     cfg.s05_merge_columns = test_data.merge_cols
     cfg.s07_rename_columns = test_data.rename_cols
@@ -540,6 +542,8 @@ def test_rfmt_nmd_files_xl2cs_name(capsys, enc):
     cfg = ConfigXlsListTransfName()
     cfg.out_csv_encoding = enc
     test_data = get_test_data_name(written_result=True)
+    cfg.s01_split_rows = []
+    cfg.s02_merge_rows = []
     cfg.s03_split_columns = test_data.split_cols
     cfg.s05_merge_columns = test_data.merge_cols
     cfg.s07_rename_columns = test_data.rename_cols
@@ -574,6 +578,8 @@ def test_rfmt_nmd_files_cs2xl_name(capsys, enc):
     cfg = ConfigXlsListTransfName()
     cfg.in_csv_encoding = enc
     test_data = get_test_data_name(written_result=True)
+    cfg.s01_split_rows = []
+    cfg.s02_merge_rows = []
     cfg.s03_split_columns = test_data.split_cols
     cfg.s05_merge_columns = test_data.merge_cols
     cfg.s07_rename_columns = test_data.rename_cols

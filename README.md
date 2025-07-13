@@ -73,13 +73,13 @@ There are 3 scripts for building the application
 
 The "testing" includes pytest, pylint, flake8 and mypy.
 
-After running doBuild.zsh you can open reports/index.htm to see all test reports.
+After running doBuild.zsh you can open reports/index.html to see all test reports.
 
 After running doBuild.zsh you can do manual test of the built and installed application in the virtual environment ./venv
 
 ## Test summary
 
-* Test result: 3934 passed in 11s
+* Test result: 4031 passed in 11s
 * No Flake8 warnings.
 * No mypy errors found.
 * 0.7.14 built and tested using python version: Python 3.13.5

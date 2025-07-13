@@ -19,6 +19,8 @@ from excel_list_transform.check_indata_common import check_indata_common
 from excel_list_transform.commontypes import NameData, get_checked_type
 from excel_list_transform.transform_func_common import \
     cols_must_exist_dict, split_columns, merge_columns, rewrite_columns
+from excel_list_transform.row_split_merge import split_rows_cfg, \
+    merge_rows_cfg
 
 
 def rename_columns_name(indata: NameData,
@@ -103,7 +105,9 @@ def transform_data_name(indata: NameData,
                         cfg: ConfigXlsListTransfName) -> NameData:
     """Transform list in the data with column number refs."""
     check_indata_name(indata=indata)
-    ret = split_columns(indata=indata, cfg=cfg, tinfo='a')
+    ret = split_rows_cfg(indata=indata, cfg=cfg, tinfo='a')
+    ret = merge_rows_cfg(indata=ret, cfg=cfg, tinfo='a')
+    ret = split_columns(indata=ret, cfg=cfg, tinfo='a')
     ret = merge_columns(indata=ret, cfg=cfg, tinfo='a')
     ret = rename_columns_name(indata=ret, cfg=cfg)
     ret = insert_columns_name(indata=ret, cfg=cfg)

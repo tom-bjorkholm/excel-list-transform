@@ -18,6 +18,8 @@ from excel_list_transform.check_indata_common import check_indata_common
 from excel_list_transform.transform_func_common import \
     cols_must_exist_dict, cols_must_exist_lst, split_columns, merge_columns, \
     rewrite_columns
+from excel_list_transform.row_split_merge import split_rows_cfg, \
+    merge_rows_cfg
 
 
 def remove_columns_num(indata: NumData,
@@ -124,7 +126,9 @@ def transform_data_num(indata: NumData,
                        cfg: ConfigXlsListTransfNum) -> NumData:
     """Transform list in the data with column number refs."""
     check_indata_num(indata=indata)
-    ret = split_columns(indata=indata, cfg=cfg, tinfo=2)
+    ret = split_rows_cfg(indata=indata, cfg=cfg, tinfo=2)
+    ret = merge_rows_cfg(indata=ret, cfg=cfg, tinfo=2)
+    ret = split_columns(indata=ret, cfg=cfg, tinfo=2)
     ret = remove_columns_num(indata=ret, cfg=cfg)
     ret = merge_columns(indata=ret, cfg=cfg, tinfo=2)
     ret = place_columns_first(indata=ret, cfg=cfg)

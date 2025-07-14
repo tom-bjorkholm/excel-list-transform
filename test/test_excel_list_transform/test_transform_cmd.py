@@ -9,10 +9,13 @@
 from copy import deepcopy
 import sys
 from datetime import date
+from tempfile import TemporaryDirectory
 from importlib.metadata import version as metadata_version
 import pytest
 from excel_list_transform.transform_cmd import transform_cmd
 from excel_list_transform.config_enums import ColumnRef
+from excel_list_transform.handle_excel import write_excel_num, \
+    read_excel_num
 
 
 @pytest.mark.smoke
@@ -243,3 +246,39 @@ def test_cmd_ver_check_if_u(capsys, monkeypatch, ver, dat, errprint):
         assert '(Download Python from https://www.python.or' not in out
         assert 'After installing new Python, upgrade application ' not in out
         assert ' install --upgrade ' not in out
+
+
+@pytest.mark.parametrize('ref', list(ColumnRef))
+def test_row_split_merge_cmd_cfg(capsys, ref):
+    """Test row split and merge config genaration."""
+    indata = [['From', 'What', 'To'],
+              ['Gardener', 'Apples', 'Jones + Smith'],
+              ['Brewery', 'Beer', 'Smith + Bush'],
+              ['Dairy', 'Milk', 'Jones']]
+    outdata = [['To', 'What', 'From'],
+               ['Jones', 'Apples + Milk', 'Gardener + Dairy'],
+               ['Smith', 'Apples + Beer', 'Gardener + Brewery'],
+               ['Bush', 'Beer', 'Brewery']]
+    with TemporaryDirectory() as dirname:
+        cfgfile = dirname + '/a.cfg'
+        infile = dirname + '/in.xlsx'
+        outfile = dirname + '/out.xlsx'
+        transform_cmd(['cfg-example', '-k', 'row_split_merge',
+                       '-r', ref.name.lower(), '-o', cfgfile])
+        with open(file=dirname + '/a.txt', mode='r', encoding='utf-8') as f:
+            txt = f.read()
+            assert '"s01_split_rows"' in txt
+            assert '"s02_merge_rows"' in txt
+            assert 'Gardener + Dairy' in txt
+        write_excel_num(data=deepcopy(indata), filename=infile)
+        transform_cmd(['transform', '-c', cfgfile, '-i', infile,
+                       '-o', outfile])
+        res = read_excel_num(filename=outfile, max_column_read=20,
+                             strip_col_names=False, strip_values=False)
+        assert res == outdata
+    out, err = capsys.readouterr()
+    assert '' == err
+    assert 'Wrote files' in out
+    assert 'a.cfg' in out
+    assert 'a.txt' in out
+    assert 'out.xlsx' in out

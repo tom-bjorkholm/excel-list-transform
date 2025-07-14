@@ -117,8 +117,8 @@ def generate_syntax_txt(filename: str, example_description: str,
     ====================
     A number or records starting with "s" and a number describe
     column manipulation to be done. These manipulations are done
-    in order of the number: s1_(something) before s2_(something),
-    before s3_(something). As the "s" number records might add, remove
+    in order of the number: s01_(something) before s02_(something),
+    before s03_(something). As the "s" number records might add, remove
     or rename columns, it is important to keep track of the order that
     they are applied.
 
@@ -127,9 +127,62 @@ def generate_syntax_txt(filename: str, example_description: str,
     referenced by number.
 
 
+    "s01_split_rows"
+    ================
+
+    The first operation is to split rows based on column values.
+    This operation is configured using the "s01_split_rows" record,
+    that have an array of splits to be done. Each row split has the
+    following keys: "column", "separators" and "not_separators".
+
+    The "column" keyword is used to identify the column that is
+    split into several rows. This is a column number in the case of
+    "BY_NUMBER", and a column name/title in the sace of "BY_NAME".
+
+    New rows will be created so that the parts of the identified
+    column will be put in that column only one part per row.
+    The other columns (except the one column being split) will be
+    replicated identically across all rows split from this row.
+
+    "separators" take as argument a list of strings. If any of
+    these strings are present in the identified column it is seen
+    as the separator between the parts of the column value that go
+    into different rows.
+
+    "not_separators" take as arguement a list of strings. These strings
+    are not regarded as separators even if they include the strings
+    of one or more separator. (For instance ";" could be a separator,
+    but using "not_separators" the string "\\;" could be seen as not
+    a separator.)
+
+
+    "s02_merge_rows"
+    ================
+
+    The next operation is to merge rows based on column values.
+    This is the opposite operation to the splitting of rows.
+    Row mergins is configured using the "s02_merge_rows" record,
+    that have an array of merges to be done. Each row merge have
+    the following keys: "columns" and "separator".
+
+    The "columns" keyword is used to identify the columns that need
+    to have identical values to merge two or more rows. The "columns"
+    keyword take a list of columns. These are column numbers in the case of
+    "BY_NUMBER", and a column names/titles in the sace of "BY_NAME".
+
+    For each column that has the same value for all rows merged, that
+    value will be in the merged row. When rows being merged have different
+    values for a column, the set of unique values from different rows
+    will form the value for that column in the merged row.
+
+    The "separator" keyword is used to specify the string that is
+    concatenated between values for one column from different rows
+    (in case the column has different values in different rows).
+
+
     "s03_split_columns"
     ==================
-    The first operation that is done is splitting of columns.
+    The first column operation that is done is splitting of columns.
     The key "s03_split_columns" have an array of splits to be
     done. (When the list of splits has more than one split,
     the least confusion is to split columns to the right before

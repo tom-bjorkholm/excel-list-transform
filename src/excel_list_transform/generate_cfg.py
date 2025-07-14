@@ -465,6 +465,63 @@ It is written as an example configuration with 2 objectives:
 to demonstrates all configuration options, and to be small.
 '''
 
+
+def generate_rowsplitmerge(filename: str, colref: ColumnRef) -> None:
+    """Generate config example for row_split_merge."""
+    cfg = config_factory_from_enum(colref)
+    cfg.in_type = FileType.EXCEL
+    cfg.out_type = FileType.EXCEL
+    cfg.s03_split_columns = []
+    cfg.s05_merge_columns = []
+    cfg.s07_rename_columns = []
+    cfg.s08_insert_columns = []
+    cfg.s09_rewrite_columns = []
+    if colref == ColumnRef.BY_NUMBER:
+        assert isinstance(cfg, ConfigXlsListTransfNum)
+        cfg.s01_split_rows = [{'column': 2, 'separators': [' + '],
+                               'not_separators': []}]
+        cfg.s02_merge_rows = [{'columns': [2], 'separator': ' + '}]
+        cfg.s04_remove_columns = []
+        cfg.s06_place_columns_first = [2, 1]
+    else:
+        assert isinstance(cfg, ConfigXlsListTransfName)
+        cfg.s01_split_rows = [{'column': 'To', 'separators': [' + '],
+                               'not_separators': []}]
+        cfg.s02_merge_rows = [{'columns': ['To'], 'separator': ' + '}]
+        cfg.s10_column_order = ['To', 'What', 'From']
+    cfg.write(to_json_filename=filename)
+
+
+TXT_ROWSPLITMERGE = '''
+Consider that you have a list of things to pick up from stores
+for customers in the following format:
+
+| From        | What   | To            |
+|-------------|--------|---------------|
+| Gardener    | Apples | Jones + Smith |
+| Brewery     | Beer   | Smith + Bush  |
+| Dairy       | Milk   | Jones         |
+
+But for distrubuting it to customers you would like to have the
+list in the following format:
+
+| To        | What          | From               |
+|-----------|---------------| -------------------|
+| Jones     | Apples + Milk | Gardener + Dairy   |
+| Smith     | Apples + Beer | Gardener + Brewery |
+| Bush      | Beer          | Brewery            |
+
+To do this transformation we use the "s01_split_rows" to split
+rows base on the "To" column using " + " as separator.
+Then we use "s02_merge_rows" to merge the rows that have
+identical values in the "To" column,
+Finally we specify the new column order.
+'''
+
+TXT_ROWSPLITMERGE_NAME = TXT_ROWSPLITMERGE + by_name_common
+TXT_ROWSPLITMERGE_NUM = TXT_ROWSPLITMERGE + by_number_common
+
+
 dispatch = {'forms_to_rrs': {ColumnRef.BY_NAME: generate_syntax_o2r_name,
                              ColumnRef.BY_NUMBER: generate_syntax_o2r_num},
             'forms_to_sw': {ColumnRef.BY_NAME: generate_syntax_o2s_name,
@@ -475,6 +532,8 @@ dispatch = {'forms_to_rrs': {ColumnRef.BY_NAME: generate_syntax_o2r_name,
                           ColumnRef.BY_NUMBER: generate_syntax_sw2r_num},
             'sa_to_rrs': {ColumnRef.BY_NAME: generate_syntax_sa2r_name,
                           ColumnRef.BY_NUMBER: generate_syntax_sa2r_num},
+            'row_split_merge': {ColumnRef.BY_NAME: generate_rowsplitmerge,
+                                ColumnRef.BY_NUMBER: generate_rowsplitmerge},
             'example': {ColumnRef.BY_NAME: generate_syntax_example,
                         ColumnRef.BY_NUMBER: generate_syntax_example}}
 
@@ -488,6 +547,8 @@ txts = {'forms_to_rrs': {ColumnRef.BY_NAME: TXT_O2R_NAME,
                       ColumnRef.BY_NUMBER: TXT_SW2R_NUM},
         'sa_to_rrs': {ColumnRef.BY_NAME: TXT_SA2R_NAME,
                       ColumnRef.BY_NUMBER: TXT_SA2R_NUM},
+        'row_split_merge': {ColumnRef.BY_NAME: TXT_ROWSPLITMERGE_NAME,
+                            ColumnRef.BY_NUMBER: TXT_ROWSPLITMERGE_NUM},
         'example': {ColumnRef.BY_NAME: TXT_SYNTAX_EXAMPLE,
                     ColumnRef.BY_NUMBER: TXT_SYNTAX_EXAMPLE}}
 

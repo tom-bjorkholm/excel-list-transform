@@ -514,7 +514,7 @@ list in the following format:
 To do this transformation we use the "s01_split_rows" to split
 rows base on the "To" column using " + " as separator.
 Then we use "s02_merge_rows" to merge the rows that have
-identical values in the "To" column,
+identical values in the "To" column.
 Finally we specify the new column order.
 '''
 

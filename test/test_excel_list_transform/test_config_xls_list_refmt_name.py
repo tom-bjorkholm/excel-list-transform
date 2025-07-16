@@ -12,6 +12,8 @@ from excel_list_transform.config_xls_list_transf_name \
     import ConfigXlsListTransfName
 from excel_list_transform.config_excel_list_transform \
     import FileType, SplitWhere
+from excel_list_transform.assert_dict_equal import assert_dict_equal
+from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
 
 
 @pytest.mark.smoke
@@ -38,9 +40,9 @@ def test_config_xls_list_refmt_def(capsys):
     assert len(str_cfg) > 1
     assert 'in_type' in str_cfg
     zcfg = ConfigXlsListTransfName()
-    assert cfg.__dict__ == zcfg.__dict__
+    assert_dict_equal(cfg.__dict__, zcfg.__dict__, ['_hook_cfg_autochange'])
     ycfg = ConfigXlsListTransfName(from_json_text=str_cfg)
-    assert ycfg.__dict__ == cfg.__dict__
+    assert_dict_equal(ycfg.__dict__, cfg.__dict__, ['_hook_cfg_autochange'])
     out, err = capsys.readouterr()
     assert out == ''
     assert err == ''
@@ -57,7 +59,7 @@ def test_config_xls_list_refmt_read_incomplete3(capsys, t, val):
     assert ycfg.s10_column_order == val
     out, err = capsys.readouterr()
     assert out == ''
-    assert err == ''
+    assert err == MigrateCfgWarnHook.migrate_warn_msg()
 
 
 @pytest.mark.parametrize('t',
@@ -101,11 +103,11 @@ def test_bak_compat_0_7_13_name(capsys):
     filename = 'test/test_excel_list_transform/bak_compat_0_7_13_name.cfg'
     cfg = ConfigXlsListTransfName(from_json_filename=filename)
     out, err = capsys.readouterr()
-    assert refcfg.__dict__ == cfg.__dict__
+    assert_dict_equal(refcfg.__dict__, cfg.__dict__, ['_hook_cfg_autochange'])
     assert cfg.s03_split_columns[0]['right_name'] == 'Family Name'
     assert cfg.s08_insert_columns[1]['column'] == 'Something Else'
     assert '' == out
-    assert '' == err
+    assert MigrateCfgWarnHook.migrate_warn_msg() == err
 
 
 @pytest.mark.parametrize('splitr',
@@ -131,7 +133,7 @@ def test_row_split_merge_cfg_na_ok(capsys, splitr, merger):
     out, err = capsys.readouterr()
     assert '' == out
     assert '' == err
-    assert cfg1.__dict__ == cfg2.__dict__
+    assert_dict_equal(cfg1.__dict__, cfg2.__dict__, ['_hook_cfg_autochange'])
     assert splitr == cfg2.s01_split_rows
     assert merger == cfg2.s02_merge_rows
 

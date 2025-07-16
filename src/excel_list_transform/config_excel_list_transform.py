@@ -17,6 +17,8 @@ from excel_list_transform.config_enums import FileType, SplitWhere, \
     ExcelLib, RewriteKind, CaseSensitivity, ColumnRef
 from excel_list_transform.str_to_enum import string_to_enum_best_match
 from excel_list_transform.commontypes import JsonType
+from excel_list_transform.config_auto_change_hook import ConfigAutoChangeHook
+from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
 
 
 CsvSpec: TypeAlias = dict[str, Optional[str]]
@@ -70,7 +72,9 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
     def __init__(self, *, col_ref: ColumnRef,  # pylint: disable=too-many-arguments # noqa: E501
                  colinfo: ColInfo[Column], tinfo: Column,
                  from_json_text: Optional[str] = None,
-                 from_json_filename: Optional[str] = None) -> None:
+                 from_json_filename: Optional[str] = None,
+                 auto_ch_hook: ConfigAutoChangeHook =
+                 MigrateCfgWarnHook()) -> None:
         """Construct configuration for excel list transform."""
         assert isinstance(colinfo.tinfo, type(tinfo))
         self._columntype: type[Column] = type(tinfo)
@@ -132,7 +136,9 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
              {'column': col2use.pop(0), 'kind': RewriteKind.STR_SUBSTITUTE,
               'from': 'donald', 'to': 'duck',
               'case': CaseSensitivity.IGNORE_CASE}]
-        super().__init__(from_json_text, from_json_filename)
+        super().__init__(from_json_data_text=from_json_text,
+                         from_json_filename=from_json_filename,
+                         auto_ch_hook=auto_ch_hook)
         self.check_array_configs(split_last=colinfo.split_last,
                                  insert_last=colinfo.insert_last)
         self.sort_sx_hook()

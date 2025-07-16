@@ -17,6 +17,8 @@ from excel_list_transform.config_xls_list_transf_num import \
 from excel_list_transform.str_to_enum import string_to_enum_best_match
 from excel_list_transform.commontypes import JsonType
 from excel_list_transform.file_must_exist import file_must_exist
+from excel_list_transform.config_auto_change_hook import ConfigAutoChangeHook
+from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
 
 
 Configs: TypeAlias = \
@@ -28,9 +30,11 @@ _CONFIGS: Configs = {ColumnRef.BY_NAME: ConfigXlsListTransfName,
                      ColumnRef.BY_NUMBER: ConfigXlsListTransfNum}
 
 
-def config_factory_from_enum(numerator: ColumnRef) -> DerivedConfig:
+def config_factory_from_enum(numerator: ColumnRef,
+                             auto_ch_hook: ConfigAutoChangeHook =
+                             MigrateCfgWarnHook()) -> DerivedConfig:
     """Get correct configuration type for numerator value."""
-    return _CONFIGS[numerator]()
+    return _CONFIGS[numerator](auto_ch_hook=auto_ch_hook)
 
 
 def _config_factory_get_text(from_json_text: Optional[str] = None,
@@ -65,8 +69,9 @@ def _config_factory_exit(msg: str,
 
 
 def config_factory_from_json(from_json_text: Optional[str] = None,
-                             from_json_filename: Optional[str] = None) \
-        -> DerivedConfig:
+                             from_json_filename: Optional[str] = None,
+                             auto_ch_hook: ConfigAutoChangeHook =
+                             MigrateCfgWarnHook()) -> DerivedConfig:
     """Get correct configuration type for JSON data."""
     text = _config_factory_get_text(from_json_text=from_json_text,
                                     from_json_filename=from_json_filename)
@@ -92,4 +97,5 @@ def config_factory_from_json(from_json_text: Optional[str] = None,
     numerator = string_to_enum_best_match(inp=refpar,
                                           num_type=ColumnRef)
     return _CONFIGS[numerator](from_json_text=from_json_text,
-                               from_json_filename=from_json_filename)
+                               from_json_filename=from_json_filename,
+                               auto_ch_hook=auto_ch_hook)

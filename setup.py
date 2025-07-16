@@ -1,5 +1,5 @@
 #! /usr/local/bin/python3
-"""Setup file specifying build of apo_tools.whl with APO tools library."""
+"""Setup file specifying build of .whl."""
 
 from setuptools import setup
 

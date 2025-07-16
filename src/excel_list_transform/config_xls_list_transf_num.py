@@ -10,6 +10,8 @@ from excel_list_transform.config_enums import SplitWhere, ColumnRef
 from excel_list_transform.config_excel_list_transform \
     import ConfigExcelListTransform, RulePlace, RuleRemove, \
     SingleRuleMerge, SingleRuleSplit, SingleRule, ColInfo
+from excel_list_transform.config_auto_change_hook import ConfigAutoChangeHook
+from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
 
 
 def get_column(rule:  SingleRuleSplit[int] | SingleRule[int]) -> int:
@@ -32,7 +34,9 @@ class ConfigXlsListTransfNum(ConfigExcelListTransform[int]):  # pylint: disable=
 
     def __init__(self,
                  from_json_text: Optional[str] = None,
-                 from_json_filename: Optional[str] = None) -> None:
+                 from_json_filename: Optional[str] = None,
+                 auto_ch_hook: ConfigAutoChangeHook =
+                 MigrateCfgWarnHook()) -> None:
         """Construct configuration for excel list transform."""
         self.s04_remove_columns: RuleRemove = [1, 2, 3]
         self.s06_place_columns_first: RulePlace = [7, 3, 6]
@@ -52,7 +56,8 @@ class ConfigXlsListTransfNum(ConfigExcelListTransform[int]):  # pylint: disable=
         super().__init__(col_ref=ColumnRef.BY_NUMBER,
                          colinfo=colinfo, tinfo=2,
                          from_json_text=from_json_text,
-                         from_json_filename=from_json_filename)
+                         from_json_filename=from_json_filename,
+                         auto_ch_hook=auto_ch_hook)
         self.check_no_duplicates(self.s04_remove_columns,
                                  's04_remove_columns')
         self._check_increasing_multi(self.s05_merge_columns,

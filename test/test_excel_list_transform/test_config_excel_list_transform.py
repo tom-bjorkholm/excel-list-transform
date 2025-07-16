@@ -12,6 +12,8 @@ import pytest
 from excel_list_transform.config_enums import ColumnRef
 from excel_list_transform.config_excel_list_transform import \
     FileType, ConfigExcelListTransform, ColInfo
+from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
+from excel_list_transform.assert_dict_equal import assert_dict_equal
 
 
 @pytest.mark.smoke
@@ -37,11 +39,11 @@ def test_config_exc_list_refrm_def(capsys):
     assert 'in_type' in str_cfg
     zcfg = ConfigExcelListTransform(col_ref=ColumnRef.BY_NAME,
                                     colinfo=colinfo, tinfo='a')
-    assert cfg.__dict__ == zcfg.__dict__
+    assert_dict_equal(cfg.__dict__, zcfg.__dict__, ['_hook_cfg_autochange'])
     ycfg = ConfigExcelListTransform(col_ref=ColumnRef.BY_NAME,
                                     colinfo=colinfo, tinfo='a',
                                     from_json_text=str_cfg)
-    assert ycfg.__dict__ == cfg.__dict__
+    assert_dict_equal(cfg.__dict__, ycfg.__dict__, ['_hook_cfg_autochange'])
     assert cfg.out_csv_dialect['lineterminator'] is None
     assert ycfg.out_csv_dialect['lineterminator'] is None
     assert cfg.out_csv_dialect.keys() == ycfg.out_csv_dialect.keys()
@@ -212,6 +214,7 @@ def test_cfg_transf_encoding_def(capsys, cref):
     assert 'utf_8_sig' == cfg.in_csv_encoding
     assert 'utf-8' == cfg.out_csv_encoding
     txt = cfg.as_json_string()
+    assert 'in_csv_encoding' in txt
     assert 'utf-8' in txt
     cf2 = ConfigExcelListTransform(col_ref=args.colref,
                                    colinfo=args.colinfo,
@@ -314,7 +317,7 @@ def test_cfg_transf_enc_2_ok(capsys, in_enc, out_enc, cref):
                                    from_json_filename=None)
     out, err = capsys.readouterr()
     assert '' == out
-    assert '' == err
+    assert MigrateCfgWarnHook.migrate_warn_msg() == err
     assert cf2.in_csv_encoding == 'utf_8_sig'
     assert cf2.out_csv_encoding == 'utf-8'
 

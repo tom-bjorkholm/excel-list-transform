@@ -9,6 +9,8 @@ from typing import Optional
 from excel_list_transform.config_enums import SplitWhere, ColumnRef
 from excel_list_transform.config_excel_list_transform import \
     ConfigExcelListTransform, RuleOrder, ColInfo
+from excel_list_transform.config_auto_change_hook import ConfigAutoChangeHook
+from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
 
 
 class ConfigXlsListTransfName(ConfigExcelListTransform[str]):  # pylint: disable=too-many-instance-attributes, line-too-long # noqa: E501
@@ -16,7 +18,9 @@ class ConfigXlsListTransfName(ConfigExcelListTransform[str]):  # pylint: disable
 
     def __init__(self,
                  from_json_text: Optional[str] = None,
-                 from_json_filename: Optional[str] = None) -> None:
+                 from_json_filename: Optional[str] = None,
+                 auto_ch_hook: ConfigAutoChangeHook =
+                 MigrateCfgWarnHook()) -> None:
         """Construct configuration for excel list transform."""
         col_to_use = ['street', 'street number', 'name', 'last name',
                       'Phone', 'Phone', 'Phone', 'Phone', 'Phone',
@@ -38,5 +42,6 @@ class ConfigXlsListTransfName(ConfigExcelListTransform[str]):  # pylint: disable
         super().__init__(col_ref=ColumnRef.BY_NAME,
                          colinfo=colinfo, tinfo='a',
                          from_json_text=from_json_text,
-                         from_json_filename=from_json_filename)
+                         from_json_filename=from_json_filename,
+                         auto_ch_hook=auto_ch_hook)
         self.check_no_duplicates(self.s10_column_order, 's10_column_order')

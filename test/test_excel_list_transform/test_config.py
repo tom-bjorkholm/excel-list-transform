@@ -13,6 +13,7 @@ import csv
 import pytest
 from excel_list_transform.config import ConfigEncoder, \
     ConfigBadJson, over_ride_needed, Config
+from excel_list_transform.assert_dict_equal import assert_dict_equal
 
 
 class EnumInTesting(Enum):
@@ -141,9 +142,9 @@ def test_config_something_def(capsys):
     assert 'pqr' in scfg
     assert 'FOOBAR' in scfg
     zst = ConfigSomething()
-    assert xst.__dict__ == zst.__dict__
+    assert_dict_equal(xst.__dict__, zst.__dict__, ['_hook_cfg_autochange'])
     yst = ConfigSomething(from_json_text=scfg)
-    assert yst.__dict__ == xst.__dict__
+    assert_dict_equal(yst.__dict__, xst.__dict__, ['_hook_cfg_autochange'])
     assert isinstance(yst.kind, EnumInTesting)
     assert isinstance(yst.aa1, str)
     assert isinstance(yst.abc, list)
@@ -201,7 +202,7 @@ def test_config_something_changed2(capsys, mno_not_pqr, value):
     scfg = xst.as_json_string()
     yst = ConfigSomething(from_json_text=scfg)
     out, err = capsys.readouterr()
-    assert yst.__dict__ == xst.__dict__
+    assert_dict_equal(xst.__dict__, yst.__dict__, ['_hook_cfg_autochange'])
     if mno_not_pqr:
         assert yst.mno == value
     else:

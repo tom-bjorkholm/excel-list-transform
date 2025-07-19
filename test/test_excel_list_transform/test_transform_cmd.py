@@ -7,7 +7,6 @@
 # pylint: disable=duplicate-code
 
 from copy import deepcopy
-import sys
 from datetime import date
 from tempfile import TemporaryDirectory
 from importlib.metadata import version as metadata_version
@@ -16,6 +15,7 @@ from excel_list_transform.transform_cmd import transform_cmd
 from excel_list_transform.config_enums import ColumnRef
 from excel_list_transform.handle_excel import write_excel_num, \
     read_excel_num
+from excel_list_transform.version_information import VersionInformation
 
 
 @pytest.mark.smoke
@@ -202,7 +202,8 @@ def test_version_cmd1(capsys):
     transform_cmd(['version'])
     out, err = capsys.readouterr()
     assert '' == err
-    assert f'Python .............. {".".join(map(str, sys.version_info))}' \
+    assert \
+        f'Python .............. {str(VersionInformation.python_version())}' \
         in out
     assert f'excel_list_transform  {metadata_version("excel_list_transform")}'\
         in out
@@ -217,15 +218,14 @@ def test_version_cmd1(capsys):
                            date(year=2027, month=12, day=25), True)])
 def test_cmd_ver_check_if_u(capsys, monkeypatch, ver, dat, errprint):
     """Test version check if unsupported python widh old Python."""
-    monkeypatch.setattr('excel_list_transform.version.sys.version_info',
-                        ver)
+    mod1 = 'excel_list_transform.version_information.sys.version_info'
+    monkeypatch.setattr(mod1, ver)
 
     def mock_day(_) -> date:
         """Mock Version._today."""
         return dat
-
-    monkeypatch.setattr('excel_list_transform.version.Version._today',
-                        mock_day)
+    mod2 = 'excel_list_transform.version_information.VersionInformation._today'
+    monkeypatch.setattr(mod2, mock_day)
     with pytest.raises(SystemExit):
         transform_cmd(['--help'])
     out, err = capsys.readouterr()

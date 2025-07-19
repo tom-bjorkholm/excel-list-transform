@@ -5,29 +5,30 @@
 # MIT License
 
 
-import sys
 from datetime import date
+from packaging.version import Version
 import pytest
-from excel_list_transform.version import Version, VersionInfo
+from excel_list_transform.version_information import VersionInformation, \
+    VersionInfo
 
 
 @pytest.mark.parametrize('data, texts',
                          [({'Ab': '1.2.3', 'longer': '4.5', 'short': '6.7.8'},
                            ['Ab .... 1.2.3', 'longer  4.5', 'short . 6.7.8']),
-                          ({'really_long': '9.8.7.123', 'another': '1a'},
-                           ['really_long  9.8.7.123', 'another .... 1a'])
+                          ({'really_long': '9.8.7.123', 'another': '1.0'},
+                           ['really_long  9.8.7.123', 'another .... 1.0'])
                           ])
 @pytest.mark.parametrize('asarg, usearg', [[True, False], [True, False]])
 def test_version_print1(capsys, data, texts, asarg, usearg):
-    """Test Version.print."""
-    class Derived(Version):
+    """Test VersionInformation.print."""
+    class Derived(VersionInformation):
         """Derived class for fake get method."""
 
         def get(self) -> VersionInfo:
             """Get fake version info."""
             if asarg:
-                return data
-            return {'Foo': '3.1415'}
+                return {key: Version(val) for key, val in data.items()}
+            return {'Foo': Version('3.1415')}
 
     vers = Derived()
     vers.print(data if usearg else None)
@@ -40,6 +41,7 @@ def test_version_print1(capsys, data, texts, asarg, usearg):
             assert i in out
         rows = out.split('\n')
         for row in rows:
+            print(row)
             words = row.split()
             if len(words) > 1:
                 assert data[words[0]] == words[-1]
@@ -47,17 +49,17 @@ def test_version_print1(capsys, data, texts, asarg, usearg):
 
 @pytest.mark.parametrize('calls', [0, 1, 2, 8])
 def test_version_print2(capsys, calls):
-    """Test Version.print loops."""
+    """Test VersionInformation.print loops."""
     num = 0
 
-    class Derived(Version):
+    class Derived(VersionInformation):
         """Derived class for fake get method."""
 
         def get(self) -> VersionInfo:
             """Get fake version info."""
             nonlocal num
             num += 1
-            return {'Foo': '3.1415'}
+            return {'Foo': Version('3.1415')}
 
     vers = Derived()
     for _ in range(calls):
@@ -72,7 +74,7 @@ def test_version_print2(capsys, calls):
                                   ['4.5', '2.7', '4.5', '1.9.0']])
 @pytest.mark.parametrize('pyt', [[3, 10, 7], [3, 13, 1]])
 def test_version_get1(monkeypatch, capsys, vers, pyt):
-    """Test Version.get with patched getters."""
+    """Test VersionInformation.get with patched getters."""
     metaversnum = 0
 
     def metavers(modulename: str) -> str:
@@ -83,22 +85,22 @@ def test_version_get1(monkeypatch, capsys, vers, pyt):
         metaversnum += 1
         return ret
 
-    mod = 'excel_list_transform.version.'
+    mod = 'excel_list_transform.version_information.'
     monkeypatch.setattr(mod + 'sys.version_info', pyt)
     monkeypatch.setattr(mod + 'metadata_version', metavers)
-    versionobj = Version()
+    versionobj = VersionInformation()
     ret = versionobj.get()
     mods = versionobj.module_names()
     out, err = capsys.readouterr()
     assert '' == err
     assert '' == out
     for i, mod in enumerate(mods):
-        assert vers[i] == ret[mod]
+        assert Version(vers[i]) == ret[mod]
 
 
 @pytest.mark.parametrize('numcalls', [0, 1, 2, 17])
 def test_version_get2(monkeypatch, capsys, numcalls):
-    """Test Version.get with patched getters."""
+    """Test VersionInformation.get with patched getters."""
     calls = 0
 
     def metavers(modulename: str) -> str:
@@ -108,15 +110,15 @@ def test_version_get2(monkeypatch, capsys, numcalls):
         calls += 1
         return '1.8.2'
 
-    mod = 'excel_list_transform.version.'
+    mod = 'excel_list_transform.version_information.'
     monkeypatch.setattr(mod + 'metadata_version', metavers)
-    versionobj = Version()
+    versionobj = VersionInformation()
     for _ in range(numcalls):
         ret = versionobj.get()
         mods = versionobj.module_names()
         for mod in mods:
-            assert ret[mod] == '1.8.2'
-        assert '.'.join(map(str, sys.version_info)) == ret['Python']
+            assert ret[mod] == Version('1.8.2')
+        assert VersionInformation.python_version() == ret['Python']
         assert len(mods) == calls
     if 0 == numcalls:
         assert 0 == calls
@@ -132,9 +134,9 @@ def test_version_get2(monkeypatch, capsys, numcalls):
                           ('darwin', 'pip3')])
 def test_print_upgrade(capsys, monkeypatch, os, pip):
     """Test _print_upgrade_instructions."""
-    monkeypatch.setattr('excel_list_transform.version.sys.platform',
-                        os)
-    Version()._print_upgrade_instruction({'aha': '0.1'})  # pylint: disable=protected-access # noqa: E501
+    mod = 'excel_list_transform.version_information.sys.platform'
+    monkeypatch.setattr(mod, os)
+    VersionInformation()._print_upgrade_instruction({'aha': '0.1'})  # pylint: disable=protected-access # noqa: E501
     out, err = capsys.readouterr()
     assert '' == err
     assert pip + ' install --upgrade aha' in out
@@ -143,9 +145,9 @@ def test_print_upgrade(capsys, monkeypatch, os, pip):
 
 def test_version_print_old_p(capsys, monkeypatch):
     """Test version print with old Python."""
-    monkeypatch.setattr('excel_list_transform.version.sys.version_info',
-                        [3, 11, 1])
-    Version().print()
+    mod = 'excel_list_transform.version_information.sys.version_info'
+    monkeypatch.setattr(mod, [3, 11, 1])
+    VersionInformation().print()
     out, err = capsys.readouterr()
     assert '' == err
     assert 'excel_list_transform  ' in out
@@ -169,10 +171,10 @@ def test_version_print_old_p(capsys, monkeypatch):
                            date(year=2027, month=12, day=25), True)])
 def test_version_check_if_u(capsys, monkeypatch, ver, dat, errprint):
     """Test version check if unsupported python widh old Python."""
-    monkeypatch.setattr('excel_list_transform.version.sys.version_info',
-                        ver)
+    mod = 'excel_list_transform.version_information.sys.version_info'
+    monkeypatch.setattr(mod, ver)
 
-    class MockVersion1(Version):
+    class MockVersion1(VersionInformation):
         """Version with mocked today."""
 
         def _today(self):

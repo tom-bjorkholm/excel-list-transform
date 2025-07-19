@@ -113,7 +113,7 @@ def test_excel_list_rfm_cmd_smok2(capsys,  # pylint: disable=too-many-arguments,
                            'arguments are required: -o/--output'],
                           [['-i', 'ifile', '-o', 'ofile'],
                            "(choose from example, cfg-example, " +
-                           "transform, version)"],
+                           "transform, version, migrate-cfg)"],
                           [['example', '-k', 'example', '-r', 'by_number'],
                            'required: -o/--output'],
                           [['example', '--output', 'of', '-i', 'in',

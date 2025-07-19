@@ -17,6 +17,7 @@ from excel_list_transform.generate_cfg import get_example_names
 from excel_list_transform.config_enums import ColumnRef
 from excel_list_transform.str_to_enum import string_to_enum_best_match
 from excel_list_transform.version import Version
+from excel_list_transform.migrate_cfg import migrate_cfg
 
 
 def gen_cfg_cmd(args: argparse.Namespace) -> int:
@@ -30,7 +31,7 @@ def gen_cfg_cmd(args: argparse.Namespace) -> int:
 
 
 def rfmt_cmd(args: argparse.Namespace) -> int:
-    """Generate example cfg file."""
+    """Transform excel/csv file."""
     outfilename = args.output[0]
     infilename = args.input[0]
     cfgfilename = args.cfg[0]
@@ -44,6 +45,14 @@ def version_cmd(_: argparse.Namespace) -> int:
     vers = Version()
     vers.print()
     return 0
+
+
+def migrate_cmd(args: argparse.Namespace) -> int:
+    """Migrate configuration file."""
+    outfilename = args.output[0]
+    infilename = args.input[0]
+    return migrate_cfg(infile=infilename,
+                       outfile=outfilename)
 
 
 USAGE_ORDER = '''
@@ -150,6 +159,32 @@ def version_args(subparsers: SubParseAct) -> None:
     version_parser.set_defaults(func=version_cmd)
 
 
+def migrate_args(subparsers: SubParseAct) -> None:
+    """Add arguments for version sub-command."""
+    migrate_help = 'Migrate configuration file format from older '
+    migrate_help += 'format to newest format.'
+    migrate_descr = migrate_help + ' The transform command '
+    migrate_descr += 'can use backward compatibility to understand '
+    migrate_descr += 'configuration files created by earlier versions, '
+    migrate_descr += 'but not indefinitely old versions. Use migrate_cfg '
+    migrate_descr += 'to read in an old configuration file that this '
+    migrate_descr += 'version can understand and write it out in the '
+    migrate_descr += 'newest format of this version to make sure it '
+    migrate_descr += 'can be read by the next version of the command.'
+    migrate_parser = subparsers.add_parser('migrate-cfg', help=migrate_help,
+                                           epilog='',
+                                           description=migrate_descr +
+                                           SEE_MAIN_HELP)
+    migrate_parser.add_argument('-i', '--input', nargs=1,
+                                help='Name of input configuration file.',
+                                required=True)
+    migrate_parser.add_argument('-o', '--output', nargs=1,
+                                help='Name of output configuration ' +
+                                'file to create.',
+                                required=True)
+    migrate_parser.set_defaults(func=migrate_cmd)
+
+
 def transform_cmd(arguments: Optional[list[str]] = None) -> None:
     """Command to transform list in excel or CSV file."""
     Version().check_if_unsupported_python()
@@ -171,6 +206,7 @@ def transform_cmd(arguments: Optional[list[str]] = None) -> None:
     gen_cfg_args(subparsers)
     transf_args(subparsers)
     version_args(subparsers)
+    migrate_args(subparsers)
     argcomplete.autocomplete(parser)
     args = parser.parse_args(args=fixed_args)
     _ = args.func(args)

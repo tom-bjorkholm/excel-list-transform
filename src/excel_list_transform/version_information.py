@@ -23,8 +23,8 @@ type SupportExpires = dict[date, str]
 class AvailableVersion(NamedTuple):
     """Information on vailable versions of a package."""
 
-    better_for_pyver: bool
-    best_for_new_py: bool
+    is_better_for_pyver: bool
+    is_best_for_new_py: bool
     best_ver: Version
     better_ver: Version
     pkgname: str
@@ -135,12 +135,14 @@ class VersionInformation():
         betterver = Version('0.0.1')
         with PyPISimple() as client:
             try:
-                page = client.get_project_page(pkgname)
+                page = client.get_project_page(pkgname, timeout=15.0)
             except (NoSuchProjectError, UnsupportedContentTypeError,
                     UnsupportedRepoVersionError, HTTPError):
                 return AvailableVersion(False, False, betterver, betterver,
                                         pkgname=pkgname)
             for pkg in page.packages:
+                if pkg.is_yanked:
+                    continue
                 ver = Version(pkg.version if pkg.version is not None
                               else '0.0.1')
                 bestver = max(bestver, ver)
@@ -152,9 +154,9 @@ class VersionInformation():
                     else:
                         betterver = ver
         better_for_pyver = betterver > pkgversion
-        better_for_new_py = bestver > pkgversion
-        return AvailableVersion(better_for_pyver=better_for_pyver,
-                                best_for_new_py=better_for_new_py,
+        better_for_new_py = bestver > pkgversion and bestver > betterver
+        return AvailableVersion(is_better_for_pyver=better_for_pyver,
+                                is_best_for_new_py=better_for_new_py,
                                 best_ver=bestver, better_ver=betterver,
                                 pkgname=pkgname)
 
@@ -180,14 +182,14 @@ class VersionInformation():
         better_for_this: AvailableVersions = []
         better_with_new_py: AvailableVersions = []
         for item in vers:
-            if item.better_for_pyver:
+            if item.is_better_for_pyver:
                 better_for_this.append(item)
-            if item.best_for_new_py and item.better_ver != item.best_ver:
+            if item.is_best_for_new_py and item.better_ver != item.best_ver:
                 better_with_new_py.append(item)
         if not (better_for_this or better_with_new_py):
             return
-        maxlen: int = max([len(x.pkgname)
-                           for x in better_for_this + better_with_new_py])
+        maxlen: int = max(list(len(x.pkgname)
+                               for x in better_for_this + better_with_new_py))
         if better_for_this:
             print('Upgraded packages are available for this python version:')
             for item in better_for_this:

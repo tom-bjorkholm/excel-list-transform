@@ -6,10 +6,13 @@
 
 
 from datetime import date
+from typing import NamedTuple, Optional
 from packaging.version import Version
+from pypi_simple import ProjectPage, DistributionPackage, \
+    NoSuchProjectError
 import pytest
 from excel_list_transform.version_information import VersionInformation, \
-    VersionInfo
+    VersionInfo, AvailableVersion
 
 
 @pytest.mark.parametrize('data, texts',
@@ -146,7 +149,7 @@ def test_print_upgrade(capsys, monkeypatch, os, pip):
 def test_version_print_old_p(capsys, monkeypatch):
     """Test version print with old Python."""
     mod = 'excel_list_transform.version_information.sys.version_info'
-    monkeypatch.setattr(mod, [3, 11, 1])
+    monkeypatch.setattr(mod, (3, 11, 1, 0, 0))
     VersionInformation().print()
     out, err = capsys.readouterr()
     assert '' == err
@@ -164,7 +167,9 @@ def test_version_print_old_p(capsys, monkeypatch):
 
 @pytest.mark.parametrize('ver, dat, errprint',
                          [((3, 11, 1, 0, 0),
-                           date(year=2026, month=12, day=25), True),
+                           date(year=2025, month=12, day=25), True),
+                          ((3, 11, 1, 0, 0),
+                           date(year=2025, month=9, day=25), False),
                           ((3, 11, 1, 0, 0),
                            date(year=2024, month=12, day=25), False),
                           ((3, 10, 11, 75, 0),
@@ -194,3 +199,146 @@ def test_version_check_if_u(capsys, monkeypatch, ver, dat, errprint):
         assert ' install --upgrade ' in out
     else:
         assert '' == out
+
+
+@pytest.mark.parametrize('ver, res',
+                         [((3, 11, 2, 0, 0), '3.11.2'),
+                          ((3, 13, 3, 0, 0), '3.13.3'),
+                          ((3, 14, 4, 0, 0), '3.14.4'),
+                          ((3, 10, 5, 0, 0), '3.10.5')])
+def test_python_version(capsys, monkeypatch, ver, res):
+    """Test VersionsInformation.python_version."""
+    mod = 'excel_list_transform.version_information.sys.version_info'
+    monkeypatch.setattr(mod, ver)
+    ret = VersionInformation.python_version()
+    out, err = capsys.readouterr()
+    assert Version(res) == ret
+    assert res == str(ret)
+    assert '' == out
+    assert '' == err
+
+
+class MockReturn(NamedTuple):
+    """What should packages in mocked page be like."""
+
+    version: str
+    is_yanked: bool
+    req_python: Optional[str]
+
+
+type PageReturn = list[MockReturn]
+type PageReturns = list[PageReturn]
+
+pagereturns: PageReturns = []
+
+
+def mocked_get_project_page(_, project: str,
+                            timeout: float | tuple[float, float] | None
+                            = None, accept: Optional[str] = None,
+                            headers: Optional[dict[str, str]]
+                            = None) -> ProjectPage:
+    """Mock PyPISimple.get_project_page."""
+    packages: list[DistributionPackage] = []
+    assert timeout is not None
+    assert accept is None
+    assert headers is None
+    if not pagereturns or pagereturns[-1] is None:
+        raise NoSuchProjectError(project=project, url='')
+    mockvals: PageReturn = pagereturns.pop()
+    for mockret in mockvals:
+        packages.append(DistributionPackage(filename=f'{project}.whl',
+                                            url='',
+                                            project=project,
+                                            package_type='wheel',
+                                            version=mockret.version,
+                                            digests={},
+                                            requires_python=mockret.req_python,
+                                            has_sig=False,
+                                            is_yanked=mockret.is_yanked))
+    return ProjectPage(project=project, packages=packages,
+                       repository_version=None, last_serial=None)
+
+
+@pytest.mark.parametrize('page,name,ver,pyver,res',
+                         [([MockReturn(version='1.0', is_yanked=False,
+                                       req_python=''),
+                            MockReturn(version='10.1', is_yanked=False,
+                                       req_python='>= 3.0')],
+                           'abc', '2.0', '3.10',
+                           AvailableVersion(is_better_for_pyver=True,
+                                            is_best_for_new_py=False,
+                                            best_ver=Version('10.1'),
+                                            better_ver=Version('10.1'),
+                                            pkgname='abc')),
+                          ([MockReturn(version='3.0', is_yanked=False,
+                                       req_python=''),
+                            MockReturn(version='10.1', is_yanked=False,
+                                       req_python='>= 3.12')],
+                           'ghi', '2.0', '3.10',
+                           AvailableVersion(is_better_for_pyver=True,
+                                            is_best_for_new_py=True,
+                                            best_ver=Version('10.1'),
+                                            better_ver=Version('3.0'),
+                                            pkgname='ghi')),
+                          ([MockReturn(version='3.0', is_yanked=False,
+                                       req_python=''),
+                            MockReturn(version='10.1', is_yanked=True,
+                                       req_python='>= 3.12')],
+                           'jkl', '2.0', '3.10',
+                           AvailableVersion(is_better_for_pyver=True,
+                                            is_best_for_new_py=False,
+                                            best_ver=Version('3.0'),
+                                            better_ver=Version('3.0'),
+                                            pkgname='jkl')),
+                          ([MockReturn(version='3.0', is_yanked=False,
+                                       req_python='>= 3.12'),
+                            MockReturn(version='10.1', is_yanked=False,
+                                       req_python='>= 3.12')],
+                           'mno', '4.0', '3.10',
+                           AvailableVersion(is_better_for_pyver=False,
+                                            is_best_for_new_py=True,
+                                            best_ver=Version('10.1'),
+                                            better_ver=Version('0.0.1'),
+                                            pkgname='mno')),
+                          ([MockReturn(version='1.0', is_yanked=False,
+                                       req_python='>= 3.12'),
+                            MockReturn(version='3.1', is_yanked=False,
+                                       req_python='>= 3.12')],
+                           'pqr', '4.0', '3.10',
+                           AvailableVersion(is_better_for_pyver=False,
+                                            is_best_for_new_py=False,
+                                            best_ver=Version('3.1'),
+                                            better_ver=Version('0.0.1'),
+                                            pkgname='pqr')),
+                          ([MockReturn(version='3.0', is_yanked=False,
+                                       req_python=None),
+                            MockReturn(version='11.1', is_yanked=False,
+                                       req_python=None)],
+                           'stu', '4.0', '3.10',
+                           AvailableVersion(is_better_for_pyver=True,
+                                            is_best_for_new_py=False,
+                                            best_ver=Version('11.1'),
+                                            better_ver=Version('11.1'),
+                                            pkgname='stu')),
+                          (None, 'def', '2.0', '3.12',
+                           AvailableVersion(is_better_for_pyver=False,
+                                            is_best_for_new_py=False,
+                                            best_ver=Version('0.0.1'),
+                                            better_ver=Version('0.0.1'),
+                                            pkgname='def'))])
+def test_get_avail_version(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments) # noqa: E501
+                           monkeypatch, page, name, ver, pyver, res):
+    """Test VersionInformation.get_available_version."""
+    global pagereturns  # pylint: disable=global-statement
+    pagereturns = [page]
+    mod = 'excel_list_transform.version_information.PyPISimple.'
+    monkeypatch.setattr(mod + 'get_project_page', mocked_get_project_page)
+    pkgversion = Version(ver)
+    pyversion = Version(pyver)
+    ret = VersionInformation.get_available_version(pkgname=name,
+                                                   pkgversion=pkgversion,
+                                                   python_version=pyversion)
+    out, err = capsys.readouterr()
+    assert res == ret
+    assert '' == out
+    assert '' == err

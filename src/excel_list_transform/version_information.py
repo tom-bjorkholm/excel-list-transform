@@ -67,8 +67,9 @@ class VersionInformation():
         txt += ' old Python version.\n'
         for day, version in sup_ends.items():
             if now >= day:
-                cmpvers = str(pyvers.major) + '.' + str(pyvers.minor)
-                if cmpvers <= version:
+                cmpvers = Version('.'.join(list(str(s) for s in
+                                                pyvers.release[0:2])))
+                if cmpvers <= Version(version):
                     print(txt)
                     self._print_upgrade_instruction(running_versions)
                     break
@@ -94,9 +95,7 @@ class VersionInformation():
     @staticmethod
     def python_version() -> Version:
         """Get running python version."""
-        py_ver = '.'.join([str(i) for i in sys.version_info])
-        if py_ver.count('.') > 2:
-            py_ver = '.'.join(py_ver.split('.')[0:2])
+        py_ver = '.'.join([str(s) for s in sys.version_info[0:3]])
         return Version(py_ver)
 
     def get(self) -> VersionInfo:

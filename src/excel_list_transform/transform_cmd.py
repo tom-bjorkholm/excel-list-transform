@@ -57,8 +57,8 @@ def migrate_cmd(args: argparse.Namespace) -> int:
 
 USAGE_ORDER = '''
 The normal way to use this command is:
-(1) Using the "example" sub-command a few example configuration (.cfg) files
-with description (.txt) files are generated.
+(1) Using the "cfg-example" sub-command a few example configuration (.cfg)
+files with description (.txt) files are generated.
 (2) Read the example configuration (.cfg) files and the accompanying
 description (.txt) files.
 (3) Find an example that is close to what you want to achieve.

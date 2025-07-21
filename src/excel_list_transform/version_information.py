@@ -197,7 +197,7 @@ class VersionInformation():
         if better_with_new_py:
             print('Even newer packages are available if upgrading python:')
             for item in better_with_new_py:
-                pad = ' '*(maxlen - len(item.pkgname))
+                pad = '.'*(maxlen - len(item.pkgname))
                 print(f'{item.pkgname} {pad} {str(item.best_ver)}')
 
     def print_info_on_new_pkgs(self,

@@ -6,13 +6,14 @@
 
 
 from datetime import date
+from copy import deepcopy
 from typing import NamedTuple, Optional
 from packaging.version import Version
 from pypi_simple import ProjectPage, DistributionPackage, \
     NoSuchProjectError
 import pytest
 from excel_list_transform.version_information import VersionInformation, \
-    VersionInfo, AvailableVersion
+    VersionInfo, AvailableVersion, AvailableVersions
 
 
 @pytest.mark.parametrize('data, texts',
@@ -342,3 +343,227 @@ def test_get_avail_version(capsys,  # pylint: disable=too-many-arguments,too-man
     assert res == ret
     assert '' == out
     assert '' == err
+
+
+def mock_get_available_version(pkgname: str,
+                               pkgversion: Version,
+                               python_version: Version) -> AvailableVersion:
+    """Get information on available version in PyPi."""
+    assert pkgversion is not None
+    assert python_version is not None
+    for ans in mock_get_available_version.answers:
+        if ans.pkgname == pkgname:
+            return ans
+    return AvailableVersion(pkgname=pkgname, is_best_for_new_py=False,
+                            is_better_for_pyver=False,
+                            best_ver=Version('0.0'),
+                            better_ver=Version('0.0'))
+
+
+mock_get_available_version.answers = []
+
+
+@pytest.mark.parametrize('inp,ans,res',
+                         [({'abc': Version('1.0'),
+                            'Python': Version('2.1'),
+                            'def': Version('1.0')},
+                           [AvailableVersion(pkgname='def',
+                                             is_better_for_pyver=True,
+                                             is_best_for_new_py=True,
+                                             best_ver=Version('10.1'),
+                                             better_ver=Version('5.0')),
+                            AvailableVersion(pkgname='abc',
+                                             is_better_for_pyver=False,
+                                             is_best_for_new_py=False,
+                                             best_ver=Version('1.0'),
+                                             better_ver=Version('1.0')),
+                            AvailableVersion(pkgname='Python',
+                                             is_better_for_pyver=True,
+                                             is_best_for_new_py=True,
+                                             best_ver=Version('3.14'),
+                                             better_ver=Version('3.13'))],
+                           [AvailableVersion(pkgname='abc',
+                                             is_better_for_pyver=False,
+                                             is_best_for_new_py=False,
+                                             best_ver=Version('1.0'),
+                                             better_ver=Version('1.0')),
+                            AvailableVersion(pkgname='def',
+                                             is_better_for_pyver=True,
+                                             is_best_for_new_py=True,
+                                             best_ver=Version('10.1'),
+                                             better_ver=Version('5.0'))]),
+                          ({'def': Version('1.0'),
+                            'abc': Version('2.1'),
+                            'Python': Version('1.0')},
+                           [AvailableVersion(pkgname='def',
+                                             is_better_for_pyver=True,
+                                             is_best_for_new_py=True,
+                                             best_ver=Version('10.1'),
+                                             better_ver=Version('5.0')),
+                            AvailableVersion(pkgname='abc',
+                                             is_better_for_pyver=False,
+                                             is_best_for_new_py=True,
+                                             best_ver=Version('10.0'),
+                                             better_ver=Version('1.0')),
+                            AvailableVersion(pkgname='Python',
+                                             is_better_for_pyver=True,
+                                             is_best_for_new_py=True,
+                                             best_ver=Version('3.14'),
+                                             better_ver=Version('3.13'))],
+                           [AvailableVersion(pkgname='def',
+                                             is_better_for_pyver=True,
+                                             is_best_for_new_py=True,
+                                             best_ver=Version('10.1'),
+                                             better_ver=Version('5.0')),
+                            AvailableVersion(pkgname='abc',
+                                             is_better_for_pyver=False,
+                                             is_best_for_new_py=True,
+                                             best_ver=Version('10.0'),
+                                             better_ver=Version('1.0'))])])
+def test_get_available_versions(capsys, monkeypatch, inp, ans, res):
+    """Test VersionInformation.get_available_versions."""
+    mod = 'excel_list_transform.version_information.VersionInformation.'
+    monkeypatch.setattr(mod + 'get_available_version',
+                        mock_get_available_version)
+    mock_get_available_version.answers = deepcopy(ans)
+    vers = VersionInformation()
+    ret = vers.get_available_versions(inp)
+    out, err = capsys.readouterr()
+    assert ret == res
+    assert '' == out
+    assert '' == err
+
+
+PBAVAIL1: AvailableVersions = [
+    AvailableVersion(pkgname='abc', is_best_for_new_py=False,
+                     is_better_for_pyver=False,
+                     best_ver=Version('1.0'), better_ver=Version('1.0'))
+]
+PBTXT1 = ''
+PBAVAIL2: AvailableVersions = [
+    AvailableVersion(pkgname='abc', is_best_for_new_py=False,
+                     is_better_for_pyver=True,
+                     best_ver=Version('2.0'), better_ver=Version('2.0')),
+    AvailableVersion(pkgname='longer_name', is_best_for_new_py=True,
+                     is_better_for_pyver=False,
+                     best_ver=Version('10.0'), better_ver=Version('1.0'))
+]
+PBTXT2 = '''Upgraded packages are available for this python version:
+abc ........ 2.0
+Even newer packages are available if upgrading python:
+longer_name  10.0
+'''
+PBAVAIL3: AvailableVersions = [
+    AvailableVersion(pkgname='abc', is_best_for_new_py=True,
+                     is_better_for_pyver=True,
+                     best_ver=Version('2.1'), better_ver=Version('2.0')),
+    AvailableVersion(pkgname='longer_name', is_best_for_new_py=True,
+                     is_better_for_pyver=True,
+                     best_ver=Version('10.0'), better_ver=Version('1.0'))
+]
+PBTXT3 = '''Upgraded packages are available for this python version:
+abc ........ 2.0
+longer_name  1.0
+Even newer packages are available if upgrading python:
+abc ........ 2.1
+longer_name  10.0
+'''
+
+
+@pytest.mark.parametrize('avai,printout',
+                         [(PBAVAIL1, PBTXT1),
+                          (PBAVAIL2, PBTXT2),
+                          (PBAVAIL3, PBTXT3)])
+def test_print_if_better_versions(capsys, avai, printout):
+    """Test VersionInformation.print_if_better_versions."""
+    vers = VersionInformation()
+    vers.print_if_better_versions(avai)
+    out, err = capsys.readouterr()
+    assert '' == err
+    assert printout == out
+
+
+def test_print_info_on_new_1(capsys, monkeypatch):
+    """Test normal case of VersionInformation.print_info_on_new_pkgs."""
+    get_avail_num = 0
+    print_if_better_num = 0
+
+    def mock_get_avail(_, versions: VersionInfo) -> AvailableVersions:
+        """Mock VersionInformation.get_available_versions."""
+        nonlocal get_avail_num
+        get_avail_num += 1
+        assert versions is not None
+        assert isinstance(versions, dict)
+        return [AvailableVersion(pkgname='excel-list-transform',
+                                 is_best_for_new_py=False,
+                                 is_better_for_pyver=False,
+                                 best_ver=Version('1.0'),
+                                 better_ver=Version('1.0'))]
+
+    def mock_print_if_better(_, vers: AvailableVersions) -> None:
+        """Mock VersionInformation.print_if_better_versions."""
+        nonlocal print_if_better_num
+        print_if_better_num += 1
+        assert len(vers) == 1
+        assert isinstance(vers[0], AvailableVersion)
+        assert vers[0].pkgname == 'excel-list-transform'
+
+    mod = 'excel_list_transform.version_information.VersionInformation.'
+    monkeypatch.setattr(mod + 'get_available_versions',
+                        mock_get_avail)
+    monkeypatch.setattr(mod + 'print_if_better_versions',
+                        mock_print_if_better)
+    vers = VersionInformation()
+    vers.print_info_on_new_pkgs()
+    out, err = capsys.readouterr()
+    assert get_avail_num == 1
+    assert print_if_better_num == 1
+    assert '' == err
+    assert '' == out
+
+
+def test_print_info_on_new_2(capsys, monkeypatch):
+    """Test print_info_on_new_pkgs with mocked_get_project_page."""
+    global pagereturns  # pylint: disable=global-statement
+    pagereturns = [[MockReturn(version='10.1', is_yanked=False,
+                               req_python=None),
+                    MockReturn(version='10.2', is_yanked=False,
+                               req_python=' >=3.17')],
+                   [MockReturn(version='11.1', is_yanked=False,
+                               req_python=None),
+                    MockReturn(version='11.2', is_yanked=False,
+                               req_python=' >=3.17')],
+                   [MockReturn(version='12.1', is_yanked=False,
+                               req_python=None),
+                    MockReturn(version='12.2', is_yanked=False,
+                               req_python=' >=3.17')],
+                   [MockReturn(version='13.1', is_yanked=False,
+                               req_python=None),
+                    MockReturn(version='13.2', is_yanked=False,
+                               req_python=' >=3.17')],
+                   [MockReturn(version='14.1', is_yanked=False,
+                               req_python=None),
+                    MockReturn(version='14.2', is_yanked=False,
+                               req_python=' >=3.17')],
+                   [MockReturn(version='15.1', is_yanked=False,
+                               req_python=None),
+                    MockReturn(version='15.2', is_yanked=False,
+                               req_python=' >=3.17')]]
+    mod = 'excel_list_transform.version_information.PyPISimple.'
+    monkeypatch.setattr(mod + 'get_project_page', mocked_get_project_page)
+    vers = VersionInformation()
+    vers.print_info_on_new_pkgs()
+    out, err = capsys.readouterr()
+    assert '' == err
+    txt = '''Upgraded packages are available for this python version:
+excel_list_transform  15.1
+openpyxl ............ 14.1
+pylightxl ........... 13.1
+XlsxWriter .......... 12.1
+Even newer packages are available if upgrading python:
+excel_list_transform  15.2
+openpyxl ............ 14.2
+pylightxl ........... 13.2
+XlsxWriter .......... 12.2
+'''
+    assert txt == out

@@ -144,7 +144,7 @@ def test_excel_list_rfm_cmd_help(capsys, args):
     assert 'transform' in out
     assert 'example' in out
     assert 'version' in out
-    assert 'Only print versions of excel_list_transform' in out
+    assert 'Print versions of excel_list_transform' in out
     assert 'Generate example configuration file (example .cfg' in out
     assert 'Transform list in excel or CSV file. How data is' in out
     assert 'More detailed help is available for each sub-command.' \
@@ -193,7 +193,7 @@ def test_xlsr_cmd_vers_help(capsys, args):
         transform_cmd(arguments=args)
     out, err = capsys.readouterr()
     assert '-h, --help' in out
-    assert 'Only print versions of excel_list_transform' in out
+    assert 'Print versions of excel_list_transform' in out
     assert '' == err
 
 

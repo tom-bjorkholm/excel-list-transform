@@ -150,8 +150,9 @@ def transf_args(subparsers: SubParseAct) -> None:
 
 def version_args(subparsers: SubParseAct) -> None:
     """Add arguments for version sub-command."""
-    version_help = 'Only print versions of excel_list_transform '
-    version_help += 'and of main modules used by it and of Python.'
+    version_help = 'Print versions of excel_list_transform '
+    version_help += 'and of main modules used by it and of Python. '
+    version_help += 'Also check for available newer versions.'
     version_parser = subparsers.add_parser('version', help=version_help,
                                            epilog=USAGE_ORDER,
                                            description=version_help +

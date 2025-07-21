@@ -61,7 +61,7 @@ ${PYTHON} -m pip install --upgrade pytest-cov
 ${PYTHON} -m pip install --upgrade argcomplete
 ${PYTHON} -m pip install --upgrade pypi-simple
 ${PYTHON} -m pip install --upgrade requests
-${PYTHON} -m pip install --upgrade types-request
+${PYTHON} -m pip install --upgrade types-requests
 ${PYTHON} -m pip install --upgrade packaging
 ${PYTHON} -m pip install --upgrade openpyxl
 ${PYTHON} -m pip install --upgrade types-openpyxl

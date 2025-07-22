@@ -7,11 +7,11 @@
 
 import sys
 from typing import Callable, Optional
-from excel_list_transform.commontypes import Data
+from excel_list_transform.commontypes import Data, Row
 
 
-def check_indata_common(indata: Data,
-                        fix_indata_empty_rows: Callable[[Data], None]) \
+def check_indata_common(indata: Data[Row],
+                        fix_indata_empty_rows: Callable[[Data[Row]], None]) \
                             -> None:
     """Check that the indata is well formed common part."""
     assert isinstance(indata, list), 'Internal error. ' + \

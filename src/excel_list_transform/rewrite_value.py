@@ -73,7 +73,7 @@ def regex_replace_value(value: str, fro: str, to: str,
     try:
         re_obj2: Pattern[str] = re_compile(pattern=fro, flags=flags)
     except re_error as exc:
-        msg = 's7_rewrite_columns: invalid regular expression (regex): '
+        msg = 's09_rewrite_columns: invalid regular expression (regex): '
         msg += f'"{fro}"\n'
         msg += str(exc)
         print(msg, file=sys.stderr)

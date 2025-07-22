@@ -13,6 +13,7 @@ import csv
 import pytest
 from excel_list_transform.config import ConfigEncoder, \
     ConfigBadJson, over_ride_needed, Config
+from excel_list_transform.assert_dict_equal import assert_dict_equal
 
 
 class EnumInTesting(Enum):
@@ -141,9 +142,9 @@ def test_config_something_def(capsys):
     assert 'pqr' in scfg
     assert 'FOOBAR' in scfg
     zst = ConfigSomething()
-    assert xst.__dict__ == zst.__dict__
+    assert_dict_equal(xst.__dict__, zst.__dict__, ['_hook_cfg_autochange'])
     yst = ConfigSomething(from_json_text=scfg)
-    assert yst.__dict__ == xst.__dict__
+    assert_dict_equal(yst.__dict__, xst.__dict__, ['_hook_cfg_autochange'])
     assert isinstance(yst.kind, EnumInTesting)
     assert isinstance(yst.aa1, str)
     assert isinstance(yst.abc, list)
@@ -201,7 +202,7 @@ def test_config_something_changed2(capsys, mno_not_pqr, value):
     scfg = xst.as_json_string()
     yst = ConfigSomething(from_json_text=scfg)
     out, err = capsys.readouterr()
-    assert yst.__dict__ == xst.__dict__
+    assert_dict_equal(xst.__dict__, yst.__dict__, ['_hook_cfg_autochange'])
     if mno_not_pqr:
         assert yst.mno == value
     else:
@@ -249,10 +250,9 @@ def test_config_something_cha_bad(capsys, abc_not_pqr, value, exm):
     else:
         xst.pqr = value
     scfg = xst.as_json_string()
-    with pytest.raises(KeyError) as exc:
+    with pytest.raises(SystemExit):
         _ = ConfigSomething(from_json_text=scfg)
     out, err = capsys.readouterr()
-    assert exm in str(exc)
     assert out == ''
     assert exm in err
 
@@ -785,12 +785,11 @@ def test_check_array_keys_ok(capsys, arr, mand, allow):
                            'Missing key "foo"')])
 def test_check_array_keys_nok(capsys, arr, mand, allow, msg):
     """Test not ok cases for check_array_keys."""
-    with pytest.raises(KeyError) as exc:
+    with pytest.raises(SystemExit):
         Config.check_array_keys(name_of_cfg='test_py', array=arr,
                                 mandatory_keys=mand, allowed_keys=allow)
     out, err = capsys.readouterr()
     assert out == ''
-    assert msg in str(exc)
     assert msg in err
 
 
@@ -817,10 +816,7 @@ def test_check_array_dicts_ok(capsys, arr, kkey, ktype, tmplts):
 
 
 @pytest.mark.parametrize('arr, kkey, ktype, tmplts, msg',
-                         [('arr', 'foo', EnumInTesting,
-                           {EnumInTesting.FOOBAR:  {'a': str, 'b': int}},
-                           'argument not list of dicts'),
-                          ([], 'foo', EnumInTesting,
+                         [([], 'foo', EnumInTesting,
                            {EnumInTesting.FOOBAR:  ['a', 'b']},
                            'template not dict of dicts'),
                           ([], 'foo', EnumInTesting,
@@ -828,7 +824,24 @@ def test_check_array_dicts_ok(capsys, arr, kkey, ktype, tmplts):
                            'template not dict of dicts'),
                           ([], 'foo', EnumInTesting,
                            {EnumInTesting.FOOBAR:  ['a', 'b']},
-                           'in template for FOOBAR'),
+                           'in template for FOOBAR')])
+def test_check_array_dicts_nok1(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments,line-too-long  # noqa: E501
+                                arr, kkey, ktype, tmplts, msg):
+    """Test not ok cases for check_array_dicts."""
+    with pytest.raises(KeyError) as exc:
+        Config.check_array_dicts(name_of_cfg='test_py', array=arr,
+                                 kind_key=kkey, kind_type=ktype,
+                                 dict_of_templates=tmplts)
+    out, err = capsys.readouterr()
+    assert msg in str(exc)
+    assert out == ''
+    assert msg in err
+
+
+@pytest.mark.parametrize('arr, kkey, ktype, tmplts, msg',
+                         [('arr', 'foo', EnumInTesting,
+                           {EnumInTesting.FOOBAR:  {'a': str, 'b': int}},
+                           'argument not list of dicts'),
                           ([{'foo': EnumInTesting.BARFOO, 'c': 2, 'd': 4},
                             ['foo', EnumInTesting.FOOBAR, 'a', 'hej',
                              'b', 7]],
@@ -865,15 +878,14 @@ def test_check_array_dicts_ok(capsys, arr, kkey, ktype, tmplts):
                                                    'c': int, 'd': int}},
                            'Value for key a = 3 is not str')
                           ])
-def test_check_array_dicts_nok(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments,line-too-long  # noqa: E501
-                               arr, kkey, ktype, tmplts, msg):
+def test_check_array_dicts_nok2(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments,line-too-long  # noqa: E501
+                                arr, kkey, ktype, tmplts, msg):
     """Test not ok cases for check_array_dicts."""
-    with pytest.raises(KeyError) as exc:
+    with pytest.raises(SystemExit):
         Config.check_array_dicts(name_of_cfg='test_py', array=arr,
                                  kind_key=kkey, kind_type=ktype,
                                  dict_of_templates=tmplts)
     out, err = capsys.readouterr()
-    assert msg in str(exc)
     assert out == ''
     assert msg in err
 

@@ -324,7 +324,7 @@ def test_gen_example(capsys, refcol):
             assert refcol.name in cfgtxt
         with open(file=txt, mode='r', encoding='utf-8') as file:
             txttxt = file.read()
-            assert 's5_rename_columns' in txttxt
+            assert 's07_rename_columns' in txttxt
     out, err = capsys.readouterr()
     assert f'Wrote files {cfg} and {txt}' in out
     assert '' == err

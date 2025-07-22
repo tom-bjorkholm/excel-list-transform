@@ -13,15 +13,15 @@ from excel_list_transform.config_enums import ColumnRef
 from excel_list_transform.config_factory import \
     config_factory_from_enum, config_factory_from_json, \
     _config_factory_get_text, _config_factory_exit
-from excel_list_transform.config_xls_list_refmt_name import \
-    ConfigXlsListRefmtName
-from excel_list_transform.config_xls_list_refmt_num import \
-    ConfigXlsListRefmtNum
+from excel_list_transform.config_xls_list_transf_name import \
+    ConfigXlsListTransfName
+from excel_list_transform.config_xls_list_transf_num import \
+    ConfigXlsListTransfNum
 
 
 @pytest.mark.parametrize('num,typ',
-                         [(ColumnRef.BY_NAME, ConfigXlsListRefmtName),
-                          (ColumnRef.BY_NUMBER, ConfigXlsListRefmtNum)])
+                         [(ColumnRef.BY_NAME, ConfigXlsListTransfName),
+                          (ColumnRef.BY_NUMBER, ConfigXlsListTransfNum)])
 def test_config_fact_num_ok(capsys, num, typ):
     """Test OK cases of config_factory_from_enum."""
     ret = config_factory_from_enum(numerator=num)
@@ -145,8 +145,8 @@ def test_cfg_fact_fr_json_nok(capsys, text, exctxt, msg):
     assert '' == out
 
 
-@pytest.mark.parametrize('kind', [ConfigXlsListRefmtName,
-                                  ConfigXlsListRefmtNum])
+@pytest.mark.parametrize('kind', [ConfigXlsListTransfName,
+                                  ConfigXlsListTransfNum])
 def test_cfg_fact_fr_json_ok_txt(capsys, kind):
     """Test OK cases txt of config_factory_from_json."""
     orig = kind()
@@ -159,8 +159,8 @@ def test_cfg_fact_fr_json_ok_txt(capsys, kind):
     assert '' == err
 
 
-@pytest.mark.parametrize('kind', [ConfigXlsListRefmtName,
-                                  ConfigXlsListRefmtNum])
+@pytest.mark.parametrize('kind', [ConfigXlsListTransfName,
+                                  ConfigXlsListTransfNum])
 def test_cfg_fact_fr_json_ok_file(capsys, kind):
     """Test OK cases txt of config_factory_from_json."""
     orig = kind()

@@ -7,8 +7,9 @@
 # pylint: disable=duplicate-code
 
 from typing import Optional  # pylint: disable=unused-import,ungrouped-imports # noqa: E501
+from copy import deepcopy
 import pytest
-from excel_list_transform.config import Config
+from excel_list_transform.config import Config, BackwardCompatible
 from excel_list_transform.commontypes import JsonType
 
 
@@ -121,3 +122,244 @@ def test_cfg_def_val_json_nok(capsys, jstext):
     out, err = capsys.readouterr()
     assert '' == out
     assert 'No value for ab in' in err
+
+
+@pytest.mark.parametrize('ind, outd, ren, errtxt',
+                         [({'foo': 12, 'bar': 'data'},
+                           {'foo': 12, 'bar': 'data'},
+                           BackwardCompatible(old='star', new='sun'), ''),
+                          ({'foo': 12, 'bar': 'data'},
+                           {'sun': 12, 'bar': 'data'},
+                           BackwardCompatible(old='foo', new='sun'), ''),
+                          ({'foo': 12, 'bar': 'data'},
+                           {'foo': 12, 'sun': 'data'},
+                           BackwardCompatible(old='bar', new='sun'), ''),
+                          ({'foo': 12, 'bar': 'data'},
+                           {'foo': 12},
+                           BackwardCompatible(old='bar', new='foo'),
+                           'Inconsistent configuration:\n' +
+                           'Both new config parameter foo and old bar ' +
+                           'present.\nIgnoring old parameter bar\n'),
+                          ({'foo': {'a': 'b', 'bar': 'c'}, 'bar': 'data'},
+                           {'foo': {'a': 'b', 'sun': 'c'}, 'sun': 'data'},
+                           BackwardCompatible(old='bar', new='sun'), ''),
+                          ({'foo': {'a': 'b', 'foo': 'c'}, 'bar': 'data'},
+                           {'sun': {'a': 'b', 'sun': 'c'}, 'bar': 'data'},
+                           BackwardCompatible(old='foo', new='sun'), ''),
+                          ({'foo': {'foo': 'b', 'bar': 'c'}, 'bar': 'data'},
+                           {'sun': {'sun': 'b', 'bar': 'c'}, 'bar': 'data'},
+                           BackwardCompatible(old='foo', new='sun'), ''),
+                          ({'a': [{'a': 1, 'b': 2}, {'a': 3, 'b': 4}], 'b': 5},
+                           {'c': [{'c': 1, 'b': 2}, {'c': 3, 'b': 4}], 'b': 5},
+                           BackwardCompatible(old='a', new='c'), '')])
+def test_bw_compat_single1(capsys, ind, outd, ren, errtxt):
+    """Test Config._bwcompat_single for case 1."""
+    data = deepcopy(ind)
+    Config._bwcompat_single(rename=ren,  # pylint: disable=protected-access # noqa: E501
+                            json_data=data)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert err == errtxt
+    assert data == outd
+
+
+@pytest.mark.parametrize('ren',
+                         [BackwardCompatible(old=None, new='sun'),
+                          BackwardCompatible(old='foo', new=None),
+                          BackwardCompatible(old='foo', new='foo')])
+def test_bw_compat_single2(capsys, ren):
+    """Test Config._bwcompat_single for not OK case."""
+    with pytest.raises(AssertionError):
+        Config._bwcompat_single(rename=ren,  # pylint: disable=protected-access # noqa: E501
+                                json_data={'a': 'b'})
+    out, _ = capsys.readouterr()
+    assert '' == out
+
+
+@pytest.mark.parametrize('ind,outd,ren,errtxt',
+                         [([{'a': 2, 'b': 'c'},
+                            {'a': 4, 'b': 'd'}],
+                           [{'e': 2, 'b': 'c'},
+                            {'e': 4, 'b': 'd'}],
+                           BackwardCompatible(old='a', new='e'), ''),
+                          ([{'foo': 12, 'bar': 'data'},
+                            {'fff': 14, 'bar': 'other'}],
+                           [{'foo': 12}, {'fff': 14, 'foo': 'other'}],
+                           BackwardCompatible(old='bar', new='foo'),
+                           'Inconsistent configuration:\n' +
+                           'Both new config parameter foo and old bar ' +
+                           'present.\nIgnoring old parameter bar\n'),
+                          ([[{'a': 1, 'b': 2}, {'a': 3, 'b': 4}]],
+                           [[{'a': 1, 'c': 2}, {'a': 3, 'c': 4}]],
+                           BackwardCompatible(old='b', new='c'), '')])
+def test_bwcompat_single_lst1(capsys, ind, outd, ren, errtxt):
+    """Test Config._bwcompat_single_lst for case 1."""
+    data = deepcopy(ind)
+    Config._bwcompat_single_lst(rename=ren,  # pylint: disable=protected-access # noqa: E501
+                                json_data=data)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert err == errtxt
+    assert data == outd
+
+
+class DummyCfg(Config):
+    """Dummy Config for testing only."""
+
+    def __init__(self):
+        """Create a DummyCfg object."""
+        self.aa = 'text'
+        super().__init__(from_json_data_text='{ "aa": "text" }',
+                         from_json_filename=None)
+
+    def _backward_compatible(self) -> list[BackwardCompatible]:
+        return [
+            BackwardCompatible(old='a', new='x'),
+            BackwardCompatible(old='b', new='y'),
+            BackwardCompatible(old='c', new='z')
+        ]
+
+
+@pytest.mark.parametrize('ind,outd,errtxt',
+                         [({'p': [{'a': 2, 'b': 'c'}, {'a': 4, 'b': 'd'}]},
+                           {'p': [{'x': 2, 'y': 'c'}, {'x': 4, 'y': 'd'}]},
+                           '')])
+def test_rename_backward_compatible(capsys, ind, outd, errtxt):
+    """Test Config._rename_backward_compatible."""
+    data = deepcopy(ind)
+    cfg = DummyCfg()
+    cfg._rename_backward_compatible(  # pylint: disable=protected-access # noqa: E501
+                                    json_data=data)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert err == errtxt
+    assert data == outd
+
+
+@pytest.mark.parametrize('par, inp, key, opt, vtype, mls',
+                         [('parr', [{'bar': 3, 'foo': 2},
+                                    {'bar': 'b', 'foo': 3}],
+                           'foo', False, int, 1),
+                          ('par2', [{'bar': 'b', 'foo': 2},
+                                    {'bar': 'b', 'foo': 3}],
+                           'bar', False, str, 2),
+                          ('par3', [{'bar': 'b', 'foo': 2},
+                                    {'bar': 'b', 'foo': 3}],
+                           'foobar', True, str, 0)])
+def test_check_list_dict_ok(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments # noqa: E501
+                            par, inp, key, opt, vtype, mls):
+    """Test OK cases of Config.check_lst_dict."""
+    Config.check_lst_dict(paramname=par, inp=inp, key=key,
+                          key_optional=opt, valtype=vtype, min_size_list=mls)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert '' == err
+
+
+@pytest.mark.parametrize('par, inp, key, opt, vtype, mls, msgs',
+                         [('parr', {'bar': 3, 'foo': 2},
+                           'foo', False, int, 0,
+                           ['Error in parameter parr.',
+                            'Expected list but found dict',
+                            "{'bar': 3, 'foo': 2}"]),
+                          ('par2', ['bar', 'b', 'foo', '2'],
+                           'bar', False, int, 0,
+                           ['Error in parameter par2.',
+                            'Expected dict in list but found str',
+                            'bar']),
+                          ('par3', [{'bar': 'b', 'foo': 2},
+                                    {'bar': 'b', 'foo': 3}],
+                           'foobar', False, str, 0,
+                           ['Error in parameter par3.',
+                            'Expected key foobar not in dict in list',
+                            "{'bar': 'b', 'foo': 2}"]),
+                          ('par4', [{'bar': 'b', 'foo': 2},
+                                    {'bar': 'b', 'foo': 3}],
+                           'bar', False, int, 0,
+                           ['Error in parameter par4.',
+                            'Value for key bar expected to be of type',
+                            'of type int but is of type str',
+                            '\nb\n']),
+                          ('parr', [{'bar': 3, 'foo': 2},
+                                    {'bar': 'b', 'foo': 3}],
+                           'foo', False, int, 3,
+                           ['Error in parameter parr.',
+                            'Minimum 3 elements needed in list but ' +
+                            'only 2 found'])])
+def test_check_list_dict_nok(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments # noqa: E501
+                             par, inp, key, opt, vtype, mls, msgs):
+    """Test not OK cases of Config.check_lst_dict."""
+    with pytest.raises(SystemExit):
+        Config.check_lst_dict(paramname=par, inp=inp, key=key,
+                              key_optional=opt, valtype=vtype,
+                              min_size_list=mls)
+    out, err = capsys.readouterr()
+    assert '' == out
+    for msg in msgs:
+        assert msg in err
+
+
+@pytest.mark.parametrize('par, inp, key, opt, vtype, mlso, mlsi, ',
+                         [('parr', [{'bar': 3, 'foo': [2, 3]},
+                                    {'bar': 'b', 'foo': [3, 5]}],
+                           'foo', False, int, 1, 2),
+                          ('par2', [{'bar': ['b', 'c'], 'foo': 2},
+                                    {'bar': ['b', 'e'], 'foo': 3}],
+                           'bar', False, str, 1, 2),
+                          ('par3', [{'bar': 'b', 'foo': 2},
+                                    {'bar': 'b', 'foo': 3}],
+                           'foobar', True, str, 0, 0)])
+def test_check_list_dict_lst_ok(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments # noqa: E501
+                                par, inp, key, opt, mlso, mlsi, vtype):
+    """Test OK cases of Config.check_lst_dict_lst."""
+    Config.check_lst_dict_lst(paramname=par, inp=inp, key=key,
+                              key_optional=opt, valtype=vtype,
+                              min_size_outer_list=mlso,
+                              min_size_inner_list=mlsi)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert '' == err
+
+
+@pytest.mark.parametrize('par, inp, key, opt, vtype, mlso, mlsi, msgs',
+                         [('parr', [{'bar': 3, 'foo': [2, 'a']},
+                                    {'bar': 'b', 'foo': [3, 5]}],
+                           'foo', False, int, 0, 0,
+                           ['Error in parameter parr.',
+                            'Value for key foo expected to be list of int',
+                            'But element in list is str', "\n[2, 'a']\n"]),
+                          ('par2', [{'bar': ['a', 'c'], 'foo': 2},
+                                    {'bar': [1, 'xx'], 'foo': 'c'}],
+                           'bar', False, str, 0, 0,
+                           ['Error in parameter par2.',
+                            'Value for key bar expected to be list of str',
+                            'But element in list is int', "\n[1, 'xx']\n"]),
+                          ('par3', [{'bar': 'b', 'foo': 2},
+                                    {'bar': 'b', 'foo': 3}],
+                           'foobar', False, str, 0, 0,
+                           ['Error in parameter par3.',
+                            'Expected key foobar not in dict in list']),
+                          ('par2', [{'bar': ['b', 'c'], 'foo': 2},
+                                    {'bar': ['b', 'e'], 'foo': 3}],
+                           'bar', False, str, 3, 1,
+                           ['Error in parameter par2.',
+                            'Minimum 3 elements needed in list but ' +
+                            'only 2 found.']),
+                          ('par2', [{'bar': ['b', 'c'], 'foo': 2},
+                                    {'bar': ['b', 'e'], 'foo': 3}],
+                           'bar', False, str, 1, 3,
+                           ['Error in parameter par2.',
+                            'List for key bar shall be minimum 3 elements.',
+                            'But it is 2 elements only.'])])
+def test_check_list_dict_lst_nok(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments # noqa: E501
+                                 par, inp, key, opt, vtype, mlso, mlsi, msgs):
+    """Test not OK cases of Config.check_lst_dict_lst."""
+    with pytest.raises(SystemExit):
+        Config.check_lst_dict_lst(paramname=par, inp=inp, key=key,
+                                  key_optional=opt, valtype=vtype,
+                                  min_size_outer_list=mlso,
+                                  min_size_inner_list=mlsi)
+    out, err = capsys.readouterr()
+    assert '' == out
+    for msg in msgs:
+        assert msg in err

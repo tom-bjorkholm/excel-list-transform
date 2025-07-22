@@ -17,12 +17,13 @@ Value: TypeAlias = Optional[str | int | float | datetime]
 NumRow: TypeAlias = list[Value]
 NumRowSeq: TypeAlias = Sequence[Value]
 NameRow: TypeAlias = dict[str, Value]
+Row = TypeVar('Row', NumRow, NameRow)
 NameRowMap: TypeAlias = Mapping[str, Value]
 NumData: TypeAlias = list[NumRow]
 NumDataSeq: TypeAlias = list[NumRowSeq]
 NameData: TypeAlias = list[NameRow]
 NameDataMap: TypeAlias = Sequence[NameRowMap]
-Data = TypeVar('Data', NumData, NameData)
+type Data[Row] = list[Row]
 DataCov = TypeVar('DataCov', NumDataSeq, NameDataMap)
 
 JsonType: TypeAlias = \

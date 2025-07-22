@@ -57,7 +57,10 @@ pip install --upgrade excel-list-transform
 | 0.7.11  | 09 Jun 2025 | 3.12.x          | Backport 0.7.12 to Python 3.12      |
 | 0.7.12  | 09 Jun 2025 | 3.13.3 or newer | Add version sub-command             |
 | 0.7.13  | 11 Jun 2025 | 3.13 or newer   | Relax Python version requirement    |
-| 0.8.?   | ?           | ?               | Add split-row and merge-row         |
+| 0.8.0   | 23 Jul 2025 | 3.10.x          | Backport 0.8.3 to Python 3.10       |
+| 0.8.1   | 23 Jul 2025 | 3.11.x          | Backport 0.8.3 to Python 3.11       |
+| 0.8.2   | 23 Jul 2025 | 3.12.x          | Backport 0.8.3 to Python 3.12       |
+| 0.8.3   | 23 Jul 2025 | 3.13 or newer   | Add split-row and merge-row         |
 
 ## Running the application
 
@@ -70,6 +73,8 @@ python3 -m excel_list_transform cfg-example --help
 python3 -m excel_list_transform transform --help
 python3 -m excel_list_transform cfg-example -k forms_to_rrs -r by_name -o example.cfg
 python3 -m excel_list_transform transform -c example.cfg -i input.xlsx -o output.xlsx
+python3 -m excel_list_transform migrate-cfg --help
+python3 -m excel_list_transform migrate-cfg -i old.cfg -o new.cfg
 ````
 
 ### Running the application on Microsoft Windows
@@ -81,6 +86,8 @@ python -m excel_list_transform cfg-example --help
 python -m excel_list_transform transform --help
 python -m excel_list_transform cfg-example -k forms_to_rrs -r by_name -o example.cfg
 python -m excel_list_transform transform -c example.cfg -i input.xlsx -o output.xlsx
+python -m excel_list_transform migrate-cfg --help
+python -m excel_list_transform migrate-cfg -i old.cfg -o new.cfg
 ````
 
 ## Suggested way to get started
@@ -246,7 +253,7 @@ into different rows.
 **"not_separators"** take as arguement a list of strings. These strings
 are not regarded as separators even if they include the strings
 of one or more separator. (For instance ";" could be a separator,
-but using **"not_separators"** the string "\;" could be seen as not
+but using **"not_separators"** the string "\\;" could be seen as not
 a separator.)
 
 ### "s02_merge_rows"
@@ -468,7 +475,7 @@ Source code and tests are available at [https://bitbucket.org/tom-bjorkholm/exce
 
 ## Test summary
 
-* Test result: 4119 passed in 15s
+* Test result: 4119 passed in 14s
 * No Flake8 warnings.
 * No mypy errors found.
-* 0.7.14 built and tested using python version: Python 3.13.5
+* 0.8.3 built and tested using python version: Python 3.13.5

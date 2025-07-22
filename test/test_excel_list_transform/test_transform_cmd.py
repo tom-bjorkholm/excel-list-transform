@@ -7,11 +7,15 @@
 # pylint: disable=duplicate-code
 
 from copy import deepcopy
-import sys
+from datetime import date
+from tempfile import TemporaryDirectory
 from importlib.metadata import version as metadata_version
 import pytest
 from excel_list_transform.transform_cmd import transform_cmd
 from excel_list_transform.config_enums import ColumnRef
+from excel_list_transform.handle_excel import write_excel_num, \
+    read_excel_num
+from excel_list_transform.version_information import VersionInformation
 
 
 @pytest.mark.smoke
@@ -109,7 +113,7 @@ def test_excel_list_rfm_cmd_smok2(capsys,  # pylint: disable=too-many-arguments,
                            'arguments are required: -o/--output'],
                           [['-i', 'ifile', '-o', 'ofile'],
                            "(choose from 'example', 'cfg-example', " +
-                           "'transform', 'version')"],
+                           "'transform', 'version', 'migrate-cfg')"],
                           [['example', '-k', 'example', '-r', 'by_number'],
                            'required: -o/--output'],
                           [['example', '--output', 'of', '-i', 'in',
@@ -140,7 +144,7 @@ def test_excel_list_rfm_cmd_help(capsys, args):
     assert 'transform' in out
     assert 'example' in out
     assert 'version' in out
-    assert 'Only print versions of excel_list_transform' in out
+    assert 'Print versions of excel_list_transform' in out
     assert 'Generate example configuration file (example .cfg' in out
     assert 'Transform list in excel or CSV file. How data is' in out
     assert 'More detailed help is available for each sub-command.' \
@@ -189,7 +193,7 @@ def test_xlsr_cmd_vers_help(capsys, args):
         transform_cmd(arguments=args)
     out, err = capsys.readouterr()
     assert '-h, --help' in out
-    assert 'Only print versions of excel_list_transform' in out
+    assert 'Print versions of excel_list_transform' in out
     assert '' == err
 
 
@@ -198,7 +202,83 @@ def test_version_cmd1(capsys):
     transform_cmd(['version'])
     out, err = capsys.readouterr()
     assert '' == err
-    assert f'Python .............. {".".join(map(str, sys.version_info))}' \
+    assert \
+        f'Python .............. {str(VersionInformation.python_version())}' \
         in out
     assert f'excel_list_transform  {metadata_version("excel_list_transform")}'\
         in out
+
+
+@pytest.mark.parametrize('ver, dat, errprint',
+                         [((3, 11, 1, 0, 0),
+                           date(year=2026, month=12, day=25), True),
+                          ((3, 11, 1, 0, 0),
+                           date(year=2024, month=12, day=25), False),
+                          ((3, 10, 11, 75, 0),
+                           date(year=2027, month=12, day=25), True)])
+def test_cmd_ver_check_if_u(capsys, monkeypatch, ver, dat, errprint):
+    """Test version check if unsupported python widh old Python."""
+    mod1 = 'excel_list_transform.version_information.sys.version_info'
+    monkeypatch.setattr(mod1, ver)
+
+    def mock_day(_) -> date:
+        """Mock Version._today."""
+        return dat
+    mod2 = 'excel_list_transform.version_information.VersionInformation._today'
+    monkeypatch.setattr(mod2, mock_day)
+    with pytest.raises(SystemExit):
+        transform_cmd(['--help'])
+    out, err = capsys.readouterr()
+    assert '' == err
+    if errprint:
+        assert 'You are running an old version of Python:' in out
+        assert 'This application no longer releases bug fixes ' in out
+        assert 'for this old Python version.' in out
+        assert 'Upgrade Python to a new version.' in out
+        assert '(Download Python from https://www.python.org/downloads' in out
+        assert 'After installing new Python, upgrade application with' in out
+        assert ' install --upgrade ' in out
+    else:
+        assert 'You are running an old version of Python:' not in out
+        assert 'This application no longer releases bug fixes ' not in out
+        assert 'for this old Python version.' not in out
+        assert 'Upgrade Python to a new version.' not in out
+        assert '(Download Python from https://www.python.or' not in out
+        assert 'After installing new Python, upgrade application ' not in out
+        assert ' install --upgrade ' not in out
+
+
+@pytest.mark.parametrize('ref', list(ColumnRef))
+def test_row_split_merge_cmd_cfg(capsys, ref):
+    """Test row split and merge config genaration."""
+    indata = [['From', 'What', 'To'],
+              ['Gardener', 'Apples', 'Jones + Smith'],
+              ['Brewery', 'Beer', 'Smith + Bush'],
+              ['Dairy', 'Milk', 'Jones']]
+    outdata = [['To', 'What', 'From'],
+               ['Jones', 'Apples + Milk', 'Gardener + Dairy'],
+               ['Smith', 'Apples + Beer', 'Gardener + Brewery'],
+               ['Bush', 'Beer', 'Brewery']]
+    with TemporaryDirectory() as dirname:
+        cfgfile = dirname + '/a.cfg'
+        infile = dirname + '/in.xlsx'
+        outfile = dirname + '/out.xlsx'
+        transform_cmd(['cfg-example', '-k', 'row_split_merge',
+                       '-r', ref.name.lower(), '-o', cfgfile])
+        with open(file=dirname + '/a.txt', mode='r', encoding='utf-8') as f:
+            txt = f.read()
+            assert '"s01_split_rows"' in txt
+            assert '"s02_merge_rows"' in txt
+            assert 'Gardener + Dairy' in txt
+        write_excel_num(data=deepcopy(indata), filename=infile)
+        transform_cmd(['transform', '-c', cfgfile, '-i', infile,
+                       '-o', outfile])
+        res = read_excel_num(filename=outfile, max_column_read=20,
+                             strip_col_names=False, strip_values=False)
+        assert res == outdata
+    out, err = capsys.readouterr()
+    assert '' == err
+    assert 'Wrote files' in out
+    assert 'a.cfg' in out
+    assert 'a.txt' in out
+    assert 'out.xlsx' in out

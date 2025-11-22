@@ -8,7 +8,7 @@
 
 from copy import deepcopy
 from sys import argv as sys_argv
-from typing import Optional, TypeAlias
+from typing import Optional
 import argparse
 import argcomplete
 from excel_list_transform.transform_func import transform_named_files
@@ -90,7 +90,7 @@ SEE_MAIN_HELP = '''
 See also help text for main command without sub-commands.
 '''
 
-SubParseAct: TypeAlias = 'argparse._SubParsersAction[argparse.ArgumentParser]'
+type SubParseAct = 'argparse._SubParsersAction[argparse.ArgumentParser]'
 
 
 def gen_cfg_args_named(subparsers: SubParseAct, sub_pars_name: str) -> None:

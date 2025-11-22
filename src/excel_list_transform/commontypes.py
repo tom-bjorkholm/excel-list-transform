@@ -5,7 +5,7 @@
 # MIT License
 
 
-from typing import TypeAlias, Optional, cast, Sequence, Mapping, TypeVar, \
+from typing import Optional, cast, Sequence, Mapping, TypeVar, \
     Any
 from datetime import datetime
 # imports needed by mypy, but not by python:
@@ -13,20 +13,20 @@ from typing import Union, List, Dict  # pylint: disable=unused-import,ungrouped-
 
 
 # types used to describe input and output data
-Value: TypeAlias = Optional[str | int | float | datetime]
-NumRow: TypeAlias = list[Value]
-NumRowSeq: TypeAlias = Sequence[Value]
-NameRow: TypeAlias = dict[str, Value]
+type Value = Optional[str | int | float | datetime]
+type NumRow = list[Value]
+type NumRowSeq = Sequence[Value]
+type NameRow = dict[str, Value]
 Row = TypeVar('Row', NumRow, NameRow)
-NameRowMap: TypeAlias = Mapping[str, Value]
-NumData: TypeAlias = list[NumRow]
-NumDataSeq: TypeAlias = list[NumRowSeq]
-NameData: TypeAlias = list[NameRow]
-NameDataMap: TypeAlias = Sequence[NameRowMap]
+type NameRowMap = Mapping[str, Value]
+type NumData = list[NumRow]
+type NumDataSeq = list[NumRowSeq]
+type NameData = list[NameRow]
+type NameDataMap = Sequence[NameRowMap]
 type Data[Row] = list[Row]
 DataCov = TypeVar('DataCov', NumDataSeq, NameDataMap)
 
-JsonType: TypeAlias = \
+type JsonType = \
     'Union[None, int, str, bool, List[JsonType], Dict[str, JsonType]]'
 
 # helper functions

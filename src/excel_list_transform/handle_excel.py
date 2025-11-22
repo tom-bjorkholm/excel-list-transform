@@ -10,7 +10,7 @@
 import sys
 from datetime import datetime, date, time
 from copy import deepcopy
-from typing import Optional, TypeAlias, Any
+from typing import Optional, Any
 from decimal import Decimal
 from xlsxwriter import Workbook as xlsxwriter_wb  # type: ignore
 from pylightxl import readxl as pl_readxl  # type: ignore
@@ -30,7 +30,7 @@ from excel_list_transform.num_named_conversion import \
     named_cols_from_num_cols, num_cols_from_named_cols
 
 
-_AnyCellValue: TypeAlias = Any  # AnyOf _CellGetValue # noqa: Y047
+type _AnyCellValue = Any  # AnyOf _CellGetValue # noqa: Y047
 seentypes: list[str] = []
 
 

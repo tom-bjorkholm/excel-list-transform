@@ -8,7 +8,7 @@
 import sys
 from copy import deepcopy
 from enum import Enum
-from typing import Optional, Callable, TypeAlias, TypeVar, NamedTuple, \
+from typing import Optional, Callable, TypeVar, NamedTuple, \
     Generic, TypedDict
 from csv import Dialect
 from excel_list_transform.config import Config, ParseConverter, \
@@ -21,36 +21,42 @@ from excel_list_transform.config_auto_change_hook import ConfigAutoChangeHook
 from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
 
 
-CsvSpec: TypeAlias = dict[str, Optional[str]]
+type CsvSpec = dict[str, Optional[str]]
 Column = TypeVar('Column', int, str)
-SingleRule: TypeAlias = dict[str, Optional[Column | str]]
-Rule: TypeAlias = list[SingleRule[Column]]
-SingleRuleSplit: TypeAlias = dict[str, Optional[Column | str | SplitWhere]]
-SingleRuleRowSplit = \
-    TypedDict('SingleRuleRowSplit', {'column': Column,
-                                     'separators': list[str],
-                                     'not_separators': list[str]})
-RuleSplit: TypeAlias = list[SingleRuleSplit[Column]]
-RuleRowSplit: TypeAlias = list[SingleRuleRowSplit[Column]]
-RuleOrder: TypeAlias = list[str]
-RulePlace: TypeAlias = list[int]
-RuleRemove: TypeAlias = RulePlace
-RulePlaceOrOrder: TypeAlias = RulePlace | RuleOrder
-SingleRuleRewrite: TypeAlias = dict[str,
-                                    Optional[Column | str |
-                                             list[str] |
-                                             RewriteKind |
-                                             CaseSensitivity]]
-RuleRewrite: TypeAlias = list[SingleRuleRewrite[Column]]
-SingleRuleMerge: TypeAlias = dict[str, list[Column] | str]
-RuleMerge: TypeAlias = list[SingleRuleMerge[Column]]
-DupCheckKeyArg: TypeAlias = \
+type SingleRule[Column] = dict[str, Optional[Column | str]]
+type Rule[Column] = list[SingleRule[Column]]
+type SingleRuleSplit[Column] = dict[str, Optional[Column | str | SplitWhere]]
+
+
+class SingleRuleRowSplit[Column](TypedDict):
+    """Sinle rule for splitting a column."""
+
+    column: Column
+    separators: list[str]
+    not_separators: list[str]
+
+
+type RuleSplit[Column] = list[SingleRuleSplit[Column]]
+type RuleRowSplit[Column] = list[SingleRuleRowSplit[Column]]
+type RuleOrder = list[str]
+type RulePlace = list[int]
+type RuleRemove = RulePlace
+type RulePlaceOrOrder = RulePlace | RuleOrder
+type SingleRuleRewrite[Column] = dict[str,
+                                      Optional[Column | str |
+                                               list[str] |
+                                               RewriteKind |
+                                               CaseSensitivity]]
+type RuleRewrite[Column] = list[SingleRuleRewrite[Column]]
+type SingleRuleMerge[Column] = dict[str, list[Column] | str]
+type RuleMerge[Column] = list[SingleRuleMerge[Column]]
+type DupCheckKeyArg[Column] = \
     SingleRule[Column] | SingleRuleMerge[Column] | SingleRuleSplit[Column]
-DupCheckKey: TypeAlias = \
+type DupCheckKey[Column] = \
     Callable[[DupCheckKeyArg[Column]], Column | list[Column]]
-IncrCheckKey: TypeAlias = \
+type IncrCheckKey[Column] = \
     Callable[[SingleRuleMerge[Column]], Column | list[Column]]
-NoDupKeydType: TypeAlias = \
+type NoDupKeydType[Column] = \
     Rule[Column] | RuleMerge[Column] | RuleSplit[Column]
 
 

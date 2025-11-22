@@ -17,7 +17,7 @@ from excel_list_transform.config_xls_list_transf_name import \
 from excel_list_transform.config_xls_list_transf_num import \
     ConfigXlsListTransfNum
 
-syntax_phone_fix: str = '''
+SYNTAX_PHONE_FIX: str = '''
 The phone number has to be in international format '+' followed by only
 digits for RRS, but the sailors filling in the form sometimes use
 national format (no + and no country code). Also the sailors filling
@@ -29,7 +29,7 @@ phone numbers. For other countries s09_rewrite_columns need to be
 adjusted.
 '''
 
-syntax_o2x_common: str = '''
+SYNYAX_O2X_COMMON: str = '''
 
 Column names are changed from another language (Swedish) and sometimes from
 a more instuctive naming to the names understood by RRS.
@@ -38,15 +38,15 @@ The events does not use divisions, boat names and WhatsApp. Thus the
 form did not ask for these. They are inserted as empty columns to please
 RRS.
 
-''' + syntax_phone_fix
+''' + SYNTAX_PHONE_FIX
 
-syntax_only_o2r_common: str = '''
+SYNTAX_ONLY_O2R_COMMON: str = '''
 This an example of taking a registration list from the excel file received
 from office forms or google forms and transforming it for importing into
 RRS ( https://www.racingrulesofsailing.org ).
 '''
 
-by_name_common: str = '''
+BY_NAME_COMMON: str = '''
 
 s10_column_order both tells the order the columns shall be written
 in, and what columns to write out. The columns not listed here
@@ -56,16 +56,16 @@ This configuration files references columns "BY_NAME", which is the
 preferred way to reference columns.
 '''
 
-by_number_common: str = '''
+BY_NUMBER_COMMON: str = '''
 
 This configuration files references columns "BY_NUMBER".
 The preferred way to reference columns in configuration files
 is "BY_NAME".
 '''
 
-syntax_o2r_common: str = syntax_only_o2r_common + syntax_o2x_common
+SYNTAX_O2R_COMMON: str = SYNTAX_ONLY_O2R_COMMON + SYNYAX_O2X_COMMON
 
-syntax_sw2r_common: str = '''
+SYNTAX_SW2R_COMMON: str = '''
 
 In this example the input data is exported as JSON or XML from SailWave
 https://www.sailwave.com . The data as a list in excel format is then
@@ -77,9 +77,9 @@ before it can be imported into RRS https://www.racingrulesofsailing.org/
 The Name column is split into First Name and Last Name columns.
 The column WhatsApp is added with no data.
 
-''' + syntax_phone_fix
+''' + SYNTAX_PHONE_FIX
 
-syntax_sa2r_common: str = '''
+SYNTAX_SA2R_COMMON: str = '''
 
 In this example the input data is exported from SailArena to RRS.
 This input format is a comma separated values text file, with the
@@ -87,7 +87,7 @@ old character encoding scheme cp1252.
 
 The only fixes needed are to read CSV in cp1252 encoding, fix the
 format of the phone number and save to excel.
-''' + syntax_phone_fix
+''' + SYNTAX_PHONE_FIX
 
 
 def rewrite_phone_46_cfg(cfg: ConfigXlsListTransfName | ConfigXlsListTransfNum,
@@ -171,8 +171,8 @@ def generate_syntax_sw2r_name(filename: str, colref: ColumnRef) -> None:
     cfg.write(to_json_filename=filename)
 
 
-TXT_SW2R_NAME = syntax_sw2r_common + by_name_common
-TXT_SA2R_NAME = syntax_sa2r_common + by_name_common
+TXT_SW2R_NAME = SYNTAX_SW2R_COMMON + BY_NAME_COMMON
+TXT_SA2R_NAME = SYNTAX_SA2R_COMMON + BY_NAME_COMMON
 
 
 def generate_syntax_sa2r_num(filename: str, colref: ColumnRef) -> None:
@@ -224,8 +224,8 @@ def generate_syntax_sw2r_num(filename: str, colref: ColumnRef) -> None:
     cfg.write(to_json_filename=filename)
 
 
-TXT_SW2R_NUM = syntax_sw2r_common + by_number_common
-TXT_SA2R_NUM = syntax_sa2r_common + by_number_common
+TXT_SW2R_NUM = SYNTAX_SW2R_COMMON + BY_NUMBER_COMMON
+TXT_SA2R_NUM = SYNTAX_SA2R_COMMON + BY_NUMBER_COMMON
 
 
 def generate_syntax_o2r_name(filename: str, colref: ColumnRef) -> None:
@@ -260,7 +260,7 @@ def generate_syntax_o2r_name(filename: str, colref: ColumnRef) -> None:
     cfg.write(to_json_filename=filename)
 
 
-TXT_O2R_NAME = syntax_o2r_common + by_name_common
+TXT_O2R_NAME = SYNTAX_O2R_COMMON + BY_NAME_COMMON
 
 
 def generate_syntax_o2r_num(filename: str, colref: ColumnRef) -> None:
@@ -293,15 +293,15 @@ def generate_syntax_o2r_num(filename: str, colref: ColumnRef) -> None:
     cfg.write(to_json_filename=filename)
 
 
-TXT_O2R_NUM = syntax_o2r_common + by_number_common
+TXT_O2R_NUM = SYNTAX_O2R_COMMON + BY_NUMBER_COMMON
 
-syntax_only_o2s_common: str = '''
+SYNTAX_ONLY_O2S_COMMON: str = '''
 This an example of taking a registration list from the excel file received
 from office forms or google forms and transforming it for importing into
 SailWave regatta scoring program ( https://www.sailwave.com ).
 '''
 
-syntax_o2s_common: str = syntax_only_o2s_common + syntax_o2x_common
+SYNTAX_O2S_COMMON: str = SYNTAX_ONLY_O2R_COMMON + SYNYAX_O2X_COMMON
 
 
 def generate_syntax_o2s_name(filename: str, colref: ColumnRef) -> None:
@@ -333,7 +333,7 @@ def generate_syntax_o2s_name(filename: str, colref: ColumnRef) -> None:
     cfg.write(to_json_filename=filename)
 
 
-TXT_O2S_NAME = syntax_o2s_common + by_name_common
+TXT_O2S_NAME = SYNTAX_O2S_COMMON + BY_NAME_COMMON
 
 
 def generate_syntax_o2s_num(filename: str, colref: ColumnRef) -> None:
@@ -364,10 +364,10 @@ def generate_syntax_o2s_num(filename: str, colref: ColumnRef) -> None:
     cfg.write(to_json_filename=filename)
 
 
-TXT_O2S_NUM = syntax_o2s_common + by_number_common
+TXT_O2S_NUM = SYNTAX_O2S_COMMON + BY_NUMBER_COMMON
 
 
-syntax_r2s_common: str = '''
+SYNTAX_R2S_COMMON: str = '''
 This an example of taking a registration list from the excel file
 exported from RRS ( https://www.racingrulesofsailing.org ) and
 transforming it for importing into SailWave regatta scoring
@@ -411,7 +411,7 @@ def generate_syntax_r2s_name(filename: str, colref: ColumnRef) -> None:
     cfg.write(to_json_filename=filename)
 
 
-TXT_R2S_NAME = syntax_r2s_common + by_name_common
+TXT_R2S_NAME = SYNTAX_R2S_COMMON + BY_NAME_COMMON
 
 
 def generate_syntax_r2s_num(filename: str, colref: ColumnRef) -> None:
@@ -448,7 +448,7 @@ def generate_syntax_r2s_num(filename: str, colref: ColumnRef) -> None:
     cfg.write(to_json_filename=filename)
 
 
-TXT_R2S_NUM = syntax_r2s_common + by_number_common
+TXT_R2S_NUM = SYNTAX_R2S_COMMON + BY_NUMBER_COMMON
 
 
 def generate_syntax_example(filename: str, colref: ColumnRef) -> None:
@@ -518,8 +518,8 @@ identical values in the "To" column.
 Finally we specify the new column order.
 '''
 
-TXT_ROWSPLITMERGE_NAME = TXT_ROWSPLITMERGE + by_name_common
-TXT_ROWSPLITMERGE_NUM = TXT_ROWSPLITMERGE + by_number_common
+TXT_ROWSPLITMERGE_NAME = TXT_ROWSPLITMERGE + BY_NAME_COMMON
+TXT_ROWSPLITMERGE_NUM = TXT_ROWSPLITMERGE + BY_NUMBER_COMMON
 
 
 dispatch = {'forms_to_rrs': {ColumnRef.BY_NAME: generate_syntax_o2r_name,

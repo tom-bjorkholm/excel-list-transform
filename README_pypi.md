@@ -61,7 +61,7 @@ pip install --upgrade excel-list-transform
 | 0.8.1   | 23 Jul 2025 | 3.11.x          | Backport 0.8.3 to Python 3.11       |
 | 0.8.2   | 23 Jul 2025 | 3.12.x          | Backport 0.8.3 to Python 3.12       |
 | 0.8.3   | 23 Jul 2025 | 3.13 or newer   | Add split-row and merge-row         |
-| 0.8.4   | 23 Nov 2025 | 3.12.x          | Backport 0.8.5 to Python 3.13       |
+| 0.8.4   | 23 Nov 2025 | 3.12.x          | Backport 0.8.5 to Python 3.12       |
 | 0.8.5   | 23 Nov 2025 | 3.13 or newer   | Adapted to Python 3.14              |
 
 ## Running the application

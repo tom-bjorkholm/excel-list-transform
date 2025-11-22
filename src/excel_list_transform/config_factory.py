@@ -5,7 +5,7 @@
 # MIT License
 
 
-from typing import Optional, TypeAlias
+from typing import Optional
 import sys
 from json import loads as json_loads
 from json import JSONDecodeError
@@ -21,10 +21,10 @@ from excel_list_transform.config_auto_change_hook import ConfigAutoChangeHook
 from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
 
 
-Configs: TypeAlias = \
+type Configs = \
     dict[ColumnRef,
          type[ConfigXlsListTransfName] | type[ConfigXlsListTransfNum]]
-DerivedConfig: TypeAlias = ConfigXlsListTransfName | ConfigXlsListTransfNum
+type DerivedConfig = ConfigXlsListTransfName | ConfigXlsListTransfNum
 
 _CONFIGS: Configs = {ColumnRef.BY_NAME: ConfigXlsListTransfName,
                      ColumnRef.BY_NUMBER: ConfigXlsListTransfNum}

@@ -353,10 +353,14 @@ DATA1CS = [['aa', 'bb bd bh', 3],
            ['ff gg', 'bc be bf', 5],
            ['aa', 'bg', 7]]
 
+DATASINGLE = [['aa', 'bb', 3]]
+
 
 @pytest.mark.parametrize('data,cols,sep,res',
                          [(DATA1, [0, 2], '+',
                            DATA1ACP),
+                          (DATASINGLE, [0, 2], '+',
+                           DATASINGLE),
                           (DATA1, [1], '+', DATA1),
                           (DATA1, [], '+', DATA1NP),
                           (DATA1, [2], '+', DATA1CP),
@@ -379,6 +383,8 @@ def test_one_merge_rows_num_ok1(capsys, data, cols, sep, res):
 @pytest.mark.parametrize('data,cols,sep,res',
                          [(DATA1, [0, 2], '+',
                            DATA1ACP),
+                          (DATASINGLE, [0, 2], '+',
+                           DATASINGLE),
                           (DATA1, [1], '+', DATA1),
                           (DATA1, [], '+', DATA1NP),
                           (DATA1, [2], '+', DATA1CP),
@@ -401,6 +407,8 @@ def test_one_rule_merge_rows_nu_ok1(capsys, data, cols, sep, res):
 @pytest.mark.parametrize('data,cols,sep,res',
                          [(DATA1, [0, 2], '+',
                            DATA1ACP),
+                          (DATASINGLE, [0, 2], '+',
+                           DATASINGLE),
                           (DATA1, [1], '+', DATA1),
                           (DATA1, [2], '+', DATA1CP),
                           (DATA1, [0, 2], ' ',
@@ -470,7 +478,12 @@ def test_merge_rows_num_ok3(capsys, data, cols, sep, res):
                                     'separator': '+'},
                                    {'columns': [2],
                                     'separator': '-'}],
-                           DATA2ACCPM)])
+                           DATA2ACCPM),
+                          (DATASINGLE, [{'columns': [0, 2],
+                                         'separator': '+'},
+                                        {'columns': [2],
+                                         'separator': '-'}],
+                           DATASINGLE)])
 def test_merge_rows_num_ok4(capsys, data, rule, res):
     """Test OK cases of merge rows num more than one rule."""
     cfg1 = ConfigXlsListTransfNum()

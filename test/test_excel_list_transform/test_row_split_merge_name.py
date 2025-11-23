@@ -396,6 +396,8 @@ DATA1CS = [{'a': 'aa', 'b': 'bb bd bh', 'c': 3},
            {'a': 'ff gg', 'b': 'bc be bf', 'c': 5},
            {'a': 'aa', 'b': 'bg', 'c': 7}]
 
+DATASINGLE = [{'a': 'aa', 'b': 'bb', 'c': 3}]
+
 
 @pytest.mark.parametrize('data,cols,sep,res',
                          [(DATA1, ['a', 'c'], '+',
@@ -407,7 +409,8 @@ DATA1CS = [{'a': 'aa', 'b': 'bb bd bh', 'c': 3},
                            DATA1ACS),
                           (DATA1, ['b'], ' ', DATA1),
                           (DATA1, [], ' ', DATA1NS),
-                          (DATA1, ['c'], ' ', DATA1CS)])
+                          (DATA1, ['c'], ' ', DATA1CS),
+                          (DATASINGLE, ['a', 'c'], '+', DATASINGLE)])
 def test_one_merge_rows_name_ok1(capsys, data, cols, sep, res):
     """Test OK cases of one merge rows name."""
     ret = one_merge_rows(indata=deepcopy(data),
@@ -429,7 +432,9 @@ def test_one_merge_rows_name_ok1(capsys, data, cols, sep, res):
                            DATA1ACS),
                           (DATA1, ['b'], ' ', DATA1),
                           (DATA1, [], ' ', DATA1NS),
-                          (DATA1, ['c'], ' ', DATA1CS)])
+                          (DATA1, ['c'], ' ', DATA1CS),
+                          (DATASINGLE, ['a', 'c'], '+',
+                           DATASINGLE)])
 def test_one_rule_merge_rows_na_ok1(capsys, data, cols, sep, res):
     """Test OK cases of one merge rows name."""
     rule = {'columns': deepcopy(cols), 'separator': deepcopy(sep)}
@@ -448,7 +453,9 @@ def test_one_rule_merge_rows_na_ok1(capsys, data, cols, sep, res):
                           (DATA1, ['a', 'c'], ' ',
                            DATA1ACS),
                           (DATA1, ['b'], ' ', DATA1),
-                          (DATA1, ['c'], ' ', DATA1CS)])
+                          (DATA1, ['c'], ' ', DATA1CS),
+                          (DATASINGLE, ['a', 'c'], '+',
+                           DATASINGLE)])
 def test_merge_rows_name_ok1(capsys, data, cols, sep, res):
     """Test OK cases of merge rows name."""
     rule = {'columns': deepcopy(cols), 'separator': deepcopy(sep)}

@@ -406,10 +406,6 @@ def merge_rows(indata: Data[Row], rules: RuleMerge[Column],
         return indata
     assert (isinstance(tinfo, int) and isinstance(indata[0], list)) or \
         (isinstance(tinfo, str) and isinstance(indata[0], dict))
-    if len(indata) < 2:
-        return indata
-    assert (isinstance(tinfo, int) and isinstance(indata[0], list)) or \
-        (isinstance(tinfo, str) and isinstance(indata[0], dict))
     data = deepcopy(indata)
     for rule in rules:
         data = one_rule_merge_rows(indata=data, rule=rule, tinfo=tinfo)
@@ -425,8 +421,6 @@ def merge_rows_cfg(indata: Data[Row],
         (isinstance(tinfo, str) and isinstance(cfg, ConfigXlsListTransfName))
     if len(indata) < 2:
         return indata
-    assert (isinstance(tinfo, int) and isinstance(indata[0], list)) or \
-        (isinstance(tinfo, str) and isinstance(indata[0], dict))
     assert (isinstance(tinfo, int) and isinstance(indata[0], list)) or \
         (isinstance(tinfo, str) and isinstance(indata[0], dict))
     return merge_rows(indata=indata, rules=cfg.s02_merge_rows, tinfo=tinfo)

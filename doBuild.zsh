@@ -27,7 +27,7 @@ if [[ ! -v PYTHON ]]; then
     PYTHON=`./bestInstalledPython.zsh`
 fi
 echo 'Using PYTHON' ${PYTHON} 
-VENVOKMARK=(./venv/lib/python*/site-packages/openpyxl(NnOn))
+VENVOKMARK=(./venv/lib/python*/site-packages(NnOn))
 VENVSITEPKGS=./venv/lib/${PYTHON}.10/site-packages
 DOCOUTDIR=reports
 DOCINDEX=${DOCOUTDIR}/index.html

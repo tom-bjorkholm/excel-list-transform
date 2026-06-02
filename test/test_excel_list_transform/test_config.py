@@ -6,11 +6,13 @@
 
 # pylint: disable=duplicate-code
 
+from typing import Any, cast
 from tempfile import NamedTemporaryFile as ntf
 from os import remove as os_remove
 from enum import Enum, auto
 import csv
 import pytest
+from pytest import CaptureFixture
 from excel_list_transform.config import ConfigEncoder, \
     ConfigBadJson, over_ride_needed, Config
 from excel_list_transform.assert_dict_equal import assert_dict_equal
@@ -25,7 +27,8 @@ class EnumInTesting(Enum):
 
 @pytest.mark.parametrize('obj, res', [(EnumInTesting.FOOBAR, 'FOOBAR'),
                                       (EnumInTesting.BARFOO, 'BARFOO')])
-def test_config_encode(capsys, obj, res):
+def test_config_encode(capsys: CaptureFixture[str], obj: Any,
+                       res: Any) -> None:
     """Test ConfigEncoder."""
     enc = ConfigEncoder()
     ret = enc.default(obj)
@@ -36,23 +39,23 @@ def test_config_encode(capsys, obj, res):
 
 
 @pytest.mark.parametrize('obj', [1, 'hello'])
-def test_config_encode_bad(obj):
+def test_config_encode_bad(obj: Any) -> None:
     """Test ConfigEncoder with bad arguments."""
     enc = ConfigEncoder()
     with pytest.raises(TypeError):
         _ = enc.default(obj)
 
 
-def test_over_ride_needed_1(capsys):
+def test_over_ride_needed_1(capsys: CaptureFixture[str]) -> None:
     """Test over_ride_needed with None."""
-    ret = over_ride_needed(None)
+    ret = over_ride_needed(cast(str, None))
     out, err = capsys.readouterr()
     assert 42 == ret
     assert '' == err
     assert '' == out
 
 
-def test_over_ride_needed_2(capsys):
+def test_over_ride_needed_2(capsys: CaptureFixture[str]) -> None:
     """Test over_ride_needed with non-None."""
     with pytest.raises(NotImplementedError) as exc:
         _ = over_ride_needed('42')
@@ -66,7 +69,8 @@ def test_over_ride_needed_2(capsys):
 class ConfigSomething(Config):  # pylint: disable=too-many-instance-attributes
     """Class to test Config."""
 
-    def __init__(self, from_json_text=None, from_json_filename=None):
+    def __init__(self, from_json_text: Any = None,
+                 from_json_filename: Any = None) -> None:
         """Construct configuration for test."""
         self.csv_dialect1 = {'name': 'csv.excel', 'delimiter': ',',
                              'quoting': None, 'quotechar': '"',
@@ -87,15 +91,15 @@ class ConfigSomething(Config):  # pylint: disable=too-many-instance-attributes
         super().__init__(from_json_text, from_json_filename)
         self.check_array_configs()
 
-    def get_csv_dialect1(self):
+    def get_csv_dialect1(self) -> Any:
         """Get CSV dialect 1."""
         return self.get_csv_dialect(**self.csv_dialect1)
 
-    def get_csv_dialect2(self):
+    def get_csv_dialect2(self) -> Any:
         """Get CSV dialect 2."""
         return self.get_csv_dialect(**self.csv_dialect2)
 
-    def check_array_configs(self):
+    def check_array_configs(self) -> None:
         """Check that keywords in configuration arrays are OK."""
         abc_keys = ['def', 'geh', 'ijk']
         self.check_array_keys('abc', self.abc, abc_keys)
@@ -103,7 +107,7 @@ class ConfigSomething(Config):  # pylint: disable=too-many-instance-attributes
         for _, val in self.pqr.items():
             self.check_array_keys('pqr', val, pqr_keys)
 
-    def parse_converters(self):
+    def parse_converters(self) -> Any:
         """Get converters for use when parsing JSON.
 
         Overriding in derived class.
@@ -119,7 +123,7 @@ class ConfigSomething(Config):  # pylint: disable=too-many-instance-attributes
 
 
 @pytest.mark.smoke
-def test_config_something_def(capsys):
+def test_config_something_def(capsys: CaptureFixture[str]) -> None:
     """Test default values of ConfigSomething."""
     xst = ConfigSomething()
     assert isinstance(xst.kind, EnumInTesting)
@@ -166,7 +170,8 @@ def test_config_something_def(capsys):
 
 
 @pytest.mark.parametrize('indel, outdel', [(';', ','), (':', ';')])
-def test_config_something_changed(capsys, indel, outdel):
+def test_cfg_smt_chg(capsys: CaptureFixture[str], indel: Any,
+                     outdel: Any) -> None:
     """Test ConfigSomething with changed values."""
     xst = ConfigSomething()
     xst.csv_dialect1['delimiter'] = indel
@@ -191,7 +196,8 @@ def test_config_something_changed(capsys, indel, outdel):
                                        'ij': 'bb', 'mn': 30},
                                       {'gh': EnumInTesting.BARFOO,
                                        'ij': 'yy', 'mn': 7}]})])
-def test_config_something_changed2(capsys, mno_not_pqr, value):
+def test_cfg_smt_changed2(capsys: CaptureFixture[str], mno_not_pqr: Any,
+                          value: Any) -> None:
     """Test ConfigSomething with other changed values."""
     xst = ConfigSomething()
     if mno_not_pqr:
@@ -241,7 +247,8 @@ def test_config_something_changed2(capsys, mno_not_pqr, value):
                                       {'gh': EnumInTesting.BARFOO,
                                        'ij': 'yy', 'mn': 7}]},
                            'Missing key "mn"')])
-def test_config_something_cha_bad(capsys, abc_not_pqr, value, exm):
+def test_cfg_smt_chg_bad(capsys: CaptureFixture[str], abc_not_pqr: Any,
+                         value: Any, exm: Any) -> None:
     """Test ConfigSomething with bad changed values."""
     xst = ConfigSomething()
     if abc_not_pqr:
@@ -257,7 +264,8 @@ def test_config_something_cha_bad(capsys, abc_not_pqr, value, exm):
 
 
 @pytest.mark.parametrize('indel, outdel', [(';', ','), (':', ';')])
-def test_config_something_writeread(capsys, indel, outdel):
+def test_cfg_smt_wr_rd(capsys: CaptureFixture[str], indel: Any,
+                       outdel: Any) -> None:
     """Test ConfigSomething writing and reading."""
     xst = ConfigSomething()
     xst.csv_dialect1['delimiter'] = indel
@@ -278,7 +286,8 @@ def test_config_something_writeread(capsys, indel, outdel):
 
 
 @pytest.mark.parametrize('indel, outdel', [(';', ','), (':', ';')])
-def test_config_something_writeinit(capsys, indel, outdel):
+def test_cfg_smt_wr_init(capsys: CaptureFixture[str], indel: Any,
+                         outdel: Any) -> None:
     """Test ConfigSomething writing and reading."""
     xst = ConfigSomething()
     xst.csv_dialect1['delimiter'] = indel
@@ -300,7 +309,8 @@ def test_config_something_writeinit(capsys, indel, outdel):
 @pytest.mark.parametrize('txt,indel',
                          [('{"csv_dialect1" : {"delimiter" : "B"}}', 'B'),
                           ('{"csv_dialect1" : {"delimiter" : ":"}}', ':')])
-def test_config_smt_read_incompl1(capsys, txt, indel):
+def test_cfg_smt_rd_inc1(capsys: CaptureFixture[str], txt: Any,
+                         indel: Any) -> None:
     """Test ConfigSomething read incomplete 1."""
     yst = ConfigSomething()
     outdelold = yst.csv_dialect2['delimiter']
@@ -317,7 +327,7 @@ def test_config_smt_read_incompl1(capsys, txt, indel):
 @pytest.mark.parametrize('txt',
                          ['{"csv_dialect1": {"delimiter" : "B"}}',
                           '{"csv_dialect1": {"delimiter" : ";"}}'])
-def test_config_smt_read_incompl2(capsys, txt):
+def test_cfg_smt_rd_inc2(capsys: CaptureFixture[str], txt: Any) -> None:
     """Test ConfigSomething read incomplete 2."""
     yst = ConfigSomething()
     with pytest.raises(KeyError) as exc_info:
@@ -328,7 +338,7 @@ def test_config_smt_read_incompl2(capsys, txt):
     assert 'No value for' in err
 
 
-def test_config_smt_read_nonexist(capsys):
+def test_cfg_smt_rd_nofile(capsys: CaptureFixture[str]) -> None:
     """Test ConfigSomething read non-existing."""
     yst = ConfigSomething()
     with pytest.raises(SystemExit) as exc_info:
@@ -344,7 +354,7 @@ def test_config_smt_read_nonexist(capsys):
 @pytest.mark.parametrize('txt',
                          ['{"csv_dialect1": {"delimiter" : "B"}}',
                           '{"csv_dialect1": {"delimiter" : ";"}}'])
-def test_config_smt_init_incompl(capsys, txt):
+def test_cfg_smt_init_incompl(capsys: CaptureFixture[str], txt: Any) -> None:
     """Test ConfigSomething init incomplete."""
     with pytest.raises(KeyError) as exc_info:
         yst = ConfigSomething(from_json_text=txt)
@@ -358,7 +368,7 @@ def test_config_smt_init_incompl(capsys, txt):
 @pytest.mark.parametrize('txt',
                          ['{"csv_dialect1": {"delimiter2" : "B"}}',
                           '{"csv_dialec": {"delimiter" : ";"}}'])
-def test_config_something_read_bad(capsys, txt):
+def test_cfg_smt_rd_bad(capsys: CaptureFixture[str], txt: Any) -> None:
     """Test ConfigSomething read bad."""
     yst = ConfigSomething()
     with pytest.raises(KeyError) as exc_info:
@@ -372,7 +382,7 @@ def test_config_something_read_bad(capsys, txt):
 @pytest.mark.parametrize('txt',
                          ['{"csv_dialect1": {"delimiter2" : "B"}}',
                           '{"csv_dialect2t": {"delimiter" : ";"}}'])
-def test_config_something_read_bad2(capsys, txt):
+def test_cfg_smt_rd_bad2(capsys: CaptureFixture[str], txt: Any) -> None:
     """Test ConfigSomething read bad 2."""
     yst = ConfigSomething()
     with pytest.raises(KeyError) as exc_info:
@@ -386,7 +396,7 @@ def test_config_something_read_bad2(capsys, txt):
 @pytest.mark.parametrize('txt',
                          ['{"csv_dialect1"... {"delimiter2" : "B"}}',
                           'do you beleave in music'])
-def test_config_something_read_bad3(capsys, txt):
+def test_cfg_smt_rd_bad3(capsys: CaptureFixture[str], txt: Any) -> None:
     """Test ConfigSomething read bad 3."""
     yst = ConfigSomething()
     with pytest.raises(ConfigBadJson) as exc_info:
@@ -401,7 +411,7 @@ def test_config_something_read_bad3(capsys, txt):
 @pytest.mark.parametrize('txt',
                          [b'\xff\xf8\x00\x00\x00\x00\x00\xff',
                           b'\xff'])
-def test_config_something_read_bad4(capsys, txt):
+def test_cfg_smt_rd_bad4(capsys: CaptureFixture[str], txt: Any) -> None:
     """Test ConfigSomething read bad 4."""
     yst = ConfigSomething()
     with pytest.raises(ConfigBadJson) as exc_info:
@@ -417,7 +427,8 @@ def test_config_something_read_bad4(capsys, txt):
                          [('{"csv_dialect1": "B"}', 'Not dictionary for'),
                           ('{"abc": {"delimiter" : ";"}}',
                            'Unexpected dictionary for')])
-def test_config_smt_read_dict_mism(capsys, txt, errtxt):
+def test_cfg_smt_rd_dct_mism(capsys: CaptureFixture[str], txt: Any,
+                             errtxt: Any) -> None:
     """Test ConfigSomething read dict mismatch."""
     yst = ConfigSomething()
     with pytest.raises(KeyError) as exc_info:
@@ -428,7 +439,7 @@ def test_config_smt_read_dict_mism(capsys, txt, errtxt):
     assert errtxt in err
 
 
-def test_config_something_csv_ok_1(capsys):
+def test_cfg_smt_csv_ok_1(capsys: CaptureFixture[str]) -> None:
     """Test ConfigSomething csv OK 1."""
     yst = ConfigSomething()
     txt = """{"csv_dialect2": {"name": "csv.excel", "delimiter": "+",
@@ -444,7 +455,7 @@ def test_config_something_csv_ok_1(capsys):
     assert err == ''
 
 
-def test_config_something_csv_bad_1(capsys):
+def test_cfg_smt_csv_bad_1(capsys: CaptureFixture[str]) -> None:
     """Test ConfigSomething csv bad 1."""
     yst = ConfigSomething()
     txt = """{"csv_dialect2": {"name": "csv.excelent", "delimiter": "+",
@@ -461,7 +472,7 @@ def test_config_something_csv_bad_1(capsys):
     assert "Unknown csv dialect" in err
 
 
-def test_config_smt_csv_def(capsys):
+def test_config_smt_csv_def(capsys: CaptureFixture[str]) -> None:
     """Test ConfigSomething csv default."""
     yst = ConfigSomething()
     out = yst.get_csv_dialect2()
@@ -473,15 +484,16 @@ def test_config_smt_csv_def(capsys):
     assert err == ''
 
 
-def par_json_quote(var):
+def par_json_quote(var: Any) -> Any:
     """Quote parameter for JSON string."""
     if var is None:
         return 'null'
     return '"' + var + '"'
 
 
-def csv_combinations_chcker(nam,   # pylint: disable=too-many-arguments, too-many-positional-arguments, line-too-long, too-many-branches, too-many-locals # noqa: E501
-                            dlm, esc, quot, qchar, lterm, err):
+# pylint: disable-next=R0912,R0913,R0914,R0917
+def csv_combinations_chcker(nam: Any, dlm: Any, esc: Any, quot: Any,
+                            qchar: Any, lterm: Any, err: Any) -> None:
     """Check test combinations of CSV configurations."""
     scfg = '{"csv_dialect2": {"name": ' + par_json_quote(nam)\
         + ', "delimiter": '\
@@ -545,9 +557,11 @@ def csv_combinations_chcker(nam,   # pylint: disable=too-many-arguments, too-man
                                      ('|', False)])
 @pytest.mark.parametrize('ltr,er6', [(None, False), ('end', False),
                                      ('>', False), (None, False)])
-def test_config_smt_csv_comb_s(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments, line-too-long, too-many-locals # noqa: E501
-                               nam, dmt, esc, quo, qch, ltr, er1, er2, er3,
-                               er4, er5, er6):
+# pylint: disable-next=R0913,R0914,R0917
+def test_cfg_smt_csv_comb_s(capsys: CaptureFixture[str], nam: Any, dmt: Any,
+                            esc: Any, quo: Any, qch: Any, ltr: Any, er1: Any,
+                            er2: Any, er3: Any, er4: Any, er5: Any,
+                            er6: Any) -> None:
     """Test combinations of CSV configurations thorough."""
     err = er1 or er2 or er3 or er4 or er5 or er6
     csv_combinations_chcker(nam, dmt, esc, quo, qch, ltr, err)
@@ -569,9 +583,11 @@ def test_config_smt_csv_comb_s(capsys,  # pylint: disable=too-many-arguments, to
                                      ('csv.quote_all', False)])
 @pytest.mark.parametrize('qch,er5', [(None, False)])
 @pytest.mark.parametrize('ltr,er6', [('>', False), (None, False)])
-def test_config_smt_csv_comb_f1(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments, line-too-long, too-many-locals # noqa: E501
-                                nam, dmt, esc, quo, qch, ltr, er1, er2, er3,
-                                er4, er5, er6):
+# pylint: disable-next=R0913,R0914,R0917
+def test_cfg_smt_csv_comb_f1(capsys: CaptureFixture[str], nam: Any, dmt: Any,
+                             esc: Any, quo: Any, qch: Any, ltr: Any, er1: Any,
+                             er2: Any, er3: Any, er4: Any, er5: Any,
+                             er6: Any) -> None:
     """Test combinations of CSV configurations f1."""
     err = er1 or er2 or er3 or er4 or er5 or er6
     csv_combinations_chcker(nam, dmt, esc, quo, qch, ltr, err)
@@ -590,9 +606,11 @@ def test_config_smt_csv_comb_f1(capsys,  # pylint: disable=too-many-arguments, t
 @pytest.mark.parametrize('qch,er5', [(None, False)])
 @pytest.mark.parametrize('ltr,er6', [(None, False), ('end', False),
                                      ('>', False)])
-def test_config_smt_csv_comb_f6(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments, line-too-long, too-many-locals # noqa: E501
-                                nam, dmt, esc, quo, qch, ltr, er1, er2, er3,
-                                er4, er5, er6):
+# pylint: disable-next=R0913,R0914,R0917
+def test_cfg_smt_csv_comb_f6(capsys: CaptureFixture[str], nam: Any, dmt: Any,
+                             esc: Any, quo: Any, qch: Any, ltr: Any, er1: Any,
+                             er2: Any, er3: Any, er4: Any, er5: Any,
+                             er6: Any) -> None:
     """Test combinations of CSV configurations f6."""
     err = er1 or er2 or er3 or er4 or er5 or er6
     csv_combinations_chcker(nam, dmt, esc, quo, qch, ltr, err)
@@ -607,13 +625,14 @@ def test_config_smt_csv_comb_f6(capsys,  # pylint: disable=too-many-arguments, t
 class ConfigSomething2(Config):
     """Class to test Config."""
 
-    def __init__(self, from_json_text=None, from_json_filename=None):
+    def __init__(self, from_json_text: Any = None,
+                 from_json_filename: Any = None) -> None:
         """Construct configuration for test."""
         self.in_type = EnumInTesting.FOOBAR
         super().__init__(from_json_text, from_json_filename)
 
 
-def test_config_something2_bad(capsys):
+def test_cfg_something2_bad(capsys: CaptureFixture[str]) -> None:
     """Test error handling no parsse_converters."""
     xst = ConfigSomething2()
     scfg = xst.as_json_string()
@@ -628,24 +647,27 @@ def test_config_something2_bad(capsys):
 class ConfigSomething3(Config):
     """Class to test Config."""
 
-    def __init__(self, from_json_text=None, from_json_filename=None):
+    def __init__(self, from_json_text: Any = None,
+                 from_json_filename: Any = None) -> None:
         """Construct configuration for test."""
         self.in_type = EnumInTesting.FOOBAR
         super().__init__(from_json_text, from_json_filename)
 
-    def parse_converters(self):
+    def parse_converters(self) -> Any:
         """Use no parse converters."""
         return None
 
 
-def test_config_something3_bad(capsys):
+def test_cfg_something3_bad(capsys: CaptureFixture[str]) -> None:
     """Test error handling no parsse_converters."""
     xst = ConfigSomething3()
     scfg = xst.as_json_string()
     yst = ConfigSomething3(from_json_text=scfg)
     out, err = capsys.readouterr()
     assert xst.in_type != yst.in_type
-    assert xst.in_type.name == yst.in_type
+    yst_type = yst.in_type
+    assert isinstance(yst_type, str)
+    assert xst.in_type.name == yst_type
     assert out == ''
     assert err == ''
 
@@ -653,17 +675,18 @@ def test_config_something3_bad(capsys):
 class ConfigSomething4(Config):
     """Class to test Config."""
 
-    def __init__(self, from_json_text=None, from_json_filename=None):
+    def __init__(self, from_json_text: Any = None,
+                 from_json_filename: Any = None) -> None:
         """Construct configuration for test."""
         self.in_type = EnumInTesting.FOOBAR
         super().__init__(from_json_text, from_json_filename)
 
-    def parse_converters(self):
+    def parse_converters(self) -> Any:
         """Use no parse converters."""
         return {'in_type': self.get_converter_dict(EnumInTesting)}
 
 
-def test_config_something4_ok(capsys):
+def test_config_something4_ok(capsys: CaptureFixture[str]) -> None:
     """Test error handling no parsse_converters."""
     xst = ConfigSomething4()
     scfg = xst.as_json_string()
@@ -678,18 +701,19 @@ def test_config_something4_ok(capsys):
 class ConfigSomething5(Config):
     """Class to test Config."""
 
-    def __init__(self, from_json_text=None, from_json_filename=None):
+    def __init__(self, from_json_text: Any = None,
+                 from_json_filename: Any = None) -> None:
         """Construct configuration for test."""
         self.in_type = EnumInTesting.FOOBAR
-        self._unchecked_dicts = 'in_type'
+        setattr(self, '_unchecked_dicts', 'in_type')
         super().__init__(from_json_text, from_json_filename)
 
-    def parse_converters(self):
+    def parse_converters(self) -> Any:
         """Use no parse converters."""
         return {'in_type': self.get_converter_dict(EnumInTesting)}
 
 
-def test_config_something5_bad(capsys):
+def test_cfg_something5_bad(capsys: CaptureFixture[str]) -> None:
     """Test error handling no parsse_converters."""
     with pytest.raises(TypeError) as exc:
         _ = ConfigSomething5()
@@ -702,17 +726,18 @@ def test_config_something5_bad(capsys):
 class ConfigEmpty(Config):
     """Class to test Config."""
 
-    def __init__(self, from_json_text=None, from_json_filename=None):
+    def __init__(self, from_json_text: Any = None,
+                 from_json_filename: Any = None) -> None:
         """Construct configuration for test."""
         self._unchecked_dictscfg = ['in_type']
         super().__init__(from_json_text, from_json_filename)
 
-    def parse_converters(self):
+    def parse_converters(self) -> Any:
         """Use no parse converters."""
         return None
 
 
-def test_config_empty_bad(capsys):
+def test_config_empty_bad(capsys: CaptureFixture[str]) -> None:
     """Test error handling no parsse_converters."""
     with pytest.raises(AttributeError) as exc:
         _ = ConfigEmpty()
@@ -727,7 +752,8 @@ def test_config_empty_bad(capsys):
                           (1, int, 1),
                           ('1', int, 1),
                           (1, str, '1')])
-def test_value_of_type(capsys, inp, totype, res):
+def test_value_of_type(capsys: CaptureFixture[str], inp: Any, totype: Any,
+                       res: Any) -> None:
     """Test method value_of_type."""
     ret = Config.value_of_type(input_value=inp, to_type=totype)
     out, err = capsys.readouterr()
@@ -755,7 +781,8 @@ def test_value_of_type(capsys, inp, totype, res):
                           ([{'foo': 1, 'bar': 2},
                             {'foo': 3, 'bar': 4, 'baz': 5}],
                            ['foo', 'bar'], ['baz', 'xyz'])])
-def test_check_array_keys_ok(capsys, arr, mand, allow):
+def test_check_array_keys_ok(capsys: CaptureFixture[str], arr: Any, mand: Any,
+                             allow: Any) -> None:
     """Test ok cases for check_array_keys."""
     Config.check_array_keys(name_of_cfg='test_py', array=arr,
                             mandatory_keys=mand, allowed_keys=allow)
@@ -777,7 +804,8 @@ def test_check_array_keys_ok(capsys, arr, mand, allow):
                             {'bar': 4}],
                            ['foo', 'bar'], ['baz'],
                            'Missing key "foo"')])
-def test_check_array_keys_nok(capsys, arr, mand, allow, msg):
+def test_check_array_keys_nok(capsys: CaptureFixture[str], arr: Any, mand: Any,
+                              allow: Any, msg: Any) -> None:
     """Test not ok cases for check_array_keys."""
     with pytest.raises(SystemExit):
         Config.check_array_keys(name_of_cfg='test_py', array=arr,
@@ -800,7 +828,8 @@ def test_check_array_keys_nok(capsys, arr, mand, allow, msg):
                             EnumInTesting.BARFOO: {'foo': EnumInTesting,
                                                    'c': int, 'd': int}})
                           ])
-def test_check_array_dicts_ok(capsys, arr, kkey, ktype, tmplts):
+def test_check_array_dicts_ok(capsys: CaptureFixture[str], arr: Any, kkey: Any,
+                              ktype: Any, tmplts: Any) -> None:
     """Test ok cases for check_array_dicts."""
     Config.check_array_dicts(name_of_cfg='test_py', array=arr, kind_key=kkey,
                              kind_type=ktype, dict_of_templates=tmplts)
@@ -819,8 +848,9 @@ def test_check_array_dicts_ok(capsys, arr, kkey, ktype, tmplts):
                           ([], 'foo', EnumInTesting,
                            {EnumInTesting.FOOBAR:  ['a', 'b']},
                            'in template for FOOBAR')])
-def test_check_array_dicts_nok1(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments,line-too-long  # noqa: E501
-                                arr, kkey, ktype, tmplts, msg):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_chk_arr_dcts_nok1(capsys: CaptureFixture[str], arr: Any, kkey: Any,
+                           ktype: Any, tmplts: Any, msg: Any) -> None:
     """Test not ok cases for check_array_dicts."""
     with pytest.raises(KeyError) as exc:
         Config.check_array_dicts(name_of_cfg='test_py', array=arr,
@@ -872,8 +902,9 @@ def test_check_array_dicts_nok1(capsys,  # pylint: disable=too-many-arguments,to
                                                    'c': int, 'd': int}},
                            'Value for key a = 3 is not str')
                           ])
-def test_check_array_dicts_nok2(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments,line-too-long  # noqa: E501
-                                arr, kkey, ktype, tmplts, msg):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_chk_arr_dcts_nok2(capsys: CaptureFixture[str], arr: Any, kkey: Any,
+                           ktype: Any, tmplts: Any, msg: Any) -> None:
     """Test not ok cases for check_array_dicts."""
     with pytest.raises(SystemExit):
         Config.check_array_dicts(name_of_cfg='test_py', array=arr,
@@ -887,7 +918,8 @@ def test_check_array_dicts_nok2(capsys,  # pylint: disable=too-many-arguments,to
 @pytest.mark.parametrize('data,par',
                          [([1, 2, 3], 'test'),
                           ([1, 4, 3, 2], 'test')])
-def test_check_no_dupl_ok(capsys, data, par):
+def test_check_no_dupl_ok(capsys: CaptureFixture[str], data: Any,
+                          par: Any) -> None:
     """Test check_no_duplicates for OK cases."""
     Config.check_no_duplicates(data, par)
     out, err = capsys.readouterr()
@@ -898,7 +930,8 @@ def test_check_no_dupl_ok(capsys, data, par):
 @pytest.mark.parametrize('data,par',
                          [([1, 2, 3, 2], 'test'),
                           ([1, 2, 3, 1], 'test')])
-def test_check_no_dupl_nok(capsys, data, par):
+def test_check_no_dupl_nok(capsys: CaptureFixture[str], data: Any,
+                           par: Any) -> None:
     """Test check:_no_cuplicates for OK cases."""
     with pytest.raises(SystemExit):
         Config.check_no_duplicates(data, par)

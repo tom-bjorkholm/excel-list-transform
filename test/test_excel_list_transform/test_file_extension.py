@@ -9,6 +9,7 @@
 
 from copy import deepcopy
 import pytest
+from pytest import CaptureFixture
 from excel_list_transform.file_extension import fix_file_extension
 
 
@@ -21,8 +22,9 @@ from excel_list_transform.file_extension import fix_file_extension
                           ('/bin/ls.fo', '.bo', '.fo', False, '/bin/ls.bo'),
                           ('/bin/ls/b', '.bo', '.fo', True, '/bin/ls/b.bo'),
                           ('/bin/ls/b', '.bo', '.fo', False, '/bin/ls/b.bo')])
-def test_file_extension_1(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments, line-too-long # noqa: E501
-                          fil, add, rem, readp, res):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_file_extension_1(capsys: CaptureFixture[str], fil: str, add: str,
+                          rem: str, readp: bool, res: str) -> None:
     """Test fix_file_extension."""
     filn = deepcopy(fil)
     addn = deepcopy(add)

@@ -6,18 +6,19 @@
 
 # pylint: disable=duplicate-code
 
+from typing import Any
 from copy import deepcopy
 import pytest
+from pytest import CaptureFixture
 from excel_list_transform.config_xls_list_transf_num \
     import ConfigXlsListTransfNum
-from excel_list_transform.config_excel_list_transform \
-    import FileType, SplitWhere
+from excel_list_transform.config_enums import FileType, SplitWhere
 from excel_list_transform.assert_dict_equal import assert_dict_equal
 from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
 
 
 @pytest.mark.smoke
-def test_config_xls_list_refmt_def(capsys):
+def test_cfg_xls_lst_rfmt_def(capsys: CaptureFixture[str]) -> None:
     """Test default values of ConfigXlsListRefmtNum."""
     cfg = ConfigXlsListTransfNum()
     assert isinstance(cfg.s03_split_columns, list)
@@ -50,7 +51,8 @@ def test_config_xls_list_refmt_def(capsys):
 @pytest.mark.parametrize('t, val',
                          [('{"s04_remove_columns" : [2]}', [2]),
                           ('{"s04_remove_columns" : [21, 14]}', [21, 14])])
-def test_config_xls_list_refmt_read_incomplete3(capsys, t, val):
+def test_xls_rfmt_rd_inc3(capsys: CaptureFixture[str], t: str,
+                          val: list[int]) -> None:
     """Test ConfigXlsListRefmtNum read incomplete 3."""
     ycfg = ConfigXlsListTransfNum()
     ycfg.parse_json(t, ok_to_use_defaults=True)
@@ -63,7 +65,7 @@ def test_config_xls_list_refmt_read_incomplete3(capsys, t, val):
 @pytest.mark.parametrize('t',
                          ['{"out_type_" : "CSV"}',
                           '{"outfilen" : "out.dat"}'])
-def test_config_xls_list_refmt_read_incomplete4(capsys, t):
+def test_xls_rfmt_rd_inc4(capsys: CaptureFixture[str], t: str) -> None:
     """Test ConfigXlsListRefmtNum read incomplete 4."""
     cfg = ConfigXlsListTransfNum()
     with pytest.raises(KeyError) as exc_info:
@@ -78,7 +80,8 @@ def test_config_xls_list_refmt_read_incomplete4(capsys, t):
                          [('{"in_csv_dialect": "B"}', 'Not dictionary for'),
                           ('{"s04_remove_columns": {"delimiter" : ";"}}',
                            'Unexpected dictionary for')])
-def test_config_xls_list_refmt_read_dict_mismatch(capsys, t, errtxt):
+def test_cfg_xls_lst_rfmt_rd(capsys: CaptureFixture[str], t: str,
+                             errtxt: str) -> None:
     """Test ConfigXlsListRefmtNum read dict mismatch."""
     cfg = ConfigXlsListTransfNum()
     with pytest.raises(KeyError) as exc_info:
@@ -89,7 +92,7 @@ def test_config_xls_list_refmt_read_dict_mismatch(capsys, t, errtxt):
     assert errtxt in err
 
 
-def test_bak_compat_0_7_13_num(capsys):
+def test_bak_cmpt_0_7_13_num(capsys: CaptureFixture[str]) -> None:
     """Test backward compatible reading om 0.7.13 config file."""
     refcfg = ConfigXlsListTransfNum()
     refcfg.out_type = FileType.CSV
@@ -121,7 +124,8 @@ def test_bak_compat_0_7_13_num(capsys):
                           [{'columns': [1, 2], 'separator': ' '}],
                           [{'columns': [3, 4], 'separator': ' '},
                            {'columns': [5, 6], 'separator': ';'}]])
-def test_row_split_merge_cfg_nu_ok(capsys, splitr, merger):
+def test_row_spl_mrg_nu_ok(capsys: CaptureFixture[str], splitr: Any,
+                           merger: Any) -> None:
     """Test OK cases of row split and merge config."""
     cfg1 = ConfigXlsListTransfNum()
     cfg1.s01_split_rows = deepcopy(splitr)
@@ -161,7 +165,8 @@ def test_row_split_merge_cfg_nu_ok(capsys, splitr, merger):
                            ['Error in s01_split_rows:',
                             'Not separator "*" does not affect ' +
                             'any separator.'])])
-def test_row_split_cfg_nu_nok(capsys, splitr, msgs):
+def test_row_split_cfg_nu_nok(capsys: CaptureFixture[str], splitr: Any,
+                              msgs: list[str]) -> None:
     """Test OK cases of row split and merge config."""
     cfg1 = ConfigXlsListTransfNum()
     cfg1.s01_split_rows = deepcopy(splitr)
@@ -199,7 +204,8 @@ def test_row_split_cfg_nu_nok(capsys, splitr, msgs):
                            ['Error in parameter s02_merge_rows.',
                             'Value for key columns expected to be ' +
                             'of type list but is of type int'])])
-def test_row_merge_cfg_na_nok(capsys, merger, msgs):
+def test_row_merge_cfg_na_nok(capsys: CaptureFixture[str], merger: Any,
+                              msgs: list[str]) -> None:
     """Test OK cases of row split and merge config."""
     cfg1 = ConfigXlsListTransfNum()
     cfg1.s02_merge_rows = deepcopy(merger)

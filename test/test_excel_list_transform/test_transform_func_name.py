@@ -7,23 +7,24 @@
 # pylint: disable=duplicate-code
 
 
+from typing import Any
 from copy import deepcopy
 from collections import namedtuple
 from tempfile import TemporaryDirectory
 import pytest
+from pytest import CaptureFixture
 from excel_list_transform.transform_func_named import \
     rename_columns_name, \
     insert_columns_name, fix_indata_empty_rows_name, \
     check_indata_name, transform_data_name
 from excel_list_transform.transform_func import transform_named_files
-from excel_list_transform.config_excel_list_transform import \
-    SplitWhere, FileType
 from excel_list_transform.handle_excel import read_excel_num, write_excel_named
 from excel_list_transform.handle_csv import read_csv_num, write_csv_named
 from excel_list_transform.config_xls_list_transf_name import \
     ConfigXlsListTransfName
 from excel_list_transform.commontypes import NameData
-from excel_list_transform.config_enums import RewriteKind, CaseSensitivity
+from excel_list_transform.config_enums import RewriteKind, CaseSensitivity, \
+    SplitWhere, FileType
 from excel_list_transform.transform_func_common import col_must_exist_name, \
     store_col_split_name, split_columns, merge_columns, rewrite_columns
 
@@ -32,7 +33,8 @@ from excel_list_transform.transform_func_common import col_must_exist_name, \
                          [('a', {'x': 'b', 'a': 'c', 'y': 'e'}, 't1'),
                           ('y', {'x': 'b', 'a': 'c', 'y': 'e'}, 't2'),
                           ('x', {'x': 'b', 'a': 'c', 'y': 'e'}, 't3')])
-def test_col_must_exist_name_ok(capsys, col, row, par):
+def test_col_must_exst_nam_ok(capsys: CaptureFixture[str], col: Any, row: Any,
+                              par: Any) -> None:
     """Test OK cases of col_must_exist_name."""
     col_must_exist_name(col=col, row=row, param=par)
     out, err = capsys.readouterr()
@@ -47,7 +49,8 @@ def test_col_must_exist_name_ok(capsys, col, row, par):
                            't2: no column named "y" in data row.'),
                           ('e', {'x': 'b', 'a': 'c', 'y': 'e'}, 't3',
                            't3: no column named "e" in data row.')])
-def test_col_must_exist_name_nok(capsys, col, row, par, msg):
+def test_col_must_exst_nam_no(capsys: CaptureFixture[str], col: Any, row: Any,
+                              par: Any, msg: Any) -> None:
     """Test not OK cases of col_must_exist_name."""
     with pytest.raises(SystemExit):
         col_must_exist_name(col=col, row=row, param=par)
@@ -70,8 +73,9 @@ def test_col_must_exist_name_nok(capsys, col, row, par, msg):
                            {'column': 'a', 'right_name': 'b'},
                            {'a': '4', 'b': '5'}),
                           ])
-def test_store_col_split_name(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments  # noqa: E501
-                              row, col, val, sr, nrow):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_store_col_split_name(capsys: CaptureFixture[str], row: Any, col: Any,
+                              val: Any, sr: Any, nrow: Any) -> None:
     """Test ok cases for store_col_split_name."""
     inrow = deepcopy(row)
     store_col_split_name(row=inrow, colref=col, val=val, singlerule=sr)
@@ -125,7 +129,8 @@ def assert_data_is_equal(left: NameData, right: NameData) -> None:
                              'e': 'e+f', 'g h': 'g'},
                             {'abc': 'h', 'added': 'i', 'd e': 'j',
                              'e': 'k+l+p', 'g h': 'm n'}])])
-def test_split_columns_name(capsys, ind, split, exp):
+def test_split_columns_name(capsys: CaptureFixture[str], ind: Any, split: Any,
+                            exp: Any) -> None:
     """Test splitting of columns (column names)."""
     cfg = ConfigXlsListTransfName()
     cfg.s03_split_columns = split
@@ -149,7 +154,8 @@ def test_split_columns_name(capsys, ind, split, exp):
                              'where': SplitWhere.RIGHTMOST,
                              'right_name': 'something'}],
                            'Column "z" has value of type int')])
-def test_split_columns_nok_name(capsys, ind, split, msg):
+def test_spl_cols_nok_nam(capsys: CaptureFixture[str], ind: Any, split: Any,
+                          msg: Any) -> None:
     """Test not OK splitting of columns (column numbers)."""
     cfg = ConfigXlsListTransfName()
     cfg.s03_split_columns = split
@@ -209,7 +215,8 @@ def test_split_columns_nok_name(capsys, ind, split, msg):
                             {'x': 'e', 'y': None, 'z': 'f'},
                             {'x': None, 'y': 'h', 'z': 'j'},
                             {'x': None, 'y': None, 'z': 'm'}])])
-def test_merge_columns_ok_name(capsys, ind, merg, exp):
+def test_mrg_cols_ok_nam(capsys: CaptureFixture[str], ind: Any, merg: Any,
+                         exp: Any) -> None:
     """Test merging of columns with name ref."""
     cfg = ConfigXlsListTransfName()
     cfg.s05_merge_columns = merg
@@ -225,7 +232,8 @@ def test_merge_columns_ok_name(capsys, ind, merg, exp):
                             {'x': 'd', 'y': 'e', 'z': 'f'}],
                            [{'columns': ['z', 'q'], 'separator': '--'}],
                            's05_merge_columns: no column named "q" in data')])
-def test_merge_columns_nok_name(capsys, ind, merg, msg):
+def test_mrg_cols_nok_nam(capsys: CaptureFixture[str], ind: Any, merg: Any,
+                          msg: Any) -> None:
     """Test not OK merging of columns with number ref."""
     cfg = ConfigXlsListTransfName()
     cfg.s05_merge_columns = merg
@@ -248,7 +256,8 @@ def test_merge_columns_nok_name(capsys, ind, merg, msg):
                             {'column': 'z', 'name': 'Zwei'}],
                            [{'x': 'a', 'One': 'b', 'Zwei': 'c'},
                             {'x': 'd', 'One': 'e', 'Zwei': 'f'}])])
-def test_rename_columns_ok_name(capsys, ind, nam, exp):
+def test_ren_cols_ok_nam(capsys: CaptureFixture[str], ind: Any, nam: Any,
+                         exp: Any) -> None:
     """Test ok renaming of columns."""
     cfg = ConfigXlsListTransfName()
     cfg.s07_rename_columns = nam
@@ -268,7 +277,8 @@ def test_rename_columns_ok_name(capsys, ind, nam, exp):
                            {'x': 'd', 'y': 'e', 'z': 'f'}],
                           [{'x': 'a', 'y': 'b', 'z': 'c'},
                            {'x': 'd', 'y': 'e', 'z': 'f'}]])
-def test_rename_columns_nok_name(capsys, ind, nam, msg):
+def test_ren_cols_nok_nam(capsys: CaptureFixture[str], ind: Any, nam: Any,
+                          msg: Any) -> None:
     """Test nok renaming of columns."""
     cfg = ConfigXlsListTransfName()
     cfg.s07_rename_columns = nam
@@ -293,7 +303,8 @@ def test_rename_columns_nok_name(capsys, ind, nam, msg):
                              'x': 'a', 'y': 'b', 'z': 'c'},
                             {'p': None, 'q': 'text',
                              'x': 'd', 'y': 'e', 'z': 'f'}])])
-def test_insert_columns_ok_name(capsys, ind, ins, exp):
+def test_ins_cols_ok_nam(capsys: CaptureFixture[str], ind: Any, ins: Any,
+                         exp: Any) -> None:
     """Test ok insertion of columns (name refs)."""
     cfg = ConfigXlsListTransfName()
     cfg.s08_insert_columns = ins
@@ -313,7 +324,8 @@ def test_insert_columns_ok_name(capsys, ind, ins, exp):
                            {'x': 'd', 'y': 'e', 'z': 'f'}],
                           [{'x': 'a', 'y': 'b', 'z': 'c'},
                            {'x': 'd', 'y': 'e', 'z': 'f'}]])
-def test_insert_columns_nok_name(capsys, ind, ins, msg):
+def test_ins_cols_nok_nam(capsys: CaptureFixture[str], ind: Any, ins: Any,
+                          msg: Any) -> None:
     """Test nok inserting of columns (name refs)."""
     cfg = ConfigXlsListTransfName()
     cfg.s08_insert_columns = ins
@@ -340,7 +352,8 @@ def test_insert_columns_nok_name(capsys, ind, ins, msg):
                              'case': CaseSensitivity.IGNORE_CASE}],
                            [{'x': 'x', 'y': 'b', 'z': 'c'},
                             {'x': 'xba', 'y': 'e', 'z': 'f'}])])
-def test_rewrite_columns_ok_name(capsys, ind, spec, exp):
+def test_rew_cols_ok_nam(capsys: CaptureFixture[str], ind: Any, spec: Any,
+                         exp: Any) -> None:
     """Test ok insertion of columns (name refs)."""
     cfg = ConfigXlsListTransfName()
     cfg.s09_rewrite_columns = spec
@@ -360,7 +373,8 @@ def test_rewrite_columns_ok_name(capsys, ind, spec, exp):
                             {'column': 'q', 'from': '^a', 'to': 'x',
                              'kind': RewriteKind.REGEX_SUBSTITUTE,
                              'case': CaseSensitivity.IGNORE_CASE}])])
-def test_rewrite_columns_nok_name(capsys, ind, spec):
+def test_rew_cols_nok_nam(capsys: CaptureFixture[str], ind: Any,
+                          spec: Any) -> None:
     """Test not ok insertion of columns (name refs)."""
     cfg = ConfigXlsListTransfName()
     cfg.s09_rewrite_columns = spec
@@ -392,16 +406,20 @@ def test_rewrite_columns_nok_name(capsys, ind, spec):
                             {'x': None, 'y': '', 'z': ''},
                             {'x': None, 'y': '', 'z': ''}, {}],
                            [{'x': 'a', 'y': 'b', 'z': 'c'}])])
-def test_fix_empty_rows_name_ok(capsys, ind, outd):
+# pylint: disable-next=duplicate-code
+def test_fix_empty_rows_nam_o(capsys: CaptureFixture[str], ind: Any,
+                              outd: Any) -> None:
     """Test OK cases of fix_indata_empty_rows_num."""
     fix_indata_empty_rows_name(indata=ind)
-    out, err = capsys.readouterr()  # pylint: disable=duplicate-code  # noqa: E501
+    # pylint: disable-next=duplicate-code
+    out, err = capsys.readouterr()
     assert ind == outd
     assert '' == err
     assert '' == out
 
 
-@pytest.mark.parametrize('ind, msg',   # pylint: disable=duplicate-code  # noqa: E501
+# pylint: disable-next=duplicate-code
+@pytest.mark.parametrize('ind, msg',
                          [([{'x': 'd', 'y': 'e', 'z': 'f'},
                             ['a', 'b', 'c']],
                            'Expected dict of columns but got list'),
@@ -411,7 +429,8 @@ def test_fix_empty_rows_name_ok(capsys, ind, outd):
                           ([{'x': 'd', 'y': 'e', 'z': 'f'},
                             42],
                            'Expected dict of columns but got int')])
-def test_fix_empty_rows_name_nok(capsys, ind, msg):
+def test_fix_empty_rows_nam_n(capsys: CaptureFixture[str], ind: Any,
+                              msg: Any) -> None:
     """Test OK cases of fix_indata_empty_rows_num."""
     with pytest.raises(TypeError) as exc:
         fix_indata_empty_rows_name(indata=ind)
@@ -438,7 +457,8 @@ def test_fix_empty_rows_name_nok(capsys, ind, msg):
                            [{'x': 'a', 'y': 'b'}]),
                           ([{'x': 'a', 'y': 'b'}, {'x': ''}],
                            [{'x': 'a', 'y': 'b'}])])
-def test_check_indata_ok_name(capsys, ind, res):
+def test_check_indata_ok_name(capsys: CaptureFixture[str], ind: Any,
+                              res: Any) -> None:
     """Test check_indata for OK case with named refs."""
     indata = deepcopy(ind)
     check_indata_name(indata=indata)
@@ -467,7 +487,8 @@ def test_check_indata_ok_name(capsys, ind, res):
                            RuntimeError, 'Columns names different between ' +
                            "lines. Found ['x', 'y', 'z'] and " +
                            "['q', 'x', 'y']. Aborting.", None)])
-def test_check_indata_nok_name(capsys, ind, exc, msg, excmsg):
+def test_chk_ind_nok_nam(capsys: CaptureFixture[str], ind: Any, exc: Any,
+                         msg: Any, excmsg: Any) -> None:
     """Test check_indata for nok case with named refs."""
     indata = deepcopy(ind)
     with pytest.raises(exc) as exc_inst:
@@ -517,7 +538,7 @@ def get_test_data_name(written_result: bool) -> DataToUseName:
 
 
 @pytest.mark.smoke
-def test_transform_data_ok_name(capsys):
+def test_tr_data_ok_nam(capsys: CaptureFixture[str]) -> None:
     """Test transform_data with OK input (num refs)."""
     cfg = ConfigXlsListTransfName()
     test_data = get_test_data_name(written_result=False)
@@ -536,7 +557,8 @@ def test_transform_data_ok_name(capsys):
 
 
 @pytest.mark.parametrize('enc', ['utf-8', 'iso8859-1'])
-def test_rfmt_nmd_files_xl2cs_name(capsys, enc):
+# pylint: disable-next=duplicate-code
+def test_rfmt_nmd_fls_xl2csv(capsys: CaptureFixture[str], enc: Any) -> None:
     """Test transform_name_files from xlsx to csv (named refs)."""
     cfg = ConfigXlsListTransfName()
     cfg.out_csv_encoding = enc
@@ -549,16 +571,19 @@ def test_rfmt_nmd_files_xl2cs_name(capsys, enc):
     cfg.s08_insert_columns = test_data.insert_cols
     cfg.s09_rewrite_columns = test_data.rewrite_cols
     cfg.s10_column_order = test_data.column_order
-    cfg.in_type = FileType.EXCEL  # pylint: disable=duplicate-code  # noqa: E501
+    # pylint: disable-next=duplicate-code
+    cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.CSV
     with TemporaryDirectory() as dirname:
-        cfgname = dirname + '/test.cfg'  # pylint: disable=duplicate-code  # noqa: E501
+        # pylint: disable-next=duplicate-code
+        cfgname = dirname + '/test.cfg'
         cfg.write(cfgname)
         infilename = dirname + '/in'
         outfilename = dirname + '/out'
         write_excel_named(data=test_data.indata, filename=infilename + '.xlsx',
                           column_order=test_data.in_col_order)
-        transform_named_files(infilename=infilename, outfilename=outfilename,  # pylint: disable=duplicate-code  # noqa: E501
+        # pylint: disable-next=duplicate-code
+        transform_named_files(infilename=infilename, outfilename=outfilename,
                               cfgfilename=cfgname)
         res = read_csv_num(filename=outfilename + '.csv',
                            dialect=cfg.get_out_csv_dialect(),
@@ -570,7 +595,8 @@ def test_rfmt_nmd_files_xl2cs_name(capsys, enc):
 
 
 @pytest.mark.parametrize('enc', ['utf-8', 'iso8859-1'])
-def test_rfmt_nmd_files_cs2xl_name(capsys, enc):
+# pylint: disable-next=duplicate-code
+def test_rfmt_nmd_fls_csv2xl(capsys: CaptureFixture[str], enc: Any) -> None:
     """Test transform_name_files from csv to xlsx (name refs)."""
     cfg = ConfigXlsListTransfName()
     cfg.in_csv_encoding = enc
@@ -583,10 +609,12 @@ def test_rfmt_nmd_files_cs2xl_name(capsys, enc):
     cfg.s08_insert_columns = test_data.insert_cols
     cfg.s09_rewrite_columns = test_data.rewrite_cols
     cfg.s10_column_order = test_data.column_order
-    cfg.out_type = FileType.EXCEL  # pylint: disable=duplicate-code  # noqa: E501
+    # pylint: disable-next=duplicate-code
+    cfg.out_type = FileType.EXCEL
     cfg.in_type = FileType.CSV
     with TemporaryDirectory() as dirname:
-        cfgname = dirname + '/test.cfg'  # pylint: disable=duplicate-code  # noqa: E501
+        # pylint: disable-next=duplicate-code
+        cfgname = dirname + '/test.cfg'
         cfg.write(cfgname)
         infilename = dirname + '/in'
         outfilename = dirname + '/out'
@@ -594,7 +622,8 @@ def test_rfmt_nmd_files_cs2xl_name(capsys, enc):
                         dialect=cfg.get_in_csv_dialect(),
                         encoding=cfg.in_csv_encoding,
                         column_order=test_data.in_col_order)
-        transform_named_files(infilename=infilename, outfilename=outfilename,  # pylint: disable=duplicate-code  # noqa: E501
+        # pylint: disable-next=duplicate-code
+        transform_named_files(infilename=infilename, outfilename=outfilename,
                               cfgfilename=cfgname)
         res = read_excel_num(filename=outfilename + '.xlsx',
                              max_column_read=20, strip_col_names=False,

@@ -6,16 +6,20 @@
 
 # pylint: disable=duplicate-code
 
+from typing import Optional
 from copy import deepcopy
 from datetime import date
 from tempfile import TemporaryDirectory
 from importlib.metadata import version as metadata_version
 import pytest
+from pytest import MonkeyPatch
+from pytest import CaptureFixture
 from excel_list_transform.transform_cmd import transform_cmd
 from excel_list_transform.config_enums import ColumnRef
 from excel_list_transform.handle_excel import write_excel_num, \
     read_excel_num
 from excel_list_transform.version_information import VersionInformation
+from excel_list_transform.commontypes import NumData
 
 
 @pytest.mark.smoke
@@ -30,34 +34,36 @@ from excel_list_transform.version_information import VersionInformation
                           [['--output', 'ofile', '--kind',
                             'example', '--reference', 'by_name'],
                            'ofile', None, 'example', ColumnRef.BY_NAME]])
-def test_excel_list_rfm_cmd_smok1(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments,line-too-long # noqa: E501
-                                  monkeypatch, arg1, arg2, exp_out, exp_in,
-                                  exp_cfg, ref):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_xls_lst_rfm_cmd_smk1(capsys: CaptureFixture[str],
+                              monkeypatch: MonkeyPatch, arg1: str,
+                              arg2: list[str], exp_out: str,
+                              exp_in: Optional[str], exp_cfg: str,
+                              ref: ColumnRef) -> None:
     """Test the excel_list_transform command parsing functionality."""
     full_args = [deepcopy(arg1)] + deepcopy(arg2)
+    calls = {'gen': 0, 'refor': 0}
 
-    def gen(filename, cfgtype, colref):
+    def gen(filename: str, cfgtype: str, colref: ColumnRef) -> None:
         """Mock generate_examplecfg."""
         assert filename == exp_out
         assert cfgtype == exp_cfg
         assert colref == ref
-        gen.num_called += 1
-    gen.num_called = 0
+        calls['gen'] += 1
 
-    def refor(infilename, outfilename, cfgfilename):
+    def refor(infilename: str, outfilename: str, cfgfilename: str) -> None:
         """Mock transform_named_files."""
-        refor.num_called += 1
+        calls['refor'] += 1
         assert infilename == exp_in
         assert outfilename == exp_out
         assert cfgfilename == exp_cfg
-    refor.num_called = 0
     mod = 'excel_list_transform.transform_cmd.'
     monkeypatch.setattr(mod + 'generate_examplecfg', gen)
     monkeypatch.setattr(mod + 'transform_named_files', refor)
     transform_cmd(arguments=full_args)
     out, err = capsys.readouterr()
-    assert gen.num_called == 1
-    assert refor.num_called == 0
+    assert calls['gen'] == 1
+    assert calls['refor'] == 0
     assert '' == out
     assert '' == err
 
@@ -74,32 +80,34 @@ def test_excel_list_rfm_cmd_smok1(capsys,  # pylint: disable=too-many-arguments,
                             'transform', '--output', 'of', '--input', 'ifi',
                             '--cfg', 'con'],
                            'of', 'ifi', 'con', None]])
-def test_excel_list_rfm_cmd_smok2(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments,line-too-long # noqa: E501
-                                  monkeypatch, args, exp_out, exp_in, exp_cfg,
-                                  ref):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_xls_lst_rfm_cmd_smk2(capsys: CaptureFixture[str],
+                              monkeypatch: MonkeyPatch, args: list[str],
+                              exp_out: str, exp_in: str, exp_cfg: str,
+                              ref: Optional[ColumnRef]) -> None:
     """Test the excel_list_transform command parsing functionality."""
-    def gen(filename, cfgtype, colref):
+    calls = {'gen': 0, 'refor': 0}
+
+    def gen(filename: str, cfgtype: str, colref: ColumnRef) -> None:
         """Mock generate_examplecfg."""
         assert filename == exp_out
         assert cfgtype == exp_cfg
         assert colref == ref
-        gen.num_called += 1
-    gen.num_called = 0
+        calls['gen'] += 1
 
-    def refor(infilename, outfilename, cfgfilename):
+    def refor(infilename: str, outfilename: str, cfgfilename: str) -> None:
         """Mock transform_named_files."""
-        refor.num_called += 1
+        calls['refor'] += 1
         assert infilename == exp_in
         assert outfilename == exp_out
         assert cfgfilename == exp_cfg
-    refor.num_called = 0
     mod = 'excel_list_transform.transform_cmd.'
     monkeypatch.setattr(mod + 'generate_examplecfg', gen)
     monkeypatch.setattr(mod + 'transform_named_files', refor)
     transform_cmd(arguments=args)
     out, err = capsys.readouterr()
-    assert gen.num_called == 0
-    assert refor.num_called == 1
+    assert calls['gen'] == 0
+    assert calls['refor'] == 1
     assert '' == out
     assert '' == err
 
@@ -125,7 +133,8 @@ def test_excel_list_rfm_cmd_smok2(capsys,  # pylint: disable=too-many-arguments,
                           [['cfg-example', '--output', 'of', '-i', 'in',
                             '-k', 'con', '-r', 'by_name'],
                            'invalid choice: \'con\'']])
-def test_excel_list_rfm_cmd_err(capsys, args, errs):
+def test_xls_lst_rfm_cmd_err(capsys: CaptureFixture[str], args: list[str],
+                             errs: str) -> None:
     """Test the excel_list_transform command parsing errors."""
     with pytest.raises(SystemExit):
         transform_cmd(arguments=args)
@@ -135,7 +144,8 @@ def test_excel_list_rfm_cmd_err(capsys, args, errs):
 
 
 @pytest.mark.parametrize('args', [['-h'], ['--help']])
-def test_excel_list_rfm_cmd_help(capsys, args):
+def test_xls_lst_rfm_cmd_help(capsys: CaptureFixture[str],
+                              args: list[str]) -> None:
     """Test the excel_list_transform command parsing help."""
     with pytest.raises(SystemExit) as _:
         transform_cmd(arguments=args)
@@ -154,7 +164,8 @@ def test_excel_list_rfm_cmd_help(capsys, args):
 
 @pytest.mark.parametrize('arg1', ['example', 'cfg-example'])
 @pytest.mark.parametrize('arg2', ['-h', '--help'])
-def test_xlsr_cmd_example_help(capsys, arg1, arg2):
+def test_xlsr_cmd_ex_help(capsys: CaptureFixture[str], arg1: str,
+                          arg2: str) -> None:
     """Test the excel_list_transform command parsing help."""
     args = [deepcopy(arg1), deepcopy(arg2)]
     with pytest.raises(SystemExit) as _:
@@ -171,7 +182,8 @@ def test_xlsr_cmd_example_help(capsys, arg1, arg2):
 
 @pytest.mark.parametrize('args', [['transform', '-h'],
                                   ['transform', '--help']])
-def test_xlsr_cmd_rfmt_help(capsys, args):
+def test_xlsr_cmd_rfmt_help(capsys: CaptureFixture[str],
+                            args: list[str]) -> None:
     """Test the excel_list_transform command parsing help."""
     with pytest.raises(SystemExit) as _:
         transform_cmd(arguments=args)
@@ -187,7 +199,8 @@ def test_xlsr_cmd_rfmt_help(capsys, args):
 
 @pytest.mark.parametrize('args', [['version', '-h'],
                                   ['version', '--help']])
-def test_xlsr_cmd_vers_help(capsys, args):
+def test_xlsr_cmd_vers_help(capsys: CaptureFixture[str],
+                            args: list[str]) -> None:
     """Test the excel_list_transform command parsing help."""
     with pytest.raises(SystemExit) as _:
         transform_cmd(arguments=args)
@@ -197,7 +210,7 @@ def test_xlsr_cmd_vers_help(capsys, args):
     assert '' == err
 
 
-def test_version_cmd1(capsys):
+def test_version_cmd1(capsys: CaptureFixture[str]) -> None:
     """Test command to print version information."""
     transform_cmd(['version'])
     out, err = capsys.readouterr()
@@ -216,13 +229,17 @@ def test_version_cmd1(capsys):
                            date(year=2024, month=12, day=25), False),
                           ((3, 10, 11, 75, 0),
                            date(year=2027, month=12, day=25), True)])
-def test_cmd_ver_check_if_u(capsys, monkeypatch, ver, dat, errprint):
+def test_cmd_ver_check_if_u(capsys: CaptureFixture[str],
+                            monkeypatch: MonkeyPatch,
+                            ver: tuple[int, int, int, int, int], dat: date,
+                            errprint: bool) -> None:
     """Test version check if unsupported python widh old Python."""
     mod1 = 'excel_list_transform.version_information.sys.version_info'
     monkeypatch.setattr(mod1, ver)
 
-    def mock_day(_) -> date:
+    def mock_day(_: object) -> date:
         """Mock Version._today."""
+        assert isinstance(dat, date)
         return dat
     mod2 = 'excel_list_transform.version_information.VersionInformation._today'
     monkeypatch.setattr(mod2, mock_day)
@@ -249,12 +266,13 @@ def test_cmd_ver_check_if_u(capsys, monkeypatch, ver, dat, errprint):
 
 
 @pytest.mark.parametrize('ref', list(ColumnRef))
-def test_row_split_merge_cmd_cfg(capsys, ref):
+def test_row_spl_mrg_cmd_cfg(capsys: CaptureFixture[str],
+                             ref: ColumnRef) -> None:
     """Test row split and merge config genaration."""
-    indata = [['From', 'What', 'To'],
-              ['Gardener', 'Apples', 'Jones + Smith'],
-              ['Brewery', 'Beer', 'Smith + Bush'],
-              ['Dairy', 'Milk', 'Jones']]
+    indata: NumData = [['From', 'What', 'To'],
+                       ['Gardener', 'Apples', 'Jones + Smith'],
+                       ['Brewery', 'Beer', 'Smith + Bush'],
+                       ['Dairy', 'Milk', 'Jones']]
     outdata = [['To', 'What', 'From'],
                ['Jones', 'Apples + Milk', 'Gardener + Dairy'],
                ['Smith', 'Apples + Beer', 'Gardener + Brewery'],

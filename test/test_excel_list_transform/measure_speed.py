@@ -8,6 +8,7 @@
 from tempfile import TemporaryDirectory
 import sys
 from timeit import default_timer
+from typing import TextIO
 from test_generate_cfg import ExampleData
 from excel_list_transform.handle_excel import write_excel_num
 from excel_list_transform.config_enums import ColumnRef
@@ -49,7 +50,8 @@ def measure_speed_for_size(size: int) -> dict[ColumnRef, float]:
     return ret
 
 
-def print_results(data: dict[int, dict[ColumnRef, float]], file) -> None:
+def print_results(data: dict[int, dict[ColumnRef, float]],
+                  file: TextIO) -> None:
     """Print the results of running tests."""
     print('Speed measurement of processing 20 input columns per row.',
           file=file)

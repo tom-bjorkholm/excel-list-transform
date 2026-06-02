@@ -7,24 +7,27 @@
 # pylint: disable=duplicate-code
 
 
-from tempfile import TemporaryDirectory
+from collections.abc import Callable
 from collections import namedtuple
+from tempfile import TemporaryDirectory
 from copy import deepcopy
-from typing import Optional
 from csv import excel as csv_excel_dialect
 import pytest
+from pytest import CaptureFixture
 from excel_list_transform.generate_cfg import generate_examplecfg
 from excel_list_transform.config_enums import ColumnRef, ExcelLib
 from excel_list_transform.handle_excel import read_excel_num, write_excel_num
 from excel_list_transform.handle_csv import read_csv_num
 from excel_list_transform.transform_func import transform_named_files
 from excel_list_transform.transform_cmd import transform_cmd
+from excel_list_transform.commontypes import NumData, NumRow, Value, \
+    str_list_to_num_row
 
 
 class ExampleData:  # pylint: disable=too-many-instance-attributes
     """Data for testing configurations by using them."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Create test data."""
         self.phone_col_name = 'Mobiltelefonnummer'
         self.sail_num_col_name = 'Segelnummer (endast siffror)'
@@ -80,16 +83,16 @@ class ExampleData:  # pylint: disable=too-many-instance-attributes
             'HelmPhone': ['Phone']
         }
 
-    def form_data(self) -> list[list[str]]:
+    def form_data(self) -> NumData:
         """Get data as from office form for registration."""
-        ret = []
+        ret: NumData = []
         nats = ['USA', 'SWE', 'NOR']
         natindex = 0
-        ret.append(self.form_columns)
+        ret.append(str_list_to_num_row(list(self.form_columns)))
         for i, phone in enumerate(self.phone_numbers_in):
-            row = []
+            row: NumRow = []
             for j, col in enumerate(self.form_columns):
-                val = None
+                val: Value = None
                 if col == self.phone_col_name:
                     val = phone
                 elif col == self.sail_num_col_name:
@@ -107,15 +110,15 @@ class ExampleData:  # pylint: disable=too-many-instance-attributes
             ret.append(row)
         return ret
 
-    def get_sized_form_data(self, size: int) -> list[list[str]]:
+    def get_sized_form_data(self, size: int) -> NumData:
         """Get for lines one by one for large file speed test."""
         nats = ['USA', 'SWE', 'NOR', 'ESP']
-        ret = []
-        ret.append(self.form_columns)
+        ret: NumData = []
+        ret.append(str_list_to_num_row(list(self.form_columns)))
         for num in range(size):
-            row = []
+            row: NumRow = []
             for j, col in enumerate(self.form_columns):
-                val = None
+                val: Value = None
                 if col == self.phone_col_name:
                     len_phone = len(self.phone_numbers_in)
                     val = self.phone_numbers_in[num % len_phone]
@@ -131,30 +134,31 @@ class ExampleData:  # pylint: disable=too-many-instance-attributes
             ret.append(row)
         return ret
 
-    def form_data_col_for_rrs_data_col(self,
-                                       rrs_data_col: int) -> Optional[int]:
+    def form_col_for_rrs_col(self, rrs_data_col: int) -> int:
         """Get form data column number matching rrs data column number."""
         rrs_col_name = self.rrs_col_order[rrs_data_col]
-        return self.form_columns.index(self.rrs_col_map[rrs_col_name])
+        form_col_name = self.rrs_col_map[rrs_col_name]
+        assert form_col_name is not None
+        return self.form_columns.index(form_col_name)
 
-    def rrs_data(self) -> list[list[str]]:
+    def rrs_data(self) -> NumData:
         """Get data as imorted in rrs and exported from rrs."""
-        ret = []
-        ret.append(self.rrs_col_order)
+        ret: NumData = []
+        ret.append(str_list_to_num_row(list(self.rrs_col_order)))
         fdata = self.form_data()
         for row_num, frow in enumerate(fdata[1:]):
-            row = []
+            row: NumRow = []
             for icol, vcol in enumerate(self.rrs_col_order):
                 if vcol == 'Phone':
                     row.append(self.phone_numbers_out[row_num])
                 elif self.rrs_col_map[vcol] is None:
                     row.append(None)
                 else:
-                    row.append(frow[self.form_data_col_for_rrs_data_col(icol)])
+                    row.append(frow[self.form_col_for_rrs_col(icol)])
             ret.append(row)
         return ret
 
-    def rrs_data_out(self) -> list[list[str]]:
+    def rrs_data_out(self) -> NumData:
         """Get data as exported from rrs."""
         ret = deepcopy(self.rrs_data())
         ret[0][9] = 'Mobile Phone'
@@ -164,7 +168,7 @@ class ExampleData:  # pylint: disable=too-many-instance-attributes
                 row[9] = '+' + phone
         return ret
 
-    def rrs_data_col_for_sw_data_col(self, sw_data_col: int) -> list[int]:
+    def rrs_col_for_sw_data_col(self, sw_data_col: int) -> list[int]:
         """Get rrs data column number matching sw data column number."""
         sw_col_name = self.sw_col_order[sw_data_col]
         rrs_cols = self.sw_to_rrs[sw_col_name]
@@ -173,17 +177,18 @@ class ExampleData:  # pylint: disable=too-many-instance-attributes
             ret.append(self.rrs_col_order.index(i))
         return ret
 
-    def sw_data(self) -> list[list[str]]:
+    def sw_data(self) -> NumData:
         """Get data as imorted in sail wave."""
-        ret = []
-        ret.append(self.sw_col_order)
+        ret: NumData = []
+        ret.append(str_list_to_num_row(list(self.sw_col_order)))
         rdata = self.rrs_data()
         for rrow in rdata[1:]:
-            row = []
+            row: NumRow = []
             for icol, _ in enumerate(self.sw_col_order):
-                rcol_idx = self.rrs_data_col_for_sw_data_col(icol)
-                val_list = [rrow[i] for i in rcol_idx if rrow[i] is not None]
-                val = None
+                rcol_idx = self.rrs_col_for_sw_data_col(icol)
+                val_list = [str(rrow[i]) for i in rcol_idx
+                            if rrow[i] is not None]
+                val: Value = None
                 if len(val_list) == 1:
                     val = val_list[0]
                 elif len(val_list) > 1:
@@ -192,25 +197,26 @@ class ExampleData:  # pylint: disable=too-many-instance-attributes
             ret.append(row)
         return ret
 
-    def sw_data_extacted(self) -> list[list[str]]:
+    def sw_data_extacted(self) -> NumData:
         """Get data as extracted from sail wave export."""
         ret = deepcopy(self.sw_data())
-        ret[0] = ['Class', 'Division', 'Nationality', 'Sail Number',
-                  'Boat Name', 'Name', 'Club Name', 'Email', 'Phone']
+        ret[0] = str_list_to_num_row(
+            ['Class', 'Division', 'Nationality', 'Sail Number', 'Boat Name',
+             'Name', 'Club Name', 'Email', 'Phone'])
         return ret
 
 
 FileNames = namedtuple('FileNames', ['indata', 'cfg', 'out'])
 
 
-def openpyxl_reader(filename, max_column_read=40):
+def openpyxl_reader(filename: str, max_column_read: int = 40) -> NumData:
     """Read excel with openpyxl."""
     return read_excel_num(filename=filename, max_column_read=max_column_read,
                           strip_col_names=False, strip_values=False,
                           excel_lib=ExcelLib.OPENPYXL)
 
 
-def csv_reader(filename, max_column_read=40):
+def csv_reader(filename: str, max_column_read: int = 40) -> NumData:
     """Read CSV with excel dialect."""
     return read_csv_num(filename=filename, dialect=csv_excel_dialect,
                         encoding='utf_8_sig', max_column_read=max_column_read)
@@ -224,8 +230,12 @@ def csv_reader(filename, max_column_read=40):
                            ExampleData.sw_data, csv_reader, 'out.csv'),
                           ('rrs_to_sw', ExampleData.rrs_data_out,
                            ExampleData.sw_data, csv_reader, 'out.csv')])
-def test_cfg_gen_used(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments, too-many-locals # noqa: E501
-                      refcol, cfg, indgen, resgen, reader, outname):
+# pylint: disable-next=R0913,R0914,R0917
+def test_cfg_gen_used(capsys: CaptureFixture[str], refcol: ColumnRef, cfg: str,
+                      indgen: Callable[[ExampleData], NumData],
+                      resgen: Callable[[ExampleData], NumData],
+                      reader: Callable[[str, int], NumData],
+                      outname: str) -> None:
     """Test to generate configuration and use it."""
     test_data = ExampleData()
     res = None
@@ -236,7 +246,7 @@ def test_cfg_gen_used(capsys,  # pylint: disable=too-many-arguments, too-many-po
         write_excel_num(data=indgen(test_data), filename=files.indata)
         transform_named_files(infilename=files.indata, outfilename=files.out,
                               cfgfilename=files.cfg)
-        res = reader(filename=files.out, max_column_read=40)
+        res = reader(files.out, 40)
     out, err = capsys.readouterr()
     tomatch = resgen(test_data)
     assert len(res) == len(tomatch)
@@ -258,8 +268,12 @@ def test_cfg_gen_used(capsys,  # pylint: disable=too-many-arguments, too-many-po
                            ExampleData.sw_data, csv_reader, 'out.csv'),
                           ('sw_to_rrs', ExampleData.sw_data_extacted,
                            ExampleData.rrs_data, openpyxl_reader, 'out.xlsx')])
-def test_cfg_and_cmd(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals # noqa: E501
-                     refcol, cfg, indgen, resgen, reader, outname, example):
+# pylint: disable-next=R0913,R0914,R0917
+def test_cfg_and_cmd(capsys: CaptureFixture[str], refcol: ColumnRef, cfg: str,
+                     indgen: Callable[[ExampleData], NumData],
+                     resgen: Callable[[ExampleData], NumData],
+                     reader: Callable[[str, int], NumData], outname: str,
+                     example: str) -> None:
     """Test to generate configuration and use it."""
     test_data = ExampleData()
     res = None
@@ -271,7 +285,7 @@ def test_cfg_and_cmd(capsys,  # pylint: disable=too-many-arguments,too-many-posi
         write_excel_num(data=indgen(test_data), filename=files.indata)
         transform_cmd(['transform', '-i', files.indata, '-o', files.out,
                       '-c', files.cfg])
-        res = reader(filename=files.out, max_column_read=40)
+        res = reader(files.out, 40)
     out, err = capsys.readouterr()
     tomatch = resgen(test_data)
     assert len(res) == len(tomatch)
@@ -284,8 +298,9 @@ def test_cfg_and_cmd(capsys,  # pylint: disable=too-many-arguments,too-many-posi
 
 @pytest.mark.parametrize('example', ['cfg-example', 'example'])
 @pytest.mark.parametrize('refcol', [ColumnRef.BY_NAME, ColumnRef.BY_NUMBER])
-def test_sa_cfg_and_cmd(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals # noqa: E501
-                        refcol, example):
+# pylint: disable-next=R0913,R0914,R0917
+def test_sa_cfg_and_cmd(capsys: CaptureFixture[str], refcol: ColumnRef,
+                        example: str) -> None:
     """Test to generate SailArena configuration and use it."""
     with TemporaryDirectory() as dname:
         files = FileNames('./test/test_excel_list_transform/SA_example.csv',
@@ -294,9 +309,9 @@ def test_sa_cfg_and_cmd(capsys,  # pylint: disable=too-many-arguments,too-many-p
                       '-o', files.cfg])
         transform_cmd(['transform', '-i', files.indata, '-o', files.out,
                       '-c', files.cfg])
-        res = openpyxl_reader(filename=files.out, max_column_read=40)
-        tomatch = csv_reader(filename='./test/test_excel_list_transform/' +
-                             'SA_result.csv', max_column_read=40)
+        res = openpyxl_reader(files.out, 40)
+        tomatch = csv_reader('./test/test_excel_list_transform/' +
+                             'SA_result.csv', 40)
         out, err = capsys.readouterr()
         assert len(res) == len(tomatch)
         for r, t in zip(res, tomatch):  # error msg is easier to read with loop
@@ -307,7 +322,7 @@ def test_sa_cfg_and_cmd(capsys,  # pylint: disable=too-many-arguments,too-many-p
 
 
 @pytest.mark.parametrize('refcol', [ColumnRef.BY_NAME, ColumnRef.BY_NUMBER])
-def test_gen_example(capsys, refcol):
+def test_gen_example(capsys: CaptureFixture[str], refcol: ColumnRef) -> None:
     """Test generate_syntax_example."""
     with TemporaryDirectory() as dname:
         cfg = dname + '/a.cfg'

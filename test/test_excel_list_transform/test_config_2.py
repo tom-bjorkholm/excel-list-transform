@@ -6,9 +6,12 @@
 
 # pylint: disable=duplicate-code
 
-from typing import Optional  # pylint: disable=unused-import,ungrouped-imports # noqa: E501
+from typing import Any, cast
+# pylint: disable-next=unused-import,ungrouped-imports
+from typing import Optional
 from copy import deepcopy
 import pytest
+from pytest import CaptureFixture
 from excel_list_transform.config import Config, BackwardCompatible
 from excel_list_transform.commontypes import JsonType
 
@@ -16,7 +19,8 @@ from excel_list_transform.commontypes import JsonType
 @pytest.mark.parametrize('enc, is_ok',
                          [('utf-8', True),
                           ('abc123', False)])
-def test_cfg_valid_chr_enc_ok(capsys, enc, is_ok):
+def test_cfg_valid_chr_enc_ok(capsys: CaptureFixture[str], enc: str,
+                              is_ok: bool) -> None:
     """Test OK cases of valid_char_encoding."""
     ret = Config.valid_char_encoding(enc)
     out, err = capsys.readouterr()
@@ -26,10 +30,10 @@ def test_cfg_valid_chr_enc_ok(capsys, enc, is_ok):
 
 
 @pytest.mark.parametrize('enc', [8, True])
-def test_cfg_valid_chr_enc_nok(capsys, enc):
+def test_cfg_val_chr_enc_nok(capsys: CaptureFixture[str], enc: object) -> None:
     """Test not OK cases of valid_char_encoding."""
     with pytest.raises(Exception) as exc:
-        _ = Config.valid_char_encoding(enc)
+        _ = Config.valid_char_encoding(cast(str, enc))
     out, err = capsys.readouterr()
     assert '' == out
     assert '' == err
@@ -37,7 +41,7 @@ def test_cfg_valid_chr_enc_nok(capsys, enc):
 
 
 @pytest.mark.parametrize('enc', ['utf-8', 'iso8859-1'])
-def test_cfg_check_chr_enc_ok(capsys, enc):
+def test_cfg_check_chr_enc_ok(capsys: CaptureFixture[str], enc: str) -> None:
     """Test OK cases of check_char_encoding."""
     Config.check_char_encoding(enc)
     out, err = capsys.readouterr()
@@ -46,7 +50,7 @@ def test_cfg_check_chr_enc_ok(capsys, enc):
 
 
 @pytest.mark.parametrize('enc', ['utf-88', 'abc123'])
-def test_cfg_check_chr_enc_nok(capsys, enc):
+def test_cfg_chk_chr_enc_nok(capsys: CaptureFixture[str], enc: str) -> None:
     """Test not OK cases of check_char_encoding."""
     with pytest.raises(SystemExit):
         Config.check_char_encoding(enc)
@@ -72,7 +76,7 @@ class AbcConfig(Config):
         return {'cd': 'cd99', 'ef': 'ef99'}
 
 
-def test_cfg_abc_dump_ok(capsys):
+def test_cfg_abc_dump_ok(capsys: CaptureFixture[str]) -> None:
     """Test dump of default constructed AbcConfig."""
     abc = AbcConfig()
     jstext = abc.as_json_string()
@@ -96,7 +100,8 @@ def test_cfg_abc_dump_ok(capsys):
                            'donald', 'cd99', 'duck'),
                           ('{ "ab": "duck"}',
                            'duck', 'cd99', 'ef99')])
-def test_cfg_def_val_json_ok(capsys, jstext, aval, cval, fval):
+def test_cfg_def_val_json_ok(capsys: CaptureFixture[str], jstext: str,
+                             aval: str, cval: str, fval: str) -> None:
     """Test construction of cfg from json with default values."""
     abc = AbcConfig(from_json_data_text=jstext, from_json_filename=None)
     out, err = capsys.readouterr()
@@ -112,7 +117,8 @@ def test_cfg_def_val_json_ok(capsys, jstext, aval, cval, fval):
                           '{ "cd": "duck", "ef": "mouse" }',
                           '{ "cd": "mickey" }',
                           '{ "ef": "duck" }', '{}'])
-def test_cfg_def_val_json_nok(capsys, jstext):
+def test_cfg_def_val_json_nok(capsys: CaptureFixture[str],
+                              jstext: str) -> None:
     """Test construction of cfg from json with default values."""
     with pytest.raises(KeyError):
         _ = AbcConfig(from_json_data_text=jstext, from_json_filename=None)
@@ -149,11 +155,12 @@ def test_cfg_def_val_json_nok(capsys, jstext):
                           ({'a': [{'a': 1, 'b': 2}, {'a': 3, 'b': 4}], 'b': 5},
                            {'c': [{'c': 1, 'b': 2}, {'c': 3, 'b': 4}], 'b': 5},
                            BackwardCompatible(old='a', new='c'), '')])
-def test_bw_compat_single1(capsys, ind, outd, ren, errtxt):
+def test_bw_compat_single1(capsys: CaptureFixture[str], ind: Any, outd: Any,
+                           ren: BackwardCompatible, errtxt: str) -> None:
     """Test Config._bwcompat_single for case 1."""
     data = deepcopy(ind)
-    Config._bwcompat_single(rename=ren,  # pylint: disable=protected-access # noqa: E501
-                            json_data=data)
+    # pylint: disable-next=protected-access
+    Config._bwcompat_single(rename=ren, json_data=data)
     out, err = capsys.readouterr()
     assert '' == out
     assert err == errtxt
@@ -161,14 +168,15 @@ def test_bw_compat_single1(capsys, ind, outd, ren, errtxt):
 
 
 @pytest.mark.parametrize('ren',
-                         [BackwardCompatible(old=None, new='sun'),
-                          BackwardCompatible(old='foo', new=None),
+                         [BackwardCompatible(old=cast(str, None), new='sun'),
+                          BackwardCompatible(old='foo', new=cast(str, None)),
                           BackwardCompatible(old='foo', new='foo')])
-def test_bw_compat_single2(capsys, ren):
+def test_bw_compat_single2(capsys: CaptureFixture[str],
+                           ren: BackwardCompatible) -> None:
     """Test Config._bwcompat_single for not OK case."""
     with pytest.raises(AssertionError):
-        Config._bwcompat_single(rename=ren,  # pylint: disable=protected-access # noqa: E501
-                                json_data={'a': 'b'})
+        # pylint: disable-next=protected-access
+        Config._bwcompat_single(rename=ren, json_data={'a': 'b'})
     out, _ = capsys.readouterr()
     assert '' == out
 
@@ -189,11 +197,12 @@ def test_bw_compat_single2(capsys, ren):
                           ([[{'a': 1, 'b': 2}, {'a': 3, 'b': 4}]],
                            [[{'a': 1, 'c': 2}, {'a': 3, 'c': 4}]],
                            BackwardCompatible(old='b', new='c'), '')])
-def test_bwcompat_single_lst1(capsys, ind, outd, ren, errtxt):
+def test_bwcompat_single_lst1(capsys: CaptureFixture[str], ind: Any, outd: Any,
+                              ren: BackwardCompatible, errtxt: str) -> None:
     """Test Config._bwcompat_single_lst for case 1."""
     data = deepcopy(ind)
-    Config._bwcompat_single_lst(rename=ren,  # pylint: disable=protected-access # noqa: E501
-                                json_data=data)
+    # pylint: disable-next=protected-access
+    Config._bwcompat_single_lst(rename=ren, json_data=data)
     out, err = capsys.readouterr()
     assert '' == out
     assert err == errtxt
@@ -203,7 +212,7 @@ def test_bwcompat_single_lst1(capsys, ind, outd, ren, errtxt):
 class DummyCfg(Config):
     """Dummy Config for testing only."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Create a DummyCfg object."""
         self.aa = 'text'
         super().__init__(from_json_data_text='{ "aa": "text" }',
@@ -221,11 +230,13 @@ class DummyCfg(Config):
                          [({'p': [{'a': 2, 'b': 'c'}, {'a': 4, 'b': 'd'}]},
                            {'p': [{'x': 2, 'y': 'c'}, {'x': 4, 'y': 'd'}]},
                            '')])
-def test_rename_backward_compatible(capsys, ind, outd, errtxt):
+def test_ren_bak_compat(capsys: CaptureFixture[str], ind: Any, outd: Any,
+                        errtxt: str) -> None:
     """Test Config._rename_backward_compatible."""
     data = deepcopy(ind)
     cfg = DummyCfg()
-    cfg._rename_backward_compatible(json_data=data)  # pylint: disable=protected-access # noqa: E501
+    # pylint: disable-next=protected-access
+    cfg._rename_backward_compatible(json_data=data)
     out, err = capsys.readouterr()
     assert '' == out
     assert err == errtxt
@@ -242,8 +253,10 @@ def test_rename_backward_compatible(capsys, ind, outd, errtxt):
                           ('par3', [{'bar': 'b', 'foo': 2},
                                     {'bar': 'b', 'foo': 3}],
                            'foobar', True, str, 0)])
-def test_check_list_dict_ok(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments # noqa: E501
-                            par, inp, key, opt, vtype, mls):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_check_list_dict_ok(capsys: CaptureFixture[str], par: str, inp: Any,
+                            key: str, opt: bool, vtype: type,
+                            mls: int) -> None:
     """Test OK cases of Config.check_lst_dict."""
     Config.check_lst_dict(paramname=par, inp=inp, key=key, key_optional=opt,
                           valtype=vtype, min_size_list=mls)
@@ -282,8 +295,10 @@ def test_check_list_dict_ok(capsys,  # pylint: disable=too-many-arguments, too-m
                            ['Error in parameter parr.',
                             'Minimum 3 elements needed in list but ' +
                             'only 2 found'])])
-def test_check_list_dict_nok(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments # noqa: E501
-                             par, inp, key, opt, vtype, mls, msgs):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_check_list_dict_nok(capsys: CaptureFixture[str], par: str, inp: Any,
+                             key: str, opt: bool, vtype: type, mls: int,
+                             msgs: list[str]) -> None:
     """Test not OK cases of Config.check_lst_dict."""
     with pytest.raises(SystemExit):
         Config.check_lst_dict(paramname=par, inp=inp, key=key,
@@ -305,8 +320,10 @@ def test_check_list_dict_nok(capsys,  # pylint: disable=too-many-arguments, too-
                           ('par3', [{'bar': 'b', 'foo': 2},
                                     {'bar': 'b', 'foo': 3}],
                            'foobar', True, str, 0, 0)])
-def test_check_list_dict_lst_ok(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments # noqa: E501
-                                par, inp, key, opt, mlso, mlsi, vtype):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_chk_lst_dct_lst_ok(capsys: CaptureFixture[str], par: str, inp: Any,
+                            key: str, opt: bool, mlso: int, mlsi: int,
+                            vtype: type) -> None:
     """Test OK cases of Config.check_lst_dict_lst."""
     Config.check_lst_dict_lst(paramname=par, inp=inp, key=key,
                               key_optional=opt, valtype=vtype,
@@ -347,8 +364,10 @@ def test_check_list_dict_lst_ok(capsys,  # pylint: disable=too-many-arguments, t
                            ['Error in parameter par2.',
                             'List for key bar shall be minimum 3 elements.',
                             'But it is 2 elements only.'])])
-def test_check_list_dict_lst_nok(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments # noqa: E501
-                                 par, inp, key, opt, vtype, mlso, mlsi, msgs):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_chk_lst_dct_lst_nok(capsys: CaptureFixture[str], par: str, inp: Any,
+                             key: str, opt: bool, vtype: type, mlso: int,
+                             mlsi: int, msgs: list[str]) -> None:
     """Test not OK cases of Config.check_lst_dict_lst."""
     with pytest.raises(SystemExit):
         Config.check_lst_dict_lst(paramname=par, inp=inp, key=key,

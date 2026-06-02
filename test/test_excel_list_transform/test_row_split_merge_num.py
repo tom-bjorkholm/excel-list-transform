@@ -6,9 +6,11 @@
 
 # pylint: disable=duplicate-code
 
+from typing import Any
 from copy import deepcopy
 from datetime import datetime
 import pytest
+from pytest import CaptureFixture
 from excel_list_transform.row_split_merge import \
     one_split_one_row, one_split, \
     split_rows, split_rows_cfg, merge_strings, \
@@ -16,7 +18,8 @@ from excel_list_transform.row_split_merge import \
     one_merge_rows, one_rule_merge_rows, merge_rows, \
     merge_rows_cfg
 from excel_list_transform.config_xls_list_transf_num import \
-   ConfigXlsListTransfNum
+    ConfigXlsListTransfNum
+from excel_list_transform.commontypes import NumData
 
 
 @pytest.mark.parametrize('inrow,col,seps,noseps,res',
@@ -32,8 +35,10 @@ from excel_list_transform.config_xls_list_transf_num import \
                           (['b', 'de', 'g'], 1,
                            ['+', ' ', '-'], ['  ', '++'],
                            [['b', 'de', 'g']])])
-def test_one_split_one_nu_ok1(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
-                              inrow, col, seps, noseps, res):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_one_split_one_nu_ok1(capsys: CaptureFixture[str], inrow: Any,
+                              col: Any, seps: Any, noseps: Any,
+                              res: Any) -> None:
     """Test OK cases of one_split_one_row num."""
     ret = one_split_one_row(inrow=deepcopy(inrow), column=deepcopy(col),
                             separators=deepcopy(seps),
@@ -53,8 +58,9 @@ def test_one_split_one_nu_ok1(capsys,  # pylint: disable=too-many-arguments,too-
                            ['+', ' ', '-'], ['  ', '++'],
                           ['Trying to split rows based on column "1".',
                            'But that column has value of type list'])])
-def test_one_split_one_nu_nok1(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
-                               inrow, col, seps, noseps, msgs):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_one_spl_one_nu_nok1(capsys: CaptureFixture[str], inrow: Any, col: Any,
+                             seps: Any, noseps: Any, msgs: Any) -> None:
     """Test not OK cases of one_split_one_row num."""
     with pytest.raises(SystemExit):
         _ = one_split_one_row(inrow=deepcopy(inrow), column=deepcopy(col),
@@ -83,8 +89,9 @@ def test_one_split_one_nu_nok1(capsys,  # pylint: disable=too-many-arguments,too
                           ([['b', 'de', 'g']], 1,
                            ['+', ' ', '-'], ['  ', '++'],
                            [['b', 'de', 'g']])])
-def test_one_split_num_ok1(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
-                           indata, col, seps, noseps, res):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_one_split_num_ok1(capsys: CaptureFixture[str], indata: Any, col: Any,
+                           seps: Any, noseps: Any, res: Any) -> None:
     """Test OK cases of one_split num."""
     ret = one_split(deepcopy(indata), deepcopy(col), deepcopy(seps),
                     not_separators=deepcopy(noseps))
@@ -103,8 +110,9 @@ def test_one_split_num_ok1(capsys,  # pylint: disable=too-many-arguments,too-man
                            ['+', ' ', '-'], ['  ', '++'],
                            ['Trying to split lines based on column "-1"',
                             'but no such column in data'])])
-def test_one_split_num_nok1(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
-                            indata, col, seps, noseps, msgs):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_one_split_num_nok1(capsys: CaptureFixture[str], indata: Any, col: Any,
+                            seps: Any, noseps: Any, msgs: Any) -> None:
     """Test not OK cases of one_split num."""
     with pytest.raises(SystemExit):
         _ = one_split(indata=deepcopy(indata), column=deepcopy(col),
@@ -137,7 +145,8 @@ def test_one_split_num_nok1(capsys,  # pylint: disable=too-many-arguments,too-ma
                             ['j', 'k', 'l'],
                             ['j', 'k', 'm'],
                             ['n', 'o', 'p']])])
-def test_split_rows_num_ok1(capsys, indata, direc, res):
+def test_split_rows_num_ok1(capsys: CaptureFixture[str], indata: Any,
+                            direc: Any, res: Any) -> None:
     """Test OK cases for split_rows num."""
     ret = split_rows(indata=deepcopy(indata), directives=deepcopy(direc))
     out, err = capsys.readouterr()
@@ -171,9 +180,10 @@ def test_split_rows_num_ok1(capsys, indata, direc, res):
                           ([{'column': 5, 'separators': 'a',
                              'not_separators': ['aa', 'bb']}],
                            AssertionError, 'ExceptionInfo AssertionError')])
-def test_split_rows_num_nok1(capsys, direc, err, msg):
+def test_split_rows_num_nok1(capsys: CaptureFixture[str], direc: Any, err: Any,
+                             msg: Any) -> None:
     """Test not OK cases for split_rows num."""
-    indata = [['b', 'd']]
+    indata: NumData = [['b', 'd']]
     with pytest.raises(err) as exc:
         _ = split_rows(indata=deepcopy(indata), directives=direc)
     out, err = capsys.readouterr()
@@ -203,7 +213,8 @@ def test_split_rows_num_nok1(capsys, direc, err, msg):
                             ['j', 'k', 'l'],
                             ['j', 'k', 'm'],
                             ['n', 'o', 'p']])])
-def test_split_rows_numcfg_ok1(capsys, indata, direc, res):
+def test_spl_rows_numcfg_ok1(capsys: CaptureFixture[str], indata: Any,
+                             direc: Any, res: Any) -> None:
     """Test OK cases for split_rows numcfg."""
     cfg1 = ConfigXlsListTransfNum()
     cfg1.s01_split_rows = direc
@@ -227,7 +238,8 @@ def test_split_rows_numcfg_ok1(capsys, indata, direc, res):
                                                       day=1, hour=12,
                                                       minute=13, second=14)],
                            '@', '1.23@a@2025-06-01 12:13:14')])
-def test_merge_strings2(capsys, inlst, sep, res):
+def test_merge_strings2(capsys: CaptureFixture[str], inlst: Any, sep: Any,
+                        res: Any) -> None:
     """Test OK cases of merge_strings."""
     ret = merge_strings(to_merge=inlst, sep=sep)
     out, err = capsys.readouterr()
@@ -285,7 +297,8 @@ def test_merge_strings2(capsys, inlst, sep, res):
                            [[0, 2], [1, 3]], '-',
                            [['x-x1', 'y', 'z-z1'],
                             ['1-4', '2-5', '3-6']])])
-def test_merge_ident_rows_num(capsys, data, rowidxs, sep, res):
+def test_merge_ident_rows_num(capsys: CaptureFixture[str], data: Any,
+                              rowidxs: Any, sep: Any, res: Any) -> None:
     """Test OK cases of merge_identified_rows."""
     ret = merge_identified_rows(deepcopy(data), deepcopy(rowidxs), sep, 1)
     out, err = capsys.readouterr()
@@ -312,7 +325,8 @@ DATA1 = [['aa', 'bb', 3],
                           (DATA1, [2],
                            [[0, 2, 6], [1, 3, 4]]),
                           ([['b', 'a']], [0], [])])
-def test_iden_rows_to_merge1nu(capsys, data, cols, res):
+def test_iden_rows_to_mrg1n(capsys: CaptureFixture[str], data: Any, cols: Any,
+                            res: Any) -> None:
     """Test OK cases of merge identified rows."""
     ret = identify_rows_to_merge(deepcopy(data), deepcopy(cols), 1)
     out, err = capsys.readouterr()
@@ -363,7 +377,8 @@ DATASINGLE = [['aa', 'bb', 3]]
                           (DATA1, [1], ' ', DATA1),
                           (DATA1, [], ' ', DATA1NS),
                           (DATA1, [2], ' ', DATA1CS)])
-def test_one_merge_rows_num_ok1(capsys, data, cols, sep, res):
+def test_one_mrg_rows_num_ok1(capsys: CaptureFixture[str], data: Any,
+                              cols: Any, sep: Any, res: Any) -> None:
     """Test OK cases of one merge rows num."""
     ret = one_merge_rows(indata=deepcopy(data), columns_to_cmp=deepcopy(cols),
                          separator=deepcopy(sep), tinfo=1)
@@ -386,7 +401,8 @@ def test_one_merge_rows_num_ok1(capsys, data, cols, sep, res):
                           (DATA1, [1], ' ', DATA1),
                           (DATA1, [], ' ', DATA1NS),
                           (DATA1, [2], ' ', DATA1CS)])
-def test_one_rule_merge_rows_nu_ok1(capsys, data, cols, sep, res):
+def test_one_rule_mrg_rows_nu(capsys: CaptureFixture[str], data: Any,
+                              cols: Any, sep: Any, res: Any) -> None:
     """Test OK cases of one merge rows num."""
     rule = {'columns': deepcopy(cols), 'separator': deepcopy(sep)}
     ret = one_rule_merge_rows(indata=deepcopy(data), rule=rule, tinfo=1)
@@ -407,7 +423,8 @@ def test_one_rule_merge_rows_nu_ok1(capsys, data, cols, sep, res):
                            DATA1ACS),
                           (DATA1, [1], ' ', DATA1),
                           (DATA1, [2], ' ', DATA1CS)])
-def test_merge_rows_num_ok1(capsys, data, cols, sep, res):
+def test_merge_rows_num_ok1(capsys: CaptureFixture[str], data: Any, cols: Any,
+                            sep: Any, res: Any) -> None:
     """Test OK cases of merge rows num."""
     rule = {'columns': deepcopy(cols), 'separator': deepcopy(sep)}
     cfg1 = ConfigXlsListTransfNum()
@@ -427,7 +444,8 @@ def test_merge_rows_num_ok1(capsys, data, cols, sep, res):
                                    {'columns': [2],
                                     'separator': '-'}],
                            DATA2ACCPM)])
-def test_merge_rows_num_ok2(capsys, data, rule, res):
+def test_merge_rows_num_ok2(capsys: CaptureFixture[str], data: Any, rule: Any,
+                            res: Any) -> None:
     """Test OK cases of merge rows num more than one rule."""
     cfg1 = ConfigXlsListTransfNum()
     cfg1.s02_merge_rows = deepcopy(rule)
@@ -449,7 +467,8 @@ def test_merge_rows_num_ok2(capsys, data, rule, res):
                            DATA1ACS),
                           (DATA1, [1], ' ', DATA1),
                           (DATA1, [2], ' ', DATA1CS)])
-def test_merge_rows_num_ok3(capsys, data, cols, sep, res):
+def test_merge_rows_num_ok3(capsys: CaptureFixture[str], data: Any, cols: Any,
+                            sep: Any, res: Any) -> None:
     """Test OK cases of merge rows num."""
     rule = {'columns': deepcopy(cols), 'separator': deepcopy(sep)}
     cfg1 = ConfigXlsListTransfNum()
@@ -474,7 +493,8 @@ def test_merge_rows_num_ok3(capsys, data, cols, sep, res):
                                         {'columns': [2],
                                          'separator': '-'}],
                            DATASINGLE)])
-def test_merge_rows_num_ok4(capsys, data, rule, res):
+def test_merge_rows_num_ok4(capsys: CaptureFixture[str], data: Any, rule: Any,
+                            res: Any) -> None:
     """Test OK cases of merge rows num more than one rule."""
     cfg1 = ConfigXlsListTransfNum()
     cfg1.s02_merge_rows = deepcopy(rule)

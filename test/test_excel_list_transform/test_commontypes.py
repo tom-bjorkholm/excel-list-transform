@@ -8,8 +8,9 @@
 
 from copy import deepcopy
 import pytest
+from pytest import CaptureFixture
 from excel_list_transform.commontypes import num_row_to_str_list, \
-    str_list_to_num_row
+    str_list_to_num_row, NumRow
 
 
 @pytest.mark.parametrize('ind, outd',
@@ -17,7 +18,8 @@ from excel_list_transform.commontypes import num_row_to_str_list, \
                            ['a', 'x', 'some text']),
                           (['a', 4, 3.14],
                            ['a', '4', '3.14'])])
-def test_num_row_to_str_lst_ok(capsys, ind, outd):
+def test_num_row_to_str_ok(capsys: CaptureFixture[str], ind: NumRow,
+                           outd: list[str]) -> None:
     """Test num_row_to_str_list for OK cases."""
     ret = num_row_to_str_list(ind)
     out, err = capsys.readouterr()
@@ -26,9 +28,9 @@ def test_num_row_to_str_lst_ok(capsys, ind, outd):
     assert '' == err
 
 
-def test_num_row_to_str_lst_nok(capsys):
+def test_num_row_to_str_nok(capsys: CaptureFixture[str]) -> None:
     """Test num_row_to_str_list for not OK case."""
-    ind = ['a', 2, None, 'x']
+    ind: NumRow = ['a', 2, None, 'x']
     with pytest.raises(TypeError) as exc:
         _ = num_row_to_str_list(ind)
     out, err = capsys.readouterr()
@@ -37,7 +39,7 @@ def test_num_row_to_str_lst_nok(capsys):
     assert '' == err
 
 
-def test_str_list_to_num_row(capsys):
+def test_str_list_to_num_row(capsys: CaptureFixture[str]) -> None:
     """Test str_list_to_num_row."""
     data = ['a', 'x', 'some text']
     res = deepcopy(data)

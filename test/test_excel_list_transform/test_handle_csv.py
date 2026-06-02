@@ -10,11 +10,13 @@
 import csv
 from tempfile import TemporaryDirectory
 import pytest
+from pytest import CaptureFixture
 from excel_list_transform.handle_csv import read_csv_num, write_csv_num, \
     read_csv_named, write_csv_named, read_csv_named_use_num
+from excel_list_transform.commontypes import NumData, NameData
 
 
-def test_read_csv_num(capsys):
+def test_read_csv_num(capsys: CaptureFixture[str]) -> None:
     """Test reading of excel."""
     dial = csv.excel
     dial.lineterminator = '\n'
@@ -30,7 +32,7 @@ def test_read_csv_num(capsys):
     assert err == ''
 
 
-def test_read_csv_named(capsys):
+def test_read_csv_named(capsys: CaptureFixture[str]) -> None:
     """Test reading of excel."""
     dial = csv.excel
     dial.lineterminator = '\n'
@@ -47,7 +49,7 @@ def test_read_csv_named(capsys):
     assert err == ''
 
 
-def test_read_csv_named_use_num(capsys):
+def test_rd_csv_nmd_use_num(capsys: CaptureFixture[str]) -> None:
     """Test reading of excel."""
     dial = csv.excel
     dial.lineterminator = '\n'
@@ -64,7 +66,7 @@ def test_read_csv_named_use_num(capsys):
     assert err == ''
 
 
-def test_read_csv_maxcol_num(capsys):
+def test_read_csv_maxcol_num(capsys: CaptureFixture[str]) -> None:
     """Test reading of excel."""
     dial = csv.excel
     dial.lineterminator = '\n'
@@ -80,7 +82,7 @@ def test_read_csv_maxcol_num(capsys):
     assert err == ''
 
 
-def test_read_csv_maxcol_named(capsys):
+def test_rd_csv_maxc_nmd(capsys: CaptureFixture[str]) -> None:
     """Test reading of excel."""
     dial = csv.excel
     dial.lineterminator = '\n'
@@ -103,7 +105,8 @@ def test_read_csv_maxcol_named(capsys):
                                   [['a', 'kalle', 2], ['b', None, 4],
                                    [None, 7, 'c'],
                                    ['Förnamn', 'gåta', 'ÅÄÖä']]])
-def test_write_csv_num(capsys, zpar, dial, enc):
+def test_write_csv_num(capsys: CaptureFixture[str], zpar: NumData,
+                       dial: type[csv.Dialect], enc: str) -> None:
     """Test writing of csv."""
     with TemporaryDirectory() as dname:
         fname = dname + '/b.csv'
@@ -115,6 +118,8 @@ def test_write_csv_num(capsys, zpar, dial, enc):
         for i, row in enumerate(data):
             assert len(row) == len(zpar[i])
             for j, elem in enumerate(row):
+                if elem is not None:
+                    assert isinstance(elem, str)
                 if elem is not None and elem.isdigit():
                     assert int(elem) == zpar[i][j]
                 else:
@@ -135,7 +140,9 @@ def test_write_csv_num(capsys, zpar, dial, enc):
                             {'a': None, 'kalle': 7, '2': 'c'},
                             {'a': 'Förnamn', 'kalle': 'Gåta', '2': 'ÅÄÖä'}],
                            ['a', 'kalle', '2'])])
-def test_write_csv_named(capsys, zpar, dial, corder, enc):
+def test_write_csv_named(capsys: CaptureFixture[str], zpar: NameData,
+                         dial: type[csv.Dialect], corder: list[str],
+                         enc: str) -> None:
     """Test writing of csv."""
     with TemporaryDirectory() as dname:
         fname = dname + '/b.csv'
@@ -148,6 +155,8 @@ def test_write_csv_named(capsys, zpar, dial, corder, enc):
         for i, row in enumerate(data):
             assert len(row) == len(zpar[i])
             for key, elem in row.items():
+                if elem is not None:
+                    assert isinstance(elem, str)
                 if elem is not None and elem.isdigit():
                     assert int(elem) == zpar[i][key]
                 else:
@@ -157,9 +166,9 @@ def test_write_csv_named(capsys, zpar, dial, corder, enc):
     assert err == ''
 
 
-def test_write_csv_num_encmiss(capsys):
+def test_wr_csv_num_encmis(capsys: CaptureFixture[str]) -> None:
     """Test write csv num read with other encoding."""
-    data = [['a', 'b'], ['Hör', 'vadå']]
+    data: NumData = [['a', 'b'], ['Hör', 'vadå']]
     with TemporaryDirectory() as dname:
         fname = dname + '/b.csv'
         write_csv_num(data=data, filename=fname, dialect=csv.unix_dialect,
@@ -175,10 +184,10 @@ def test_write_csv_num_encmiss(capsys):
         assert '' == out
 
 
-def test_write_csv_name_encmiss(capsys):
+def test_wr_csv_nam_encmis(capsys: CaptureFixture[str]) -> None:
     """Test write csv num read with other encoding."""
-    data = [{'a': 'a', 'b': 'b'},
-            {'a': 'Hör', 'b': 'vadå'}]
+    data: NameData = [{'a': 'a', 'b': 'b'},
+                      {'a': 'Hör', 'b': 'vadå'}]
     with TemporaryDirectory() as dname:
         fname = dname + '/b.csv'
         write_csv_named(data=data, filename=fname, dialect=csv.unix_dialect,
@@ -194,10 +203,10 @@ def test_write_csv_name_encmiss(capsys):
         assert '' == out
 
 
-def test_write_csv_name_encmis2(capsys):
+def test_wr_csv_nam_encm2(capsys: CaptureFixture[str]) -> None:
     """Test write csv num read with other encoding."""
-    data = [{'a': 'a', 'b': 'b'},
-            {'a': 'Hör', 'b': 'vadå'}]
+    data: NameData = [{'a': 'a', 'b': 'b'},
+                      {'a': 'Hör', 'b': 'vadå'}]
     with TemporaryDirectory() as dname:
         fname = dname + '/b.csv'
         write_csv_named(data=data, filename=fname, dialect=csv.unix_dialect,

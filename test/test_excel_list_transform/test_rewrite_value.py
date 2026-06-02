@@ -6,10 +6,14 @@
 
 # pylint: disable=duplicate-code
 
+from typing import Any, cast
 import pytest
+from pytest import CaptureFixture
 from excel_list_transform.config_enums import CaseSensitivity, RewriteKind
 from excel_list_transform.rewrite_value import rewrite_value, \
     strip_value, str_replace_value, remove_from_value, regex_replace_value
+from excel_list_transform.config_excel_list_transform import \
+    SingleRuleRewrite
 
 
 @pytest.mark.parametrize('ind, chars, caseh, outd',
@@ -39,7 +43,8 @@ from excel_list_transform.rewrite_value import rewrite_value, \
                           ('abc', 'b', CaseSensitivity.MATCH_CASE, 'abc'),
                           ('abc', 'B', CaseSensitivity.IGNORE_CASE, 'abc'),
                           ('abc', 'B', CaseSensitivity.MATCH_CASE, 'abc')])
-def test_strip_value(capsys, ind, chars, caseh, outd):
+def test_strip_value(capsys: CaptureFixture[str], ind: Any, chars: Any,
+                     caseh: Any, outd: Any) -> None:
     """Test strip of value."""
     ret = strip_value(value=ind, chars=chars, casehandle=caseh)
     out, err = capsys.readouterr()
@@ -69,7 +74,8 @@ def test_strip_value(capsys, ind, chars, caseh, outd):
                            CaseSensitivity.IGNORE_CASE, 'bb'),
                           ('abcabc', ['A', 'C'],
                            CaseSensitivity.MATCH_CASE, 'abcabc')])
-def test_remove_from_value(capsys, ind, chars, caseh, outd):
+def test_remove_from_value(capsys: CaptureFixture[str], ind: Any, chars: Any,
+                           caseh: Any, outd: Any) -> None:
     """Test remove chars from value."""
     ret = remove_from_value(value=ind, chars=chars, casehandle=caseh)
     out, err = capsys.readouterr()
@@ -105,8 +111,9 @@ def test_remove_from_value(capsys, ind, chars, caseh, outd):
                            CaseSensitivity.MATCH_CASE, 'tahaha'),
                           ('tahaha', 'aha', 'a',
                            CaseSensitivity.MATCH_CASE, 'taha')])
-def test_str_replace_value(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments  # noqa: E501
-                           ind, fro, to, caseh, outd):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_str_replace_value(capsys: CaptureFixture[str], ind: Any, fro: Any,
+                           to: Any, caseh: Any, outd: Any) -> None:
     """Test replace substring in value."""
     ret = str_replace_value(value=ind, fro=fro, to=to, casehandle=caseh)
     out, err = capsys.readouterr()
@@ -124,8 +131,9 @@ def test_str_replace_value(capsys,  # pylint: disable=too-many-arguments, too-ma
                            CaseSensitivity.MATCH_CASE, 'bahah'),
                           ('ahahah', '^AH', 'b',
                            CaseSensitivity.MATCH_CASE, 'ahahah')])
-def test_reg_replace_value(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments  # noqa: E501
-                           ind, fro, to, caseh, outd):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_reg_replace_value(capsys: CaptureFixture[str], ind: Any, fro: Any,
+                           to: Any, caseh: Any, outd: Any) -> None:
     """Test replace regex in value for OK cases."""
     ret = regex_replace_value(value=ind, fro=fro, to=to, casehandle=caseh)
     out, err = capsys.readouterr()
@@ -134,7 +142,7 @@ def test_reg_replace_value(capsys,  # pylint: disable=too-many-arguments, too-ma
     assert '' == out
 
 
-def test_reg_replace_value_nok(capsys):
+def test_regex_repl_val_nok(capsys: CaptureFixture[str]) -> None:
     """Test replace regex in value for not OK case."""
     with pytest.raises(SystemExit):
         _ = regex_replace_value(value='abc', fro='^+4607', to='+467',
@@ -166,7 +174,8 @@ def test_reg_replace_value_nok(capsys):
                                   'from': '^a', 'to': 'bx',
                                   'case': CaseSensitivity.IGNORE_CASE},
                            None)])
-def test_rewrite_value_ok(capsys, ind, spec, outd):
+def test_rewrite_value_ok(capsys: CaptureFixture[str], ind: Any, spec: Any,
+                          outd: Any) -> None:
     """Test rewrite_value for OK cases."""
     ret = rewrite_value(value=ind, spec=spec, tinfo=2)
     out, err = capsys.readouterr()
@@ -175,12 +184,13 @@ def test_rewrite_value_ok(capsys, ind, spec, outd):
     assert '' == out
 
 
-def test_rewrite_value_nok(capsys):
+def test_rewrite_value_nok(capsys: CaptureFixture[str]) -> None:
     """Test rewrite_value for not OK case."""
     ind = 'abc'
     spec = {'kind': 'foo', 'chars': 'a',
             'case': CaseSensitivity.IGNORE_CASE}
     with pytest.raises(AssertionError):
-        _ = rewrite_value(value=ind, spec=spec, tinfo=2)
+        _ = rewrite_value(value=ind, spec=cast(SingleRuleRewrite[int], spec),
+                          tinfo=2)
     out, _ = capsys.readouterr()
     assert '' == out

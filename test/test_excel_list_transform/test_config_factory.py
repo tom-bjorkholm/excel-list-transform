@@ -6,9 +6,11 @@
 
 # pylint: disable=duplicate-code
 
+from typing import Any
 from tempfile import NamedTemporaryFile as ntf
 from json import JSONDecodeError
 import pytest
+from pytest import CaptureFixture
 from excel_list_transform.config_enums import ColumnRef
 from excel_list_transform.config_factory import \
     config_factory_from_enum, config_factory_from_json, \
@@ -22,7 +24,8 @@ from excel_list_transform.config_xls_list_transf_num import \
 @pytest.mark.parametrize('num,typ',
                          [(ColumnRef.BY_NAME, ConfigXlsListTransfName),
                           (ColumnRef.BY_NUMBER, ConfigXlsListTransfNum)])
-def test_config_fact_num_ok(capsys, num, typ):
+def test_config_fact_num_ok(capsys: CaptureFixture[str], num: Any,
+                            typ: Any) -> None:
     """Test OK cases of config_factory_from_enum."""
     ret = config_factory_from_enum(numerator=num)
     out, err = capsys.readouterr()
@@ -32,7 +35,7 @@ def test_config_fact_num_ok(capsys, num, typ):
 
 
 @pytest.mark.parametrize('num', [6, 'donald'])
-def test_config_fact_num_nok(capsys, num):
+def test_config_fact_num_nok(capsys: CaptureFixture[str], num: Any) -> None:
     """Test not OK cases of config_factory_from_enum."""
     with pytest.raises(KeyError):
         _ = config_factory_from_enum(numerator=num)
@@ -51,8 +54,9 @@ def test_config_fact_num_nok(capsys, num):
                           (None, '/dev/a/b/c', SystemExit, None,
                            'File /dev/a/b/c with configuration JSON ' +
                            'input does not exist')])
-def test_cfg_fact_get_text_nok(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments  # noqa: E501
-                               txt, fname, exc, excmsg, msg):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_cfg_fac_get_txt_nok(capsys: CaptureFixture[str], txt: Any, fname: Any,
+                             exc: Any, excmsg: Any, msg: Any) -> None:
     """Test not OK cases _config_factory_get_text."""
     with pytest.raises(exc) as cexc:
         _ = _config_factory_get_text(from_json_text=txt,
@@ -66,7 +70,7 @@ def test_cfg_fact_get_text_nok(capsys,  # pylint: disable=too-many-arguments, to
 
 
 @pytest.mark.parametrize('txt', ['abc', 'def'])
-def test_cfg_fact_get_text_ok_txt(capsys, txt):
+def test_fac_get_txt_ok_txt(capsys: CaptureFixture[str], txt: Any) -> None:
     """Test OK case with text of _config_factory_get_text."""
     ret = _config_factory_get_text(from_json_text=txt, from_json_filename=None)
     out, err = capsys.readouterr()
@@ -75,7 +79,7 @@ def test_cfg_fact_get_text_ok_txt(capsys, txt):
     assert '' == err
 
 
-def test_cfg_fact_get_text_bad_enc(capsys):
+def test_fac_get_txt_bad_enc(capsys: CaptureFixture[str]) -> None:
     """Test bad UTF-8 encoding in file for _config_factory_get_text."""
     with ntf(mode='wb', delete_on_close=False) as tmpf:
         byt = [255, 1, 255, 0]
@@ -91,7 +95,7 @@ def test_cfg_fact_get_text_bad_enc(capsys):
 
 
 @pytest.mark.parametrize('txt', ['some text', 'another'])
-def test_cfg_fact_get_text_ok_enc(capsys, txt):
+def test_fac_get_txt_ok_enc(capsys: CaptureFixture[str], txt: Any) -> None:
     """Test good UTF-8 encoding in file for _config_factory_get_text."""
     with ntf(mode='w', delete_on_close=False) as tmpf:
         print(txt, file=tmpf)
@@ -110,7 +114,8 @@ def test_cfg_fact_get_text_ok_enc(capsys, txt):
                            '(char 10)'),
                           ('abc', UnicodeDecodeError('1', b'2', 3, 4, '5'),
                            "codec can't decode bytes")])
-def test_cfg_fact_exit(capsys, msg, exc, exctxt):
+def test_cfg_fact_exit(capsys: CaptureFixture[str], msg: Any, exc: Any,
+                       exctxt: Any) -> None:
     """Test _config_factory_exit."""
     with pytest.raises(SystemExit):
         _config_factory_exit(msg, exc=(exc if exc is not None else None))
@@ -131,7 +136,8 @@ def test_cfg_fact_exit(capsys, msg, exc, exctxt):
                           ('[{"a": "b"}, {"c": "d"}]', None,
                            'JSON data is not valid configuration. ' +
                            'Top level not dict')])
-def test_cfg_fact_fr_json_nok(capsys, text, exctxt, msg):
+def test_cfg_fact_fr_json_nok(capsys: CaptureFixture[str], text: Any,
+                              exctxt: Any, msg: Any) -> None:
     """Test not OK cases of config_factory_from_json."""
     with pytest.raises(SystemExit):
         _ = config_factory_from_json(from_json_text=text)
@@ -144,7 +150,7 @@ def test_cfg_fact_fr_json_nok(capsys, text, exctxt, msg):
 
 @pytest.mark.parametrize('kind', [ConfigXlsListTransfName,
                                   ConfigXlsListTransfNum])
-def test_cfg_fact_fr_json_ok_txt(capsys, kind):
+def test_fac_fr_json_ok_txt(capsys: CaptureFixture[str], kind: Any) -> None:
     """Test OK cases txt of config_factory_from_json."""
     orig = kind()
     txt = orig.as_json_string()
@@ -157,7 +163,7 @@ def test_cfg_fact_fr_json_ok_txt(capsys, kind):
 
 @pytest.mark.parametrize('kind', [ConfigXlsListTransfName,
                                   ConfigXlsListTransfNum])
-def test_cfg_fact_fr_json_ok_file(capsys, kind):
+def test_fac_fr_json_ok_file(capsys: CaptureFixture[str], kind: Any) -> None:
     """Test OK cases txt of config_factory_from_json."""
     orig = kind()
     with ntf(delete_on_close=False) as file:

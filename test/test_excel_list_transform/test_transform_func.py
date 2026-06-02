@@ -8,10 +8,11 @@
 
 
 import pytest
-from excel_list_transform.transform_func import file_must_exist
+from pytest import CaptureFixture
+from excel_list_transform.file_must_exist import file_must_exist
 
 
-def test_file_must_exist_ok(capsys):
+def test_file_must_exist_ok(capsys: CaptureFixture[str]) -> None:
     """Test file_must_exit with existing file."""
     file_must_exist('/bin/ls')
     out, err = capsys.readouterr()
@@ -21,7 +22,7 @@ def test_file_must_exist_ok(capsys):
 
 @pytest.mark.parametrize('fnam', ['/bin/nosuchfile.nonexistent',
                                   '/bin/nosuchdir.nonexistent/nosuchfile'])
-def test_file_must_exist_nok1(fnam):
+def test_file_must_exist_nok1(fnam: str) -> None:
     """Test 1 file_must_exit with non-existing file."""
     with pytest.raises(SystemExit) as exc:
         file_must_exist(fnam)

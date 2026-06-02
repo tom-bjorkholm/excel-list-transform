@@ -7,8 +7,10 @@
 # pylint: disable=duplicate-code
 
 
+from typing import Any
 from copy import deepcopy
 import pytest
+from pytest import CaptureFixture
 from excel_list_transform.transform_func_common import col_must_exist, \
     cols_must_exist_lst, cols_must_exist_dict, cols_must_exist_multi, \
     pop_from_row, insert_into_row
@@ -21,7 +23,8 @@ from excel_list_transform.transform_func_common import col_must_exist, \
                           ('x', {'x': 'a', 'y': 'b', 'z': 'c'}, 'test4'),
                           ('y', {'x': 'a', 'y': 'b', 'z': 'c'}, 'test5'),
                           ('z', {'x': 'a', 'y': 'b', 'z': 'c'}, 'test6')])
-def test_col_must_exist_ok(capsys, col, row, par):
+def test_col_must_exist_ok(capsys: CaptureFixture[str], col: Any, row: Any,
+                           par: Any) -> None:
     """Test OK cases of col_must_exist."""
     col_must_exist(col=col, row=row, param=par)
     out, err = capsys.readouterr()
@@ -42,7 +45,8 @@ def test_col_must_exist_ok(capsys, col, row, par):
                            'test5: no column named "a" in data row'),
                           ('c', {'x': 'a', 'y': 'b', 'z': 'c'}, 'test6',
                            'test6: no column named "c" in data row')])
-def test_col_must_exist_nok(capsys, col, row, par, msg):
+def test_col_must_exist_nok(capsys: CaptureFixture[str], col: Any, row: Any,
+                            par: Any, msg: Any) -> None:
     """Test not OK cases of col_must_exist."""
     with pytest.raises(SystemExit):
         col_must_exist(col=col, row=row, param=par)
@@ -56,7 +60,8 @@ def test_col_must_exist_nok(capsys, col, row, par, msg):
                           (['z', 'x', 'y'],
                            {'x': 'a', 'y': 'b', 'z': 'c', 'q': 'd'},
                            'test2', 'a')])
-def test_cols_must_exist_lst_ok(capsys, collst, row, par, tinf):
+def test_cols_must_exist_ok(capsys: CaptureFixture[str], collst: Any, row: Any,
+                            par: Any, tinf: Any) -> None:
     """Test OK cases of cols_must_exist_lst."""
     cols_must_exist_lst(cols=collst, row=row, param=par, tinfo=tinf)
     out, err = capsys.readouterr()
@@ -71,8 +76,9 @@ def test_cols_must_exist_lst_ok(capsys, collst, row, par, tinf):
                            {'x': 'a', 'y': 'b', 'z': 'c', 'q': 'd'},
                            'test2', 'a',
                            'test2: no column named "aa" in data row')])
-def test_cols_must_exist_lst_nok(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments  # noqa: E501
-                                 collst, row, par, tinf, msg):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_cols_must_exist_nok(capsys: CaptureFixture[str], collst: Any,
+                             row: Any, par: Any, tinf: Any, msg: Any) -> None:
     """Test OK cases of cols_must_exist_lst."""
     with pytest.raises(SystemExit):
         cols_must_exist_lst(cols=collst, row=row, param=par, tinfo=tinf)
@@ -91,7 +97,8 @@ def test_cols_must_exist_lst_nok(capsys,  # pylint: disable=too-many-arguments,t
                             {'column': 'y', 'name': 'abc'}],
                            {'x': 'a', 'y': 'b', 'z': 'c', 'q': 'd'},
                            'test2', 'a')])
-def test_cols_must_exist_dict_ok(capsys, rule, row, par, tinf):
+def test_cols_must_exst_dct_o(capsys: CaptureFixture[str], rule: Any, row: Any,
+                              par: Any, tinf: Any) -> None:
     """Test OK cases of cols_must_exist_dict."""
     cols_must_exist_dict(rule=rule, row=row, param=par, tinfo=tinf)
     out, err = capsys.readouterr()
@@ -111,8 +118,9 @@ def test_cols_must_exist_dict_ok(capsys, rule, row, par, tinf):
                            {'x': 'a', 'y': 'b', 'z': 'c', 'q': 'd'},
                            'test2', 'a',
                            'test2: no column named "xx" in data row')])
-def test_cols_must_exist_dict_nok(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments  # noqa: E501
-                                  rule, row, par, tinf, msg):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_cols_must_exst_dct_n(capsys: CaptureFixture[str], rule: Any, row: Any,
+                              par: Any, tinf: Any, msg: Any) -> None:
     """Test not OK cases of cols_must_exist_dict."""
     with pytest.raises(SystemExit):
         cols_must_exist_dict(rule=rule, row=row, param=par, tinfo=tinf)
@@ -129,7 +137,8 @@ def test_cols_must_exist_dict_nok(capsys,  # pylint: disable=too-many-arguments,
                             {'columns': ['z', 'q'], 'separator': ' '}],
                            {'x': 'a', 'y': 'b', 'z': 'c', 'q': 'd'},
                            'test2', 'a')])
-def test_cols_must_exist_dlst_ok(capsys, rule, row, par, tinf):
+def test_cols_must_exst_dlst(capsys: CaptureFixture[str], rule: Any, row: Any,
+                             par: Any, tinf: Any) -> None:
     """Test OK cases of cols_must_exist_multi."""
     cols_must_exist_multi(rule=rule, row=row, param=par, tinfo=tinf)
     out, err = capsys.readouterr()
@@ -147,8 +156,9 @@ def test_cols_must_exist_dlst_ok(capsys, rule, row, par, tinf):
                            {'x': 'a', 'y': 'b', 'z': 'c', 'q': 'd'},
                            'test2', 'a',
                            'test2: no column named "aa" in data row')])
-def test_cols_must_exist_dlst_nok(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments  # noqa: E501
-                                  rule, row, par, tinf, msg):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_cols_must_exst_dls_2(capsys: CaptureFixture[str], rule: Any, row: Any,
+                              par: Any, tinf: Any, msg: Any) -> None:
     """Test not OK cases of cols_must_exist_multi."""
     with pytest.raises(SystemExit):
         cols_must_exist_multi(rule=rule, row=row, param=par, tinfo=tinf)
@@ -163,7 +173,8 @@ def test_cols_must_exist_dlst_nok(capsys,  # pylint: disable=too-many-arguments,
                           (['a', 'b', 'c'], 2, 'c', ['a', 'b']),
                           ({'x': 'a', 'y': 'b', 'z': 'c'},
                            'y', 'b', {'x': 'a', 'z': 'c'})])
-def test_pop_from_row_ok(capsys, inrow, idx, resval, resrow):
+def test_pop_from_row_ok(capsys: CaptureFixture[str], inrow: Any, idx: Any,
+                         resval: Any, resrow: Any) -> None:
     """Test OK cases for pop_from_row."""
     row = deepcopy(inrow)
     ret = pop_from_row(row=row, colref=idx)
@@ -179,7 +190,8 @@ def test_pop_from_row_ok(capsys, inrow, idx, resval, resrow):
                           (['a', 'b', 'c'], 4, IndexError),
                           ({'x': 'a', 'y': 'b', 'z': 'c'},
                            1, AssertionError)])
-def test_pop_from_row_nok(capsys, inrow, idx, exc):
+def test_pop_from_row_nok(capsys: CaptureFixture[str], inrow: Any, idx: Any,
+                          exc: Any) -> None:
     """Test not OK cases for pop_from_row."""
     row = deepcopy(inrow)
     with pytest.raises(exc):
@@ -199,7 +211,8 @@ def test_pop_from_row_nok(capsys, inrow, idx, exc):
                           ({'x': 'a', 'y': 'b', 'z': 'c'},
                            'q', 'p',
                            {'x': 'a', 'y': 'b', 'z': 'c', 'q': 'p'})])
-def test_insert_into_row_ok(capsys, inrow, idx, val, resrow):
+def test_insert_into_row_ok(capsys: CaptureFixture[str], inrow: Any, idx: Any,
+                            val: Any, resrow: Any) -> None:
     """Test OK cases for pop_from_row."""
     row = deepcopy(inrow)
     insert_into_row(row=row, colref=idx, val=val)
@@ -213,7 +226,8 @@ def test_insert_into_row_ok(capsys, inrow, idx, val, resrow):
                          [(['a', 'b', 'c'], 'a', 'd', AssertionError),
                           ({'x': 'a', 'y': 'b', 'z': 'c'},
                            1, 'd', AssertionError)])
-def test_insert_into_row_nok(capsys, inrow, idx, val, exc):
+def test_insert_into_row_nok(capsys: CaptureFixture[str], inrow: Any, idx: Any,
+                             val: Any, exc: Any) -> None:
     """Test not OK cases for pop_from_row."""
     row = deepcopy(inrow)
     with pytest.raises(exc):

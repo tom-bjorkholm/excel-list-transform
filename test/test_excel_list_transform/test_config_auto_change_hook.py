@@ -5,6 +5,7 @@
 # MIT License
 
 import pytest
+from pytest import CaptureFixture
 from excel_list_transform.config_auto_change_hook import ConfigAutoChangeHook
 from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
 
@@ -12,7 +13,8 @@ from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
 class ConfigAutoChangeHookVer(ConfigAutoChangeHook):
     """Class to test ConfigAutoChangeHook."""
 
-    def __init__(self, old_key_ver: list[str], def_keys_ver: list[str]):
+    def __init__(self, old_key_ver: list[str],
+                 def_keys_ver: list[str]) -> None:
         """Construct a ConfigAutoChangeHook obejct."""
         super().__init__()
         self.num = 0
@@ -35,7 +37,8 @@ class ConfigAutoChangeHookVer(ConfigAutoChangeHook):
                           ([], ['c'], 1),
                           ([], ['c', 'd', 'e'], 1),
                           (['a', 'b'], ['c'], 1)])
-def test_conf_auto_hook_ch_ok1(capsys, okv, dkv, num):
+def test_conf_auto_hook_ch_ok(capsys: CaptureFixture[str], okv: list[str],
+                              dkv: list[str], num: int) -> None:
     """Test OK cases of ConfigAutoChangeHook."""
     hook = ConfigAutoChangeHookVer(old_key_ver=okv, def_keys_ver=dkv)
     for i in okv:
@@ -63,7 +66,8 @@ def test_conf_auto_hook_ch_ok1(capsys, okv, dkv, num):
                            MigrateCfgWarnHook.migrate_warn_msg()),
                           (['a', 'b'], ['c'],
                            MigrateCfgWarnHook.migrate_warn_msg())])
-def test_migrate_hook_ch_ok1(capsys, okv, dkv, msg):
+def test_migrate_hook_ch_ok1(capsys: CaptureFixture[str], okv: list[str],
+                             dkv: list[str], msg: str) -> None:
     """Test OK cases of ConfigAutoChangeHook."""
     hook = MigrateCfgWarnHook()
     for i in okv:

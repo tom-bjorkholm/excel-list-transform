@@ -6,6 +6,8 @@
 
 from tempfile import TemporaryDirectory
 import pytest
+from pytest import MonkeyPatch
+from pytest import CaptureFixture
 from excel_list_transform.migrate_cfg import migrate_cfg
 from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
 from excel_list_transform.config_factory import config_factory_from_json
@@ -18,7 +20,7 @@ from excel_list_transform.assert_dict_equal import assert_dict_equal
 from excel_list_transform.transform_cmd import transform_cmd
 
 
-def test_migrate_cfg1(capsys):
+def test_migrate_cfg1(capsys: CaptureFixture[str]) -> None:
     """Test migration of 0.7.13 config file."""
     refcfg = ConfigXlsListTransfName()
     refcfg.out_type = FileType.CSV
@@ -45,7 +47,7 @@ def test_migrate_cfg1(capsys):
         assert res == 0
 
 
-def test_migrate_cfg2(capsys):
+def test_migrate_cfg2(capsys: CaptureFixture[str]) -> None:
     """Test migration of 0.7.13 config file."""
     refcfg = ConfigXlsListTransfNum()
     refcfg.out_type = FileType.CSV
@@ -72,7 +74,7 @@ def test_migrate_cfg2(capsys):
         assert res == 0
 
 
-def test_migrate_cfg_nok1(capsys):
+def test_migrate_cfg_nok1(capsys: CaptureFixture[str]) -> None:
     """Test not OK case 1 of migrate_cfg."""
     with TemporaryDirectory() as dirname:
         infilename = dirname + '/a.cfg'
@@ -84,7 +86,7 @@ def test_migrate_cfg_nok1(capsys):
     assert 'Cannot find input configuration file' in err
 
 
-def test_migrate_cfg_nok2(capsys):
+def test_migrate_cfg_nok2(capsys: CaptureFixture[str]) -> None:
     """Test not OK case 2 of migrate_cfg."""
     cfg = ConfigXlsListTransfNum()
     with TemporaryDirectory() as dirname:
@@ -103,7 +105,8 @@ def test_migrate_cfg_nok2(capsys):
 
 @pytest.mark.parametrize('ipar', ['-i', '--input'])
 @pytest.mark.parametrize('opar', ['-o', '--output'])
-def test_migrate_cmd1(capsys, ipar, opar):
+def test_migrate_cmd1(capsys: CaptureFixture[str], ipar: str,
+                      opar: str) -> None:
     """Test migration of 0.7.13 config file."""
     refcfg = ConfigXlsListTransfName()
     refcfg.out_type = FileType.CSV
@@ -129,7 +132,8 @@ def test_migrate_cmd1(capsys, ipar, opar):
 
 @pytest.mark.parametrize('ipar', ['-i', '--input'])
 @pytest.mark.parametrize('opar', ['-o', '--output'])
-def test_migrate_cmd2(capsys, ipar, opar):
+def test_migrate_cmd2(capsys: CaptureFixture[str], ipar: str,
+                      opar: str) -> None:
     """Test migration of 0.7.13 config file."""
     refcfg = ConfigXlsListTransfNum()
     refcfg.out_type = FileType.CSV
@@ -155,7 +159,8 @@ def test_migrate_cmd2(capsys, ipar, opar):
 
 @pytest.mark.parametrize('ipar', ['-i', '--input'])
 @pytest.mark.parametrize('opar', ['-o', '--output'])
-def test_migrate_cmd_nok1(capsys, ipar, opar):
+def test_migrate_cmd_nok1(capsys: CaptureFixture[str], ipar: str,
+                          opar: str) -> None:
     """Test not OK case 1 of migrate_cmd."""
     with TemporaryDirectory() as dirname:
         infilename = dirname + '/a.cfg'
@@ -170,7 +175,8 @@ def test_migrate_cmd_nok1(capsys, ipar, opar):
 
 @pytest.mark.parametrize('ipar', ['-i', '--input'])
 @pytest.mark.parametrize('opar', ['-o', '--output'])
-def test_migrate_cmd_nok2(capsys, ipar, opar):
+def test_migrate_cmd_nok2(capsys: CaptureFixture[str], ipar: str,
+                          opar: str) -> None:
     """Test not OK case 2 of migrate_cmd."""
     cfg = ConfigXlsListTransfNum()
     with TemporaryDirectory() as dirname:
@@ -188,7 +194,7 @@ def test_migrate_cmd_nok2(capsys, ipar, opar):
     assert 'Cowardly refusing to overwrite existing configuration file' in err
 
 
-def test_migrate_cmd_help1(capsys):
+def test_migrate_cmd_help1(capsys: CaptureFixture[str]) -> None:
     """Test help including migrate-cfg."""
     with pytest.raises(SystemExit):
         transform_cmd(['-h'])
@@ -200,7 +206,7 @@ def test_migrate_cmd_help1(capsys):
     assert 'newest format.' in out
 
 
-def test_migrate_cmd_help2(capsys):
+def test_migrate_cmd_help2(capsys: CaptureFixture[str]) -> None:
     """Test help for migrate-cfg."""
     with pytest.raises(SystemExit):
         transform_cmd(['migrate-cfg', '-h'])
@@ -215,21 +221,25 @@ def test_migrate_cmd_help2(capsys):
 @pytest.mark.parametrize('opar', ['-o', '--output'])
 @pytest.mark.parametrize('ival', ['ab', 'cd'])
 @pytest.mark.parametrize('oval', ['ef', 'gh'])
-def test_migrate_cmd3(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
-                      monkeypatch, ipar, opar, ival, oval):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_migrate_cmd3(capsys: CaptureFixture[str], monkeypatch: MonkeyPatch,
+                      ipar: str, opar: str, ival: str, oval: str) -> None:
     """Test command line calling migrate_cfg."""
+    migrate_calls = 0
+
     def migrate_mock(infile: str, outfile: str) -> int:
         """Mock of migrate_cfg."""
-        migrate_mock.num_calls += 1
+        nonlocal migrate_calls
+        migrate_calls += 1
         assert infile == ival
         assert outfile == oval
+        return 0
 
-    migrate_mock.num_calls = 0
     to_mock = 'excel_list_transform.transform_cmd.migrate_cfg'
     monkeypatch.setattr(to_mock, migrate_mock)
     args = ['migrate-cfg', ipar, ival, opar, oval]
     transform_cmd(arguments=args)
     out, err = capsys.readouterr()
-    assert 1 == migrate_mock.num_calls
+    assert 1 == migrate_calls
     assert '' == out
     assert '' == err

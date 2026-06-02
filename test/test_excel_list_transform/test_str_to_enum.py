@@ -7,6 +7,7 @@
 # pylint: disable=duplicate-code
 
 
+from typing import cast
 from enum import Enum, auto
 import pytest
 from excel_list_transform.str_to_enum import string_to_enum_best_match
@@ -34,7 +35,7 @@ class Tty(Enum):
 
 
 @pytest.mark.parametrize('x,y', [('telet', Tty.Teletype), ('VT52', Tty.VT52)])
-def test_string_to_enum_best_match_match(x, y):
+def test_str_to_enum_best_mtc(x: str, y: Tty) -> None:
     """Test string to best match function."""
     z = string_to_enum_best_match(x, Tty)
     assert z == y
@@ -55,22 +56,22 @@ def test_string_to_enum_best_match_match(x, y):
                           ('vt1', Tty.VT100),
                           ('X', Tty.X),
                           ('x', Tty.X)])
-def test_string_to_enum_best_match_match2(x, y):
+def test_str_to_enum_best_m_2(x: str, y: Tty) -> None:
     """Test string to best match function."""
     z = string_to_enum_best_match(x, Tty)
     assert z == y
 
 
 @pytest.mark.parametrize('x', ['foobar', 'tele', 'vt', 'Tele', 'VT'])
-def test_string_to_enum_best_match_bad(x):
+def test_str_to_enum_best_m_3(x: str) -> None:  # never reached
     """Test string to best match function with bad input."""
     with pytest.raises(KeyError):
         z = string_to_enum_best_match(x, Tty)
-        assert z == 'no match'  # never reached
+        assert z == cast(Tty, 'no match')  # never reached
 
 
-def test_string_to_enum_bmatch_int():
+def test_str_to_enum_bmtch_in() -> None:
     """Test string_to_enum_best_match with int not str input."""
     with pytest.raises(AssertionError) as exc:
-        _ = string_to_enum_best_match(5, YesNoAsk)
+        _ = string_to_enum_best_match(cast(str, 5), YesNoAsk)
     assert 'string_to_enum_best_match called with int not str' in str(exc)

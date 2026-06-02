@@ -5,13 +5,15 @@
 # MIT License
 
 
+from typing import NamedTuple, Optional, Union
 from datetime import date
 from copy import deepcopy
-from typing import NamedTuple, Optional
 from packaging.version import Version
 from pypi_simple import ProjectPage, DistributionPackage, \
     NoSuchProjectError
 import pytest
+from pytest import MonkeyPatch
+from pytest import CaptureFixture
 from excel_list_transform.version_information import VersionInformation, \
     VersionInfo, AvailableVersion, AvailableVersions
 
@@ -23,7 +25,8 @@ from excel_list_transform.version_information import VersionInformation, \
                            ['really_long  9.8.7.123', 'another .... 1.0'])
                           ])
 @pytest.mark.parametrize('asarg, usearg', [[True, False], [True, False]])
-def test_version_print1(capsys, data, texts, asarg, usearg):
+def test_version_print1(capsys: CaptureFixture[str], data: dict[str, str],
+                        texts: list[str], asarg: bool, usearg: bool) -> None:
     """Test VersionInformation.print."""
     class Derived(VersionInformation):
         """Derived class for fake get method."""
@@ -35,7 +38,8 @@ def test_version_print1(capsys, data, texts, asarg, usearg):
             return {'Foo': Version('3.1415')}
 
     vers = Derived()
-    vers.print(data if usearg else None)
+    version_data = {key: Version(val) for key, val in data.items()}
+    vers.print(version_data if usearg else None)
     out, err = capsys.readouterr()
     assert err == ''
     if not usearg and not asarg:
@@ -52,7 +56,7 @@ def test_version_print1(capsys, data, texts, asarg, usearg):
 
 
 @pytest.mark.parametrize('calls', [0, 1, 2, 8])
-def test_version_print2(capsys, calls):
+def test_version_print2(capsys: CaptureFixture[str], calls: int) -> None:
     """Test VersionInformation.print loops."""
     num = 0
 
@@ -77,7 +81,8 @@ def test_version_print2(capsys, calls):
 @pytest.mark.parametrize('vers', [['1', '2.3', '4.5.6', '7b'],
                                   ['4.5', '2.7', '4.5', '1.9.0']])
 @pytest.mark.parametrize('pyt', [[3, 10, 7], [3, 13, 1]])
-def test_version_get1(monkeypatch, capsys, vers, pyt):
+def test_version_get1(monkeypatch: MonkeyPatch, capsys: CaptureFixture[str],
+                      vers: list[str], pyt: list[int]) -> None:
     """Test VersionInformation.get with patched getters."""
     metaversnum = 0
 
@@ -86,6 +91,7 @@ def test_version_get1(monkeypatch, capsys, vers, pyt):
         assert modulename is not None
         nonlocal metaversnum
         ret = vers[metaversnum]
+        assert isinstance(ret, str)
         metaversnum += 1
         return ret
 
@@ -103,7 +109,8 @@ def test_version_get1(monkeypatch, capsys, vers, pyt):
 
 
 @pytest.mark.parametrize('numcalls', [0, 1, 2, 17])
-def test_version_get2(monkeypatch, capsys, numcalls):
+def test_version_get2(monkeypatch: MonkeyPatch, capsys: CaptureFixture[str],
+                      numcalls: int) -> None:
     """Test VersionInformation.get with patched getters."""
     calls = 0
 
@@ -136,18 +143,21 @@ def test_version_get2(monkeypatch, capsys, numcalls):
                           ('windows', 'pip'),
                           ('linux', 'pip3'),
                           ('darwin', 'pip3')])
-def test_print_upgrade(capsys, monkeypatch, os, pip):
+def test_print_upgrade(capsys: CaptureFixture[str], monkeypatch: MonkeyPatch,
+                       os: str, pip: str) -> None:
     """Test _print_upgrade_instructions."""
     mod = 'excel_list_transform.version_information.sys.platform'
     monkeypatch.setattr(mod, os)
-    VersionInformation()._print_upgrade_instruction({'aha': '0.1'})  # pylint: disable=protected-access # noqa: E501
+    # pylint: disable-next=protected-access
+    VersionInformation()._print_upgrade_instruction({'aha': Version('0.1')})
     out, err = capsys.readouterr()
     assert '' == err
     assert pip + ' install --upgrade aha' in out
     assert pip + ' install --upgrade excel-list-transform' in out
 
 
-def test_version_print_old_p(capsys, monkeypatch):
+def test_version_print_old_p(capsys: CaptureFixture[str],
+                             monkeypatch: MonkeyPatch) -> None:
     """Test version print with old Python."""
     mod = 'excel_list_transform.version_information.sys.version_info'
     monkeypatch.setattr(mod, (3, 11, 1, 0, 0))
@@ -175,7 +185,10 @@ def test_version_print_old_p(capsys, monkeypatch):
                            date(year=2024, month=12, day=25), False),
                           ((3, 10, 11, 75, 0),
                            date(year=2027, month=12, day=25), True)])
-def test_version_check_if_u(capsys, monkeypatch, ver, dat, errprint):
+def test_version_check_if_u(capsys: CaptureFixture[str],
+                            monkeypatch: MonkeyPatch,
+                            ver: tuple[int, int, int, int, int], dat: date,
+                            errprint: bool) -> None:
     """Test version check if unsupported python widh old Python."""
     mod = 'excel_list_transform.version_information.sys.version_info'
     monkeypatch.setattr(mod, ver)
@@ -183,7 +196,7 @@ def test_version_check_if_u(capsys, monkeypatch, ver, dat, errprint):
     class MockVersion1(VersionInformation):
         """Version with mocked today."""
 
-        def _today(self):
+        def _today(self) -> date:
             """Mock today."""
             return dat
 
@@ -207,7 +220,8 @@ def test_version_check_if_u(capsys, monkeypatch, ver, dat, errprint):
                           ((3, 13, 3, 0, 0), '3.13.3'),
                           ((3, 14, 4, 0, 0), '3.14.4'),
                           ((3, 10, 5, 0, 0), '3.10.5')])
-def test_python_version(capsys, monkeypatch, ver, res):
+def test_python_version(capsys: CaptureFixture[str], monkeypatch: MonkeyPatch,
+                        ver: tuple[int, int, int, int, int], res: str) -> None:
     """Test VersionsInformation.python_version."""
     mod = 'excel_list_transform.version_information.sys.version_info'
     monkeypatch.setattr(mod, ver)
@@ -228,16 +242,16 @@ class MockReturn(NamedTuple):
 
 
 type PageReturn = list[MockReturn]
-type PageReturns = list[PageReturn]
+type PageReturns = list[Optional[PageReturn]]
 
 pagereturns: PageReturns = []
 
 
-def mocked_get_project_page(_, project: str,
-                            timeout: float | tuple[float, float] | None
-                            = None, accept: Optional[str] = None,
-                            headers: Optional[dict[str, str]]
-                            = None) -> ProjectPage:
+def mocked_get_project_page(
+        _: object, project: str,
+        timeout: Optional[Union[float, tuple[float, float]]] = None,
+        accept: Optional[str] = None,
+        headers: Optional[dict[str, str]] = None) -> ProjectPage:
     """Mock PyPISimple.get_project_page."""
     packages: list[DistributionPackage] = []
     assert timeout is not None
@@ -245,7 +259,8 @@ def mocked_get_project_page(_, project: str,
     assert headers is None
     if not pagereturns or pagereturns[-1] is None:
         raise NoSuchProjectError(project=project, url='')
-    mockvals: PageReturn = pagereturns.pop()
+    mockvals = pagereturns.pop()
+    assert mockvals is not None
     for mockret in mockvals:
         packages.append(DistributionPackage(filename=f'{project}.whl', url='',
                                             project=project,
@@ -326,8 +341,11 @@ def mocked_get_project_page(_, project: str,
                                             best_ver=Version('0.0.1'),
                                             better_ver=Version('0.0.1'),
                                             pkgname='def'))])
-def test_get_avail_version(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments) # noqa: E501
-                           monkeypatch, page, name, ver, pyver, res):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_get_avail_version(capsys: CaptureFixture[str],
+                           monkeypatch: MonkeyPatch,
+                           page: Optional[PageReturn], name: str, ver: str,
+                           pyver: str, res: AvailableVersion) -> None:
     """Test VersionInformation.get_available_version."""
     global pagereturns  # pylint: disable=global-statement
     pagereturns = [page]
@@ -344,19 +362,19 @@ def test_get_avail_version(capsys,  # pylint: disable=too-many-arguments,too-man
     assert '' == err
 
 
-def mock_get_available_version(pkgname: str, pkgversion: Version,
-                               python_version: Version) -> AvailableVersion:
+mock_answers: AvailableVersions = []
+
+
+def mock_get_avail_version(pkgname: str, pkgversion: Version,
+                           python_version: Version) -> AvailableVersion:
     """Get information on available version in PyPi."""
     assert pkgversion is not None
     assert python_version is not None
-    for ans in mock_get_available_version.answers:
+    for ans in mock_answers:
         if ans.pkgname == pkgname:
             return ans
     return AvailableVersion(False, False, Version('0.0'), Version('0.0'),
                             pkgname)
-
-
-mock_get_available_version.answers = []
 
 
 @pytest.mark.parametrize('inp,ans,res',
@@ -416,12 +434,15 @@ mock_get_available_version.answers = []
                                              is_best_for_new_py=True,
                                              best_ver=Version('10.0'),
                                              better_ver=Version('1.0'))])])
-def test_get_available_versions(capsys, monkeypatch, inp, ans, res):
+# pylint: disable-next=global-statement
+def test_get_avail_vers(capsys: CaptureFixture[str], monkeypatch: MonkeyPatch,
+                        inp: VersionInfo, ans: AvailableVersions,
+                        res: AvailableVersions) -> None:
     """Test VersionInformation.get_available_versions."""
+    global mock_answers  # pylint: disable=global-statement
     mod = 'excel_list_transform.version_information.VersionInformation.'
-    monkeypatch.setattr(mod + 'get_available_version',
-                        mock_get_available_version)
-    mock_get_available_version.answers = deepcopy(ans)
+    monkeypatch.setattr(mod + 'get_available_version', mock_get_avail_version)
+    mock_answers = deepcopy(ans)
     vers = VersionInformation()
     ret = vers.get_available_versions(inp)
     out, err = capsys.readouterr()
@@ -462,7 +483,8 @@ longer_name  10.0
                          [(PBAVAIL1, PBTXT1),
                           (PBAVAIL2, PBTXT2),
                           (PBAVAIL3, PBTXT3)])
-def test_print_if_better_versions(capsys, avai, printout):
+def test_pr_if_btr_vers(capsys: CaptureFixture[str], avai: AvailableVersions,
+                        printout: str) -> None:
     """Test VersionInformation.print_if_better_versions."""
     vers = VersionInformation()
     vers.print_if_better_versions(avai)
@@ -471,12 +493,13 @@ def test_print_if_better_versions(capsys, avai, printout):
     assert printout == out
 
 
-def test_print_info_on_new_1(capsys, monkeypatch):
+def test_print_info_on_new_1(capsys: CaptureFixture[str],
+                             monkeypatch: MonkeyPatch) -> None:
     """Test normal case of VersionInformation.print_info_on_new_pkgs."""
     get_avail_num = 0
     print_if_better_num = 0
 
-    def mock_get_avail(_, versions: VersionInfo) -> AvailableVersions:
+    def mock_get_avail(_: object, versions: VersionInfo) -> AvailableVersions:
         """Mock VersionInformation.get_available_versions."""
         nonlocal get_avail_num
         get_avail_num += 1
@@ -488,7 +511,7 @@ def test_print_info_on_new_1(capsys, monkeypatch):
                                  best_ver=Version('1.0'),
                                  better_ver=Version('1.0'))]
 
-    def mock_print_if_better(_, vers: AvailableVersions) -> None:
+    def mock_print_if_better(_: object, vers: AvailableVersions) -> None:
         """Mock VersionInformation.print_if_better_versions."""
         nonlocal print_if_better_num
         print_if_better_num += 1
@@ -508,7 +531,9 @@ def test_print_info_on_new_1(capsys, monkeypatch):
     assert '' == out
 
 
-def test_print_info_on_new_2(capsys, monkeypatch):
+# pylint: disable-next=global-statement
+def test_print_info_on_new_2(capsys: CaptureFixture[str],
+                             monkeypatch: MonkeyPatch) -> None:
     """Test print_info_on_new_pkgs with mocked_get_project_page."""
     global pagereturns  # pylint: disable=global-statement
     pagereturns = [[MockReturn(version='10.1', is_yanked=False,

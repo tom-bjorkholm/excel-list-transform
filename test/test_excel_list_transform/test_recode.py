@@ -3,6 +3,7 @@
 
 from tempfile import TemporaryDirectory
 import pytest
+from pytest import CaptureFixture
 from excel_list_transform.recode import recode_cmd
 
 
@@ -14,8 +15,9 @@ from excel_list_transform.recode import recode_cmd
                          ['Hello \nand goodbye!',
                           'Some Swedish letters are ÅÄÖ and åäö',
                           'In Denmark they us æø and ÆØ'])
-def test_recode_ok1(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments, line-too-long # noqa: E501
-                    infile, inenc, outfile, outenc, text):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_recode_ok1(capsys: CaptureFixture[str], infile: str, inenc: str,
+                    outfile: str, outenc: str, text: str) -> None:
     """Test OK cases 1 of recode command."""
     with TemporaryDirectory() as dirname:
         inf = dirname + '/' + infile
@@ -40,8 +42,9 @@ def test_recode_ok1(capsys,  # pylint: disable=too-many-arguments, too-many-posi
                          ['Hello \nand goodbye!',
                           'Some Swedish letters are ÅÄÖ and åäö',
                           'In Denmark they us æø and ÆØ'])
-def test_recode_ok2(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments, line-too-long # noqa: E501
-                    infile, inenc, outfile, outenc, text):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_recode_ok2(capsys: CaptureFixture[str], infile: str, inenc: str,
+                    outfile: str, outenc: str, text: str) -> None:
     """Test OK cases 2 of recode command."""
     with TemporaryDirectory() as dirname:
         inf = dirname + '/' + infile
@@ -67,8 +70,9 @@ def test_recode_ok2(capsys,  # pylint: disable=too-many-arguments, too-many-posi
                          ['Hello \nand goodbye!',
                           'Some Swedish letters are ÅÄÖ and åäö',
                           'In Denmark they us æø and ÆØ'])
-def test_recode_ok3(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments, line-too-long # noqa: E501
-                    infile, inenc, outfile, outenc, text):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_recode_ok3(capsys: CaptureFixture[str], infile: str, inenc: str,
+                    outfile: str, outenc: str, text: str) -> None:
     """Test OK cases 3 of recode command."""
     with TemporaryDirectory() as dirname:
         inf = dirname + '/' + infile
@@ -87,7 +91,7 @@ def test_recode_ok3(capsys,  # pylint: disable=too-many-arguments, too-many-posi
         assert f'Wrote file {outf}\n' == err
 
 
-def test_recode_nok1(capsys):
+def test_recode_nok1(capsys: CaptureFixture[str]) -> None:
     """Test recode error case 1."""
     with TemporaryDirectory() as dirname:
         inf = dirname + '/a.txt'
@@ -103,7 +107,7 @@ def test_recode_nok1(capsys):
         assert '' == out
 
 
-def test_recode_nok2(capsys):
+def test_recode_nok2(capsys: CaptureFixture[str]) -> None:
     """Test recode error case 2."""
     with TemporaryDirectory() as dirname:
         inf = dirname + '/a.txt'
@@ -117,7 +121,7 @@ def test_recode_nok2(capsys):
         assert '' == out
 
 
-def test_recode_nok3(capsys):
+def test_recode_nok3(capsys: CaptureFixture[str]) -> None:
     """Test recode error case 3."""
     with TemporaryDirectory() as dirname:
         inf = dirname + '/a.txt'
@@ -133,7 +137,7 @@ def test_recode_nok3(capsys):
         assert '' == out
 
 
-def test_recode_nok4(capsys):
+def test_recode_nok4(capsys: CaptureFixture[str]) -> None:
     """Test recode error case 4."""
     with TemporaryDirectory() as dirname:
         inf = dirname + '/a.txt'
@@ -149,7 +153,7 @@ def test_recode_nok4(capsys):
         assert '' == out
 
 
-def test_recode_nok5(capsys):
+def test_recode_nok5(capsys: CaptureFixture[str]) -> None:
     """Test recode error case 4."""
     with TemporaryDirectory() as dirname:
         inf = dirname + '/a.txt'

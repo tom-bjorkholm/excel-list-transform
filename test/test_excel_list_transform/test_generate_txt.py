@@ -9,6 +9,7 @@
 
 from tempfile import TemporaryDirectory
 import pytest
+from pytest import CaptureFixture
 from excel_list_transform.generate_txt import generate_syntax_txt
 
 
@@ -18,7 +19,8 @@ from excel_list_transform.generate_txt import generate_syntax_txt
                           ('x.txt',
                            'some other description of example',
                            'x.cfg')])
-def test_generate_syntax_txt(capsys, txt_file, edescr, cfg_file):
+def test_generate_syntax_txt(capsys: CaptureFixture[str], txt_file: str,
+                             edescr: str, cfg_file: str) -> None:
     """Test generate_syntax_txt."""
     content = None
     with TemporaryDirectory() as dname:

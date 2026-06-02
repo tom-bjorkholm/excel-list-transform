@@ -7,14 +7,16 @@
 # pylint: disable=duplicate-code
 
 
+from typing import Any
 from tempfile import TemporaryDirectory
 from datetime import datetime, date, time
 from decimal import Decimal
 import pytest
+from pytest import CaptureFixture
 from excel_list_transform.handle_excel import \
     read_excel_num, write_excel_num, read_excel_named, write_excel_named, \
     excel_data_strip, fix_row_openpyxl
-from excel_list_transform.config_excel_list_transform import ExcelLib
+from excel_list_transform.config_enums import ExcelLib
 
 
 @pytest.mark.parametrize('scol', [True, False])
@@ -22,7 +24,8 @@ from excel_list_transform.config_excel_list_transform import ExcelLib
 @pytest.mark.parametrize('lib', [ExcelLib.OPENPYXL,
                                  ExcelLib.PYLIGHTXL,
                                  None])
-def test_read_excel_num(capsys, lib, scol, sval):
+def test_read_excel_num(capsys: CaptureFixture[str], lib: Any, scol: Any,
+                        sval: Any) -> None:
     """Test reading of excel (number referenced columns)."""
     data = read_excel_num('./test/test_excel_list_transform/test_read.xlsx',
                           strip_col_names=scol, strip_values=sval,
@@ -39,7 +42,8 @@ def test_read_excel_num(capsys, lib, scol, sval):
 @pytest.mark.parametrize('lib', [ExcelLib.OPENPYXL,
                                  ExcelLib.PYLIGHTXL,
                                  None])
-def test_read_excel_name(capsys, lib, scol, sval):
+def test_read_excel_name(capsys: CaptureFixture[str], lib: Any, scol: Any,
+                         sval: Any) -> None:
     """Test reading of excel (name referenced columns)."""
     data = read_excel_named('./test/test_excel_list_transform/test_read.xlsx',
                             strip_col_names=scol, strip_values=sval,
@@ -56,7 +60,8 @@ def test_read_excel_name(capsys, lib, scol, sval):
 @pytest.mark.parametrize('lib', [ExcelLib.OPENPYXL,
                                  ExcelLib.PYLIGHTXL,
                                  None])
-def test_read_excel_maxcol_num(capsys, lib, scol, sval):
+def test_rd_xls_maxc_num(capsys: CaptureFixture[str], lib: Any, scol: Any,
+                         sval: Any) -> None:
     """Test reading of excel (number referenced columns)."""
     data = read_excel_num('./test/test_excel_list_transform/test_read.xlsx',
                           strip_col_names=scol, strip_values=sval,
@@ -71,7 +76,7 @@ def test_read_excel_maxcol_num(capsys, lib, scol, sval):
 @pytest.mark.parametrize('lib', [ExcelLib.OPENPYXL,
                                  ExcelLib.PYLIGHTXL,
                                  None])
-def test_read_excel_maxcol_name(capsys, lib):
+def test_rd_xls_maxc_nam(capsys: CaptureFixture[str], lib: Any) -> None:
     """Test reading of excel (name referenced columns)."""
     data = read_excel_named('./test/test_excel_list_transform/test_read.xlsx',
                             strip_col_names=False, strip_values=False,
@@ -91,7 +96,8 @@ def test_read_excel_maxcol_name(capsys, lib):
 @pytest.mark.parametrize('zpar', [[['a', 'kalle'], ['b', None], [None, 7]],
                                   [['a', 'kalle', 2], ['b', None, 4],
                                    [None, 7, 'c']]])
-def test_write_excel_1_num(capsys, zpar, lib):
+def test_write_excel_1_num(capsys: CaptureFixture[str], zpar: Any,
+                           lib: Any) -> None:
     """Test writing of excel."""
     with TemporaryDirectory() as dname:
         fname = dname + '/b.xlsx'
@@ -118,7 +124,8 @@ def test_write_excel_1_num(capsys, zpar, lib):
                           ([{'a': 'b', 'kalle': None, '2': 4},
                             {'a': None, 'kalle': 7, '2': 'c'}],
                            ['a', 'kalle', '2'])])
-def test_write_excel_1_name(capsys, zpar, corder, lib):
+def test_write_excel_1_name(capsys: CaptureFixture[str], zpar: Any,
+                            corder: Any, lib: Any) -> None:
     """Test writing of excel."""
     with TemporaryDirectory() as dname:
         fname = dname + '/b.xlsx'
@@ -144,7 +151,8 @@ def test_write_excel_1_name(capsys, zpar, corder, lib):
 @pytest.mark.parametrize('zpar', [[['a', 'kalle'], ['b', None], [None, 7]],
                                   [['a', 'kalle', 2], ['b', None, 4],
                                    [None, 7, 'c']]])
-def test_write_excel_2_num(capsys, zpar, inlib, outlib):
+def test_write_excel_2_num(capsys: CaptureFixture[str], zpar: Any, inlib: Any,
+                           outlib: Any) -> None:
     """Test writing of excel."""
     with TemporaryDirectory() as dname:
         fname = dname + '/b.xlsx'
@@ -173,7 +181,8 @@ def test_write_excel_2_num(capsys, zpar, inlib, outlib):
                           ([{'a': 'b', 'kalle': None, '2': 4},
                             {'a': None, 'kalle': 7, '2': 'c'}],
                            ['a', 'kalle', '2'])])
-def test_write_excel_2_name(capsys, zpar, corder, inlib, outlib):
+def test_write_excel_2_name(capsys: CaptureFixture[str], zpar: Any,
+                            corder: Any, inlib: Any, outlib: Any) -> None:
     """Test writing of excel."""
     with TemporaryDirectory() as dname:
         fname = dname + '/b.xlsx'
@@ -191,7 +200,7 @@ def test_write_excel_2_name(capsys, zpar, corder, inlib, outlib):
 @pytest.mark.parametrize('zpar', [[['a', 'kalle'], ['b', None], [[2, 3], 7]],
                                   [['a', 'kalle', 2], ['b', None, 4],
                                    [None, [1, 2], 'c']]])
-def test_write_excel_nok(capsys, zpar):
+def test_write_excel_nok(capsys: CaptureFixture[str], zpar: Any) -> None:
     """Test writing of excel."""
     with TemporaryDirectory() as dname:
         fname = dname + '/b.xlsx'
@@ -216,7 +225,8 @@ def test_write_excel_nok(capsys, zpar):
                            True, True,
                            [['a', 'b'], ['c', 'd'], ['e', 'f']]),
                           ])
-def test_excel_data_strip(capsys, ind, stitle, svalue, outd):
+def test_excel_data_strip(capsys: CaptureFixture[str], ind: Any, stitle: Any,
+                          svalue: Any, outd: Any) -> None:
     """Test excel_data_strip."""
     res = excel_data_strip(data=ind, strip_col_names=stitle,
                            strip_values=svalue)
@@ -240,7 +250,8 @@ def test_excel_data_strip(capsys, ind, stitle, svalue, outd):
                             '22:24:59']),
                           ((Decimal('1.5'), 2, Decimal(4.0)), 10,
                            [1.5, 2, 4.0])])
-def test_fix_row_openpyxl_ok(capsys, row, maxc, expected):
+def test_fix_row_openpyxl_ok(capsys: CaptureFixture[str], row: Any, maxc: Any,
+                             expected: Any) -> None:
     """Test fix_row_openpyxl for OK cases."""
     ret = fix_row_openpyxl(row=row, max_column_reed=maxc)
     out, err = capsys.readouterr()
@@ -262,7 +273,8 @@ def test_fix_row_openpyxl_ok(capsys, row, maxc, expected):
                            'Sorry, cells with value of type ' +
                            'tuple are not supported\n' +
                            'Trying to convert to string.\n')])
-def test_fix_row_openpyxl_str(capsys, row, maxc, expected, errtxt):
+def test_fix_row_openpyxl_str(capsys: CaptureFixture[str], row: Any, maxc: Any,
+                              expected: Any, errtxt: Any) -> None:
     """Test fix_row_openpyxl for OK cases."""
     ret = fix_row_openpyxl(row=row, max_column_reed=maxc)
     out, err = capsys.readouterr()

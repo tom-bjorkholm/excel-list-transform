@@ -9,8 +9,10 @@
 
 from copy import deepcopy
 import pytest
+from pytest import CaptureFixture
 from excel_list_transform.num_named_conversion import \
     named_cols_from_num_cols, num_cols_from_named_cols
+from excel_list_transform.commontypes import NumData, NameData
 
 
 @pytest.mark.parametrize('ind, outd',
@@ -26,7 +28,8 @@ from excel_list_transform.num_named_conversion import \
                             [1, None], ['a', 'x y', 7]],
                            [{'ab': 1, 'cd': None, 'ef': None},
                             {'ab': 'a', 'cd': 'x y', 'ef': 7}])])
-def test_nam_col_num_cols_ok(capsys, ind, outd):
+def test_nam_col_num_cols_ok(capsys: CaptureFixture[str], ind: NumData,
+                             outd: NameData) -> None:
     """Test OK cases of named_cols_from_num_cols."""
     ret = named_cols_from_num_cols(ind, 'somfile.csv')
     out, err = capsys.readouterr()
@@ -44,7 +47,8 @@ def test_nam_col_num_cols_ok(capsys, ind, outd):
                             [1, 2, 3], [4, 5, 6, 7]],
                            'b.dat', 'Data row(s) have more columns than ' +
                            'title row in file b.dat')])
-def test_nam_col_num_cols_nok(capsys, ind, fname, msg):
+def test_nam_col_num_cols_nok(capsys: CaptureFixture[str], ind: NumData,
+                              fname: str, msg: str) -> None:
     """Test not OK cases of named_cols_from_num_cols."""
     with pytest.raises(SystemExit):
         _ = named_cols_from_num_cols(ind, fname)
@@ -69,7 +73,8 @@ def test_nam_col_num_cols_nok(capsys, ind, fname, msg):
                            [['ab', 'ef', 'cd'],
                             [1, 3, 2], [4, 6, 5]],
                            ['ab', 'ef', 'cd'])])
-def test_num_col_nam_cols_ok(capsys, ind, outd, corder):
+def test_num_col_nam_cols_ok(capsys: CaptureFixture[str], ind: NameData,
+                             outd: NumData, corder: list[str]) -> None:
     """Test OK cases of num_cols_from_named_cols."""
     ret = num_cols_from_named_cols(ind, column_order=corder)
     out, err = capsys.readouterr()
@@ -83,7 +88,8 @@ def test_num_col_nam_cols_ok(capsys, ind, outd, corder):
                             {'cd': 5, 'ef': 6}],
                            ['ef', 'ab', 'cd'],
                            'Data row 1 is missing data for column ab')])
-def test_num_col_nam_cols_nok(capsys, ind, corder, msg):
+def test_num_col_nam_cols_nok(capsys: CaptureFixture[str], ind: NameData,
+                              corder: list[str], msg: str) -> None:
     """Test not OK cases of named_cols_from_num_cols."""
     with pytest.raises(SystemExit):
         _ = num_cols_from_named_cols(ind, column_order=corder)
@@ -99,11 +105,16 @@ def test_num_col_nam_cols_nok(capsys, ind, corder, msg):
                            [1, None, 3], ['a', 'x y', 7]],
                           [['ab', 'cd', 'ef'],
                            [1, None, None], ['a', 'x y', 7]]])
-def test_nam_col_num_cols_rev(capsys, ind):
+def test_nam_col_num_cols_rev(capsys: CaptureFixture[str],
+                              ind: NumData) -> None:
     """Test OK cases of named_cols_from_num_cols."""
     exp = deepcopy(ind)
     ret1 = named_cols_from_num_cols(ind, 'somfile.csv')
-    ret2 = num_cols_from_named_cols(ret1, column_order=ind[0])
+    corder = []
+    for column in ind[0]:
+        assert isinstance(column, str)
+        corder.append(column)
+    ret2 = num_cols_from_named_cols(ret1, column_order=corder)
     out, err = capsys.readouterr()
     assert exp == ret2
     assert '' == out

@@ -7,10 +7,12 @@
 # pylint: disable=duplicate-code
 
 
+from typing import Any
 from copy import deepcopy
 from collections import namedtuple
 from tempfile import TemporaryDirectory
 import pytest
+from pytest import CaptureFixture
 from excel_list_transform.config_enums import RewriteKind, CaseSensitivity, \
     SplitWhere, FileType
 from excel_list_transform.transform_func_num import \
@@ -30,7 +32,8 @@ from excel_list_transform.transform_func_common import col_must_exist_num, \
                          [(0, ['a', 'b', 'c'], 't1'),
                           (0, ['a', 'b', 'c'], 't2'),
                           (0, ['a', 'b', 'c'], 't3')])
-def test_col_must_exist_num_ok(capsys, col, row, par):
+def test_col_must_exst_num_ok(capsys: CaptureFixture[str], col: Any, row: Any,
+                              par: Any) -> None:
     """Test OK cases for col_must_exist_num."""
     col_must_exist_num(col=col, row=row, param=par)
     out, err = capsys.readouterr()
@@ -45,7 +48,8 @@ def test_col_must_exist_num_ok(capsys, col, row, par):
                            't2: column index 3 out of range [0, 2].'),
                           (17, ['a', 'b', 'c', 'd'], 't3',
                            't3: column index 17 out of range [0, 3].')])
-def test_col_must_exist_num_nok(capsys, col, row, par, msg):
+def test_col_must_exst_num_no(capsys: CaptureFixture[str], col: Any, row: Any,
+                              par: Any, msg: Any) -> None:
     """Test not OK cases for col_must_exist_num."""
     with pytest.raises(SystemExit):
         col_must_exist_num(col=col, row=row, param=par)
@@ -79,8 +83,9 @@ def test_col_must_exist_num_nok(capsys, col, row, par, msg):
                            {'column': 1,
                             'store_single': SplitWhere.RIGHTMOST},
                            ['a', 'b', 'c', 'x', 'z'])])
-def test_store_col_split_num(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments  # noqa: E501
-                             row, col, val, sr, res):
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_store_col_split_num(capsys: CaptureFixture[str], row: Any, col: Any,
+                             val: Any, sr: Any, res: Any) -> None:
     """Test OK cases of store_col_split_num."""
     inrow = deepcopy(row)
     store_col_split_num(row=inrow, colref=col, val=val, singlerule=sr)
@@ -137,7 +142,8 @@ def test_store_col_split_num(capsys,  # pylint: disable=too-many-arguments,too-m
                              'store_single': SplitWhere.RIGHTMOST}],
                            [['a b', 'c', 'd o', 'e f', 'g'],
                             ['h i', None, 'j', 'k l p', 'm n']])])
-def test_split_columns_num(capsys, ind, split, exp):
+def test_split_columns_num(capsys: CaptureFixture[str], ind: Any, split: Any,
+                           exp: Any) -> None:
     """Test OK splitting of columns (column numbers)."""
     cfg = ConfigXlsListTransfNum()
     cfg.s03_split_columns = split
@@ -167,7 +173,8 @@ def test_split_columns_num(capsys, ind, split, exp):
                              'where': SplitWhere.RIGHTMOST,
                              'store_single': SplitWhere.LEFTMOST}],
                            'column index 4 out of range [0, 3]')])
-def test_split_columns_nok_num(capsys, ind, split, msg):
+def test_spl_cols_nok_num(capsys: CaptureFixture[str], ind: Any, split: Any,
+                          msg: Any) -> None:
     """Test not OK splitting of columns (column numbers)."""
     cfg = ConfigXlsListTransfNum()
     cfg.s03_split_columns = split
@@ -206,7 +213,8 @@ def test_split_columns_nok_num(capsys, ind, split, msg):
                           ([['a', 'b', 'c'], ['d', 'e', 'f']],
                            [0, 1, 2],
                            [[], []])])
-def test_remove_columns_ok(capsys, ind, rem, exp):
+def test_remove_columns_ok(capsys: CaptureFixture[str], ind: Any, rem: Any,
+                           exp: Any) -> None:
     """Test OK cases of removal of columns."""
     cfg = ConfigXlsListTransfNum()
     cfg.s04_remove_columns = rem
@@ -222,7 +230,8 @@ def test_remove_columns_ok(capsys, ind, rem, exp):
                            [3], 'column index 3 out of range [0, 2].'),
                           ([['a', 'b', 'c'], ['d', 'e', 'f']],
                            [-2], 'column index -2 out of range [0, 2].')])
-def test_remove_columns_nok(capsys, ind, rem, msg):
+def test_remove_columns_nok(capsys: CaptureFixture[str], ind: Any, rem: Any,
+                            msg: Any) -> None:
     """Test not OK cases of removal of columns."""
     cfg = ConfigXlsListTransfNum()
     cfg.s04_remove_columns = rem
@@ -258,7 +267,8 @@ def test_remove_columns_nok(capsys, ind, rem, msg):
                            [{'columns': [1], 'separator': 'ww'}],
                            [['b', 'c', 'd'], ['e', None, 'f'],
                             [None, 'h', 'j'], [None, None, 'm']])])
-def test_merge_columns_ok_num(capsys, ind, merg, exp):
+def test_merge_columns_ok_num(capsys: CaptureFixture[str], ind: Any, merg: Any,
+                              exp: Any) -> None:
     """Test merging of columns with number ref."""
     cfg = ConfigXlsListTransfNum()
     cfg.s05_merge_columns = merg
@@ -276,7 +286,8 @@ def test_merge_columns_ok_num(capsys, ind, merg, exp):
                           ([['a', 'b', 'c'], ['d', 'e', 'f']],
                            [{'columns': [-1, 0], 'separator': '--'}],
                            'column index -1 out of range [0, 2]')])
-def test_merge_columns_nok_num(capsys, ind, merg, msg):
+def test_mrg_cols_nok_num(capsys: CaptureFixture[str], ind: Any, merg: Any,
+                          msg: Any) -> None:
     """Test not OK merging of columns with number ref."""
     cfg = ConfigXlsListTransfNum()
     cfg.s05_merge_columns = merg
@@ -307,7 +318,8 @@ def test_merge_columns_nok_num(capsys, ind, merg, msg):
                            [1, 2, 0],
                            [['b', 'c', 'a', 'x'], ['e', 'f', 'd', 'y']])
                           ])
-def test_place_columns_first_ok(capsys, ind, pla, exp):
+def test_place_cols_first_ok(capsys: CaptureFixture[str], ind: Any, pla: Any,
+                             exp: Any) -> None:
     """Test placind of columns first."""
     cfg = ConfigXlsListTransfNum()
     cfg.s06_place_columns_first = pla
@@ -320,7 +332,8 @@ def test_place_columns_first_ok(capsys, ind, pla, exp):
 
 @pytest.mark.parametrize('pla', [[-1], [4], [2, 4, 1]])
 @pytest.mark.parametrize('ind', [([['a', 'b', 'c'], ['d', 'e', 'f']])])
-def test_place_columns_first_nok(capsys, ind, pla):
+def test_place_cols_first_nok(capsys: CaptureFixture[str], ind: Any,
+                              pla: Any) -> None:
     """Test not OK placing of columns firs."""
     cfg = ConfigXlsListTransfNum()
     cfg.s06_place_columns_first = pla
@@ -339,7 +352,8 @@ def test_place_columns_first_nok(capsys, ind, pla):
                            [{'column': 1, 'name': 'One'},
                             {'column': 2, 'name': 'Zwei'}],
                            [['a', 'One', 'Zwei'], ['d', 'e', 'f']])])
-def test_rename_columns_ok_num(capsys, ind, nam, exp):
+def test_ren_cols_ok_num(capsys: CaptureFixture[str], ind: Any, nam: Any,
+                         exp: Any) -> None:
     """Test ok renaming of columns."""
     cfg = ConfigXlsListTransfNum()
     cfg.s07_rename_columns = nam
@@ -362,7 +376,8 @@ def test_rename_columns_ok_num(capsys, ind, nam, exp):
 @pytest.mark.parametrize('ind',
                          [[['a', 'b', 'c'], ['d', 'e', 'f']],
                           [['a', 'b', 'c'], ['d', 'e', 'f']]])
-def test_rename_columns_nok_num(capsys, ind, nam, msg):
+def test_ren_cols_nok_num(capsys: CaptureFixture[str], ind: Any, nam: Any,
+                          msg: Any) -> None:
     """Test nok renaming of columns."""
     cfg = ConfigXlsListTransfNum()
     cfg.s07_rename_columns = nam
@@ -382,7 +397,8 @@ def test_rename_columns_nok_num(capsys, ind, nam, msg):
                             {'column': 4, 'name': 'Zwei', 'value': 'text'}],
                            [['a', 'One', 'b', 'c', 'Zwei'],
                             ['d', None, 'e', 'f', 'text']])])
-def test_insert_columns_ok_num(capsys, ind, ins, exp):
+def test_ins_cols_ok_num(capsys: CaptureFixture[str], ind: Any, ins: Any,
+                         exp: Any) -> None:
     """Test ok insertion of columns (number refs)."""
     cfg = ConfigXlsListTransfNum()
     cfg.s08_insert_columns = ins
@@ -405,7 +421,8 @@ def test_insert_columns_ok_num(capsys, ind, ins, exp):
 @pytest.mark.parametrize('ind',
                          [[['a', 'b', 'c'], ['d', 'e', 'f']],
                           [['a', 'b', 'c'], ['d', 'e', 'f']]])
-def test_insert_columns_nok_num(capsys, ind, ins, msg):
+def test_ins_cols_nok_num(capsys: CaptureFixture[str], ind: Any, ins: Any,
+                          msg: Any) -> None:
     """Test nok inserting of columns (number refs)."""
     cfg = ConfigXlsListTransfNum()
     cfg.s08_insert_columns = ins
@@ -428,7 +445,8 @@ def test_insert_columns_nok_num(capsys, ind, ins, msg):
                              'kind': RewriteKind.REGEX_SUBSTITUTE,
                              'case': CaseSensitivity.IGNORE_CASE}],
                            [['x', 'b', 'c'], ['xba', 'e', 'f']])])
-def test_rewrite_columns_ok_num(capsys, ind, spec, exp):
+def test_rew_cols_ok_num(capsys: CaptureFixture[str], ind: Any, spec: Any,
+                         exp: Any) -> None:
     """Test ok insertion of columns (name refs)."""
     cfg = ConfigXlsListTransfNum()
     cfg.s09_rewrite_columns = spec
@@ -447,7 +465,8 @@ def test_rewrite_columns_ok_num(capsys, ind, spec, exp):
                             {'column': 5, 'from': '^a', 'to': 'x',
                              'kind': RewriteKind.REGEX_SUBSTITUTE,
                              'case': CaseSensitivity.IGNORE_CASE}])])
-def test_rewrite_columns_nok_num(capsys, ind, spec):
+def test_rew_cols_nok_num(capsys: CaptureFixture[str], ind: Any,
+                          spec: Any) -> None:
     """Test not ok insertion of columns (name refs)."""
     cfg = ConfigXlsListTransfNum()
     cfg.s09_rewrite_columns = spec
@@ -475,16 +494,20 @@ def test_rewrite_columns_nok_num(capsys, ind, spec):
                           ([['a', 'b', 'c'],
                             [''], [''], []],
                            [['a', 'b', 'c']])])
-def test_fix_empty_rows_num_ok(capsys, ind, outd):
+# pylint: disable-next=duplicate-code
+def test_fix_empty_rows_num_o(capsys: CaptureFixture[str], ind: Any,
+                              outd: Any) -> None:
     """Test OK cases of fix_indata_empty_rows_num."""
-    fix_indata_empty_rows_num(indata=ind)   # pylint: disable=duplicate-code  # noqa: E501
+    # pylint: disable-next=duplicate-code
+    fix_indata_empty_rows_num(indata=ind)
     out, err = capsys.readouterr()
     assert ind == outd
     assert '' == err
     assert '' == out
 
 
-@pytest.mark.parametrize('ind, msg',   # pylint: disable=duplicate-code  # noqa: E501
+# pylint: disable-next=duplicate-code
+@pytest.mark.parametrize('ind, msg',
                          [([['a', 'b', 'c'],
                             {'q': 'd', 'x': 'e'}],
                            'Expected list of columns but got dict'),
@@ -494,7 +517,8 @@ def test_fix_empty_rows_num_ok(capsys, ind, outd):
                           ([['a', 'b', 'c'],
                             42],
                            'Expected list of columns but got int')])
-def test_fix_empty_rows_num_nok(capsys, ind, msg):
+def test_fix_empty_rows_num_n(capsys: CaptureFixture[str], ind: Any,
+                              msg: Any) -> None:
     """Test OK cases of fix_indata_empty_rows_num."""
     with pytest.raises(AssertionError) as exc:
         fix_indata_empty_rows_num(indata=ind)
@@ -511,7 +535,8 @@ def test_fix_empty_rows_num_nok(capsys, ind, msg):
                           ([['a', 'b'], []], [['a', 'b']]),
                           ([['a', 'b'], [None]], [['a', 'b']]),
                           ([['a', 'b'], ['']], [['a', 'b']])])
-def test_check_indata_ok_num(capsys, ind, res):
+def test_check_indata_ok_num(capsys: CaptureFixture[str], ind: Any,
+                             res: Any) -> None:
     """Test check_indata for OK case with num refs."""
     indata = deepcopy(ind)
     check_indata_num(indata=indata)
@@ -533,7 +558,8 @@ def test_check_indata_ok_num(capsys, ind, res):
                            'Number of columns different between lines', None),
                           ([[], []], SystemExit,
                            'No columns in input data', None)])
-def test_check_indata_nok_num(capsys, ind, exc, msg, excmsg):
+def test_check_indata_nok_num(capsys: CaptureFixture[str], ind: Any, exc: Any,
+                              msg: Any, excmsg: Any) -> None:
     """Test check_indata for nok case with num refs."""
     indata = deepcopy(ind)
     with pytest.raises(exc) as exc_inst:
@@ -546,7 +572,7 @@ def test_check_indata_nok_num(capsys, ind, exc, msg, excmsg):
     assert '' == out
 
 
-DataToUseNum = namedtuple('DataToUse',
+DataToUseNum = namedtuple('DataToUseNum',
                           ['indata', 'split_cols', 'rem_cols',
                            'merge_cols', 'first_cols', 'rename_cols',
                            'insert_cols', 'rewrite_cols', 'result'])
@@ -574,7 +600,7 @@ def get_test_data_num() -> DataToUseNum:
 
 
 @pytest.mark.smoke
-def test_transform_data_ok_num(capsys):
+def test_tr_data_ok_num(capsys: CaptureFixture[str]) -> None:
     """Test transform_data with OK input (num refs)."""
     cfg = ConfigXlsListTransfNum()
     test_data = get_test_data_num()
@@ -595,7 +621,8 @@ def test_transform_data_ok_num(capsys):
 
 
 @pytest.mark.parametrize('enc', ['utf-8', 'iso8859-1'])
-def test_rfmt_nmd_files_xl2cs_num(capsys, enc):
+# pylint: disable-next=duplicate-code
+def test_rfmt_nmd_fls_xl2csv(capsys: CaptureFixture[str], enc: Any) -> None:
     """Test transform_name_files from xlsx to csv (num refs)."""
     cfg = ConfigXlsListTransfNum()
     cfg.out_csv_encoding = enc
@@ -609,15 +636,18 @@ def test_rfmt_nmd_files_xl2cs_num(capsys, enc):
     cfg.s07_rename_columns = test_data.rename_cols
     cfg.s08_insert_columns = test_data.insert_cols
     cfg.s09_rewrite_columns = test_data.rewrite_cols
-    cfg.in_type = FileType.EXCEL  # pylint: disable=duplicate-code  # noqa: E501
+    # pylint: disable-next=duplicate-code
+    cfg.in_type = FileType.EXCEL
     cfg.out_type = FileType.CSV
     with TemporaryDirectory() as dirname:
-        cfgname = dirname + '/test.cfg'  # pylint: disable=duplicate-code  # noqa: E501
+        # pylint: disable-next=duplicate-code
+        cfgname = dirname + '/test.cfg'
         cfg.write(cfgname)
         infilename = dirname + '/in'
         outfilename = dirname + '/out'
         write_excel_num(data=test_data.indata, filename=infilename + '.xlsx')
-        transform_named_files(infilename=infilename, outfilename=outfilename,  # pylint: disable=duplicate-code  # noqa: E501
+        # pylint: disable-next=duplicate-code
+        transform_named_files(infilename=infilename, outfilename=outfilename,
                               cfgfilename=cfgname)
         res = read_csv_num(filename=outfilename + '.csv',
                            dialect=cfg.get_out_csv_dialect(),
@@ -629,7 +659,8 @@ def test_rfmt_nmd_files_xl2cs_num(capsys, enc):
 
 
 @pytest.mark.parametrize('enc', ['utf-8', 'iso8859-1'])
-def test_rfmt_nmd_files_cs2xl_num(capsys, enc):
+# pylint: disable-next=duplicate-code
+def test_rfmt_nmd_fls_csv2xl(capsys: CaptureFixture[str], enc: Any) -> None:
     """Test transform_name_files from csv to xlsx (num refs)."""
     cfg = ConfigXlsListTransfNum()
     cfg.in_csv_encoding = enc
@@ -643,17 +674,20 @@ def test_rfmt_nmd_files_cs2xl_num(capsys, enc):
     cfg.s07_rename_columns = test_data.rename_cols
     cfg.s08_insert_columns = test_data.insert_cols
     cfg.s09_rewrite_columns = test_data.rewrite_cols
-    cfg.out_type = FileType.EXCEL  # pylint: disable=duplicate-code  # noqa: E501
+    # pylint: disable-next=duplicate-code
+    cfg.out_type = FileType.EXCEL
     cfg.in_type = FileType.CSV
     with TemporaryDirectory() as dirname:
-        cfgname = dirname + '/test.cfg'  # pylint: disable=duplicate-code  # noqa: E501
+        # pylint: disable-next=duplicate-code
+        cfgname = dirname + '/test.cfg'
         cfg.write(cfgname)
         infilename = dirname + '/in'
         outfilename = dirname + '/out'
         write_csv_num(data=test_data.indata, filename=infilename + '.csv',
                       dialect=cfg.get_in_csv_dialect(),
                       encoding=cfg.in_csv_encoding)
-        transform_named_files(infilename=infilename, outfilename=outfilename,  # pylint: disable=duplicate-code  # noqa: E501
+        # pylint: disable-next=duplicate-code
+        transform_named_files(infilename=infilename, outfilename=outfilename,
                               cfgfilename=cfgname)
         res = read_excel_num(filename=outfilename + '.xlsx',
                              max_column_read=20, strip_col_names=False,

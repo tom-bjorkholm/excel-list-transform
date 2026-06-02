@@ -477,9 +477,9 @@ Source code and tests are available at [https://bitbucket.org/tom-bjorkholm/exce
 
 ## Test summary
 
-- Test result: 4303 passed in 24s
+- Test result: 4303 passed in 15s
 - No flake8 warnings.
 - No mypy errors found.
 - No python layout warnings.
 - Built version(s): 0.8.6
-- Build and test using Python 3.13.7
+- Build and test using Python 3.14.5

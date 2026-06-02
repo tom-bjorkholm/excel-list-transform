@@ -10,7 +10,7 @@
 from copy import deepcopy
 import pytest
 from excel_list_transform.transform_func_common import col_must_exist, \
-    cols_must_exist_lst, cols_must_exist_dict, cols_must_exist_dictlst, \
+    cols_must_exist_lst, cols_must_exist_dict, cols_must_exist_multi, \
     pop_from_row, insert_into_row
 
 
@@ -130,8 +130,8 @@ def test_cols_must_exist_dict_nok(capsys,  # pylint: disable=too-many-arguments,
                            {'x': 'a', 'y': 'b', 'z': 'c', 'q': 'd'},
                            'test2', 'a')])
 def test_cols_must_exist_dlst_ok(capsys, rule, row, par, tinf):
-    """Test OK cases of cols_must_exist_dictlst."""
-    cols_must_exist_dictlst(rule=rule, row=row, param=par, tinfo=tinf)
+    """Test OK cases of cols_must_exist_multi."""
+    cols_must_exist_multi(rule=rule, row=row, param=par, tinfo=tinf)
     out, err = capsys.readouterr()
     assert '' == out
     assert '' == err
@@ -149,9 +149,9 @@ def test_cols_must_exist_dlst_ok(capsys, rule, row, par, tinf):
                            'test2: no column named "aa" in data row')])
 def test_cols_must_exist_dlst_nok(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments  # noqa: E501
                                   rule, row, par, tinf, msg):
-    """Test not OK cases of cols_must_exist_dictlst."""
+    """Test not OK cases of cols_must_exist_multi."""
     with pytest.raises(SystemExit):
-        cols_must_exist_dictlst(rule=rule, row=row, param=par, tinfo=tinf)
+        cols_must_exist_multi(rule=rule, row=row, param=par, tinfo=tinf)
     out, err = capsys.readouterr()
     assert '' == out
     assert msg in err

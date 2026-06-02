@@ -512,8 +512,7 @@ def get_test_data_name(written_result: bool) -> DataToUseName:
                                        'column': 'q',
                                        'from': 'c', 'to': 'h',
                                        'case': CaseSensitivity.MATCH_CASE}],
-                        result=result,
-                        in_col_order=['x', 'y', 'z'])
+                        result=result, in_col_order=['x', 'y', 'z'])
     return ret
 
 
@@ -557,15 +556,13 @@ def test_rfmt_nmd_files_xl2cs_name(capsys, enc):
         cfg.write(cfgname)
         infilename = dirname + '/in'
         outfilename = dirname + '/out'
-        write_excel_named(data=test_data.indata,
-                          filename=infilename + '.xlsx',
+        write_excel_named(data=test_data.indata, filename=infilename + '.xlsx',
                           column_order=test_data.in_col_order)
         transform_named_files(infilename=infilename, outfilename=outfilename,  # pylint: disable=duplicate-code  # noqa: E501
                               cfgfilename=cfgname)
         res = read_csv_num(filename=outfilename + '.csv',
                            dialect=cfg.get_out_csv_dialect(),
-                           encoding=cfg.out_csv_encoding,
-                           max_column_read=20)
+                           encoding=cfg.out_csv_encoding, max_column_read=20)
         out, err = capsys.readouterr()
         assert '' == err
         assert f'Wrote {outfilename}.csv' == out.strip()

@@ -50,8 +50,7 @@ def fix_row_openpyxl(row: tuple[_AnyCellValue, ...],
             ret.append(cell)
         elif isinstance(cell, date):
             assert isinstance(cell, date)
-            ret.append(datetime(year=cell.year,
-                                month=cell.month,
+            ret.append(datetime(year=cell.year, month=cell.month,
                                 day=cell.day))
         elif isinstance(cell, Decimal):
             assert isinstance(cell, Decimal)
@@ -71,9 +70,8 @@ def fix_row_openpyxl(row: tuple[_AnyCellValue, ...],
     return ret
 
 
-def read_excel_openpyxl(filename: str,
-                        max_column_read: int) \
-                        -> NumData:
+def read_excel_openpyxl(filename: str, max_column_read: int) \
+        -> NumData:
     """Read the excel file using openpyxl."""
     workbook = openpyxl_load_workbook(filename=filename, read_only=True,
                                       data_only=True)
@@ -85,9 +83,8 @@ def read_excel_openpyxl(filename: str,
     return handle_empty_column_in_lst(res)
 
 
-def read_excel_pyligthxl(filename: str,
-                         max_column_read: int) \
-                         -> NumData:
+def read_excel_pyligthxl(filename: str, max_column_read: int) \
+        -> NumData:
     """Read the excel file using pyligthxl."""
     pyl_db = pl_readxl(fn=filename)
     sheetnames = pyl_db.ws_names
@@ -102,9 +99,8 @@ def read_excel_pyligthxl(filename: str,
     return ret
 
 
-def read_excel_xlsxwriter(filename: str,
-                          max_column_read: int) \
-                          -> NumData:
+def read_excel_xlsxwriter(filename: str, max_column_read: int) \
+        -> NumData:
     """Flag error and use other read library."""
     print('xlsxwriter cannot read, using pylightxl.', file=sys.stderr)
     return read_excel_pyligthxl(filename=filename,
@@ -130,10 +126,9 @@ def excel_data_strip(data: NumData, strip_col_names: bool,
     return datacopy
 
 
-def read_excel_num(filename: str, max_column_read: int,
-                   strip_col_names: bool, strip_values: bool,
-                   excel_lib: Optional[ExcelLib] = None) \
-                        -> NumData:
+def read_excel_num(filename: str, max_column_read: int, strip_col_names: bool,
+                   strip_values: bool, excel_lib: Optional[ExcelLib] = None) \
+        -> NumData:
     """Read the excel file for number referenced columns."""
     dispatch = {ExcelLib.OPENPYXL: read_excel_openpyxl,
                 ExcelLib.PYLIGHTXL: read_excel_pyligthxl,
@@ -148,8 +143,7 @@ def read_excel_num(filename: str, max_column_read: int,
 
 def read_excel_named(filename: str, max_column_read: int,
                      strip_col_names: bool, strip_values: bool,
-                     excel_lib: Optional[ExcelLib] = None) \
-                        -> NameData:
+                     excel_lib: Optional[ExcelLib] = None) -> NameData:
     """Read the excel file for name referenced columns."""
     data = read_excel_num(filename=filename, max_column_read=max_column_read,
                           strip_col_names=strip_col_names,
@@ -157,8 +151,7 @@ def read_excel_named(filename: str, max_column_read: int,
     return named_cols_from_num_cols(data=data, filename=filename)
 
 
-def write_excel_openpyxl(data: NumData | NumDataSeq,
-                         filename: str) -> None:
+def write_excel_openpyxl(data: NumData | NumDataSeq, filename: str) -> None:
     """Write data as list in excel file using openpyxl."""
     workbook = openpyxl_wb()
     sheet = workbook.active
@@ -171,8 +164,7 @@ def write_excel_openpyxl(data: NumData | NumDataSeq,
     workbook.save(filename=filename)
 
 
-def write_excel_pylightxl(data: NumData | NumDataSeq,
-                          filename: str) -> None:
+def write_excel_pylightxl(data: NumData | NumDataSeq, filename: str) -> None:
     """Write data as list in excel file using pylightxl."""
     pyl_db = pl_db()
     pyl_db.add_ws(ws="Data")
@@ -184,8 +176,7 @@ def write_excel_pylightxl(data: NumData | NumDataSeq,
     pl_writexl(db=pyl_db, fn=filename)
 
 
-def write_excel_xlsxwriter(data: NumData | NumDataSeq,
-                           filename: str) -> None:
+def write_excel_xlsxwriter(data: NumData | NumDataSeq, filename: str) -> None:
     """Write data as list in excel file using xlsxwriter."""
     options = {'in_memory': True,
                'strings_to_numbers': False,
@@ -211,8 +202,7 @@ def write_excel_xlsxwriter(data: NumData | NumDataSeq,
                         raise RuntimeError(msg)
 
 
-def write_excel_num(data: NumData | NumDataSeq,
-                    filename: str,
+def write_excel_num(data: NumData | NumDataSeq, filename: str,
                     excel_lib: Optional[ExcelLib] = None) -> None:
     """Write data (number referenced columns) as list in excel file."""
     dispatch = {ExcelLib.OPENPYXL: write_excel_openpyxl,
@@ -223,12 +213,10 @@ def write_excel_num(data: NumData | NumDataSeq,
     dispatch[excel_lib](data=data, filename=filename)
 
 
-def write_excel_named(data: NameDataMap,
-                      filename: str,
+def write_excel_named(data: NameDataMap, filename: str,
                       column_order: list[str],
                       excel_lib: Optional[ExcelLib] = None) -> None:
     """Write data (name referenced columns) as list in excel file."""
     wdata: NumData = num_cols_from_named_cols(data=data,
                                               column_order=column_order)
-    write_excel_num(data=wdata, filename=filename,
-                    excel_lib=excel_lib)
+    write_excel_num(data=wdata, filename=filename, excel_lib=excel_lib)

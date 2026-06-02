@@ -24,8 +24,7 @@ def test_generate_syntax_txt(capsys, txt_file, edescr, cfg_file):
     with TemporaryDirectory() as dname:
         fname = dname + '/' + txt_file
         cfname = dname + '/' + cfg_file
-        generate_syntax_txt(filename=fname,
-                            example_description=edescr,
+        generate_syntax_txt(filename=fname, example_description=edescr,
                             cfgfilename=cfname)
         with open(file=fname, mode='r', encoding='utf-8') as file:
             content = file.read()

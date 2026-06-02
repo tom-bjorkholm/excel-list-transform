@@ -38,8 +38,8 @@ def assert_dict_equal(lhs: Mapping[str, Any], rhs: Mapping[str, Any],
         if key in rhs_val:
             del rhs_val[key]
     if len(lhs_val) != len(rhs_val):
-        _print_dict_differs('Different number of keys in dicts',
-                            lhs_val, rhs_val)
+        _print_dict_differs('Different number of keys in dicts', lhs_val,
+                            rhs_val)
     assert len(lhs_val) == len(rhs_val)
     for key in lhs_val.keys():
         if key not in rhs:

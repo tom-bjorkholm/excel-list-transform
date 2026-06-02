@@ -558,8 +558,7 @@ def get_example_names() -> list[str]:
     return list(dispatch.keys())
 
 
-def generate_examplecfg(filename: str, cfgtype: str,
-                        colref: ColumnRef) -> int:
+def generate_examplecfg(filename: str, cfgtype: str, colref: ColumnRef) -> int:
     """Generate example cfg file for one type of usage."""
     fixedname = fix_file_extension(filename=filename, ext_to_add='.cfg')
     syntaxfilename = fix_file_extension(filename=fixedname, ext_to_add='.txt',

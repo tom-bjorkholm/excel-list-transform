@@ -621,8 +621,7 @@ def test_rfmt_nmd_files_xl2cs_num(capsys, enc):
                               cfgfilename=cfgname)
         res = read_csv_num(filename=outfilename + '.csv',
                            dialect=cfg.get_out_csv_dialect(),
-                           encoding=cfg.out_csv_encoding,
-                           max_column_read=20)
+                           encoding=cfg.out_csv_encoding, max_column_read=20)
         out, err = capsys.readouterr()
         assert '' == err
         assert f'Wrote {outfilename}.csv' == out.strip()

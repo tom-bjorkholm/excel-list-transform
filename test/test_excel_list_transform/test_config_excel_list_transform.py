@@ -23,12 +23,9 @@ def test_config_exc_list_refrm_def(capsys):
                   'Phone', 'Phone', 'Phone', 'Phone', 'Phone',
                   'Last Name']
     col_to_use_row = ['Club Name', 'name', 'last name']
-    colinfo = ColInfo(split_last='right_name', insert_last=None,
-                      col_to_use=col_to_use,
-                      col_to_use_row=col_to_use_row, tinfo='a',
-                      s03=[], s08=[])
-    cfg = ConfigExcelListTransform(col_ref=ColumnRef.BY_NAME,
-                                   colinfo=colinfo,
+    colinfo = ColInfo('right_name', None, [], [], col_to_use, col_to_use_row,
+                      'a')
+    cfg = ConfigExcelListTransform(col_ref=ColumnRef.BY_NAME, colinfo=colinfo,
                                    tinfo='a')
     assert cfg.in_type == FileType.EXCEL
     assert cfg.out_type == FileType.EXCEL
@@ -37,12 +34,11 @@ def test_config_exc_list_refrm_def(capsys):
     str_cfg = cfg.as_json_string()
     assert len(str_cfg) > 1
     assert 'in_type' in str_cfg
-    zcfg = ConfigExcelListTransform(col_ref=ColumnRef.BY_NAME,
-                                    colinfo=colinfo, tinfo='a')
+    zcfg = ConfigExcelListTransform(col_ref=ColumnRef.BY_NAME, colinfo=colinfo,
+                                    tinfo='a')
     assert_dict_equal(cfg.__dict__, zcfg.__dict__, ['_hook_cfg_autochange'])
-    ycfg = ConfigExcelListTransform(col_ref=ColumnRef.BY_NAME,
-                                    colinfo=colinfo, tinfo='a',
-                                    from_json_text=str_cfg)
+    ycfg = ConfigExcelListTransform(col_ref=ColumnRef.BY_NAME, colinfo=colinfo,
+                                    tinfo='a', from_json_text=str_cfg)
     assert_dict_equal(cfg.__dict__, ycfg.__dict__, ['_hook_cfg_autochange'])
     assert cfg.out_csv_dialect['lineterminator'] is None
     assert ycfg.out_csv_dialect['lineterminator'] is None
@@ -65,11 +61,8 @@ def test_config_exc_list_reform_read_incomplete4(capsys, t):
     """Test ConfigExcelListTransform read incomplete 4."""
     col_to_use = [15, 16, 1, 2, 5, 5, 5, 5, 5, 6]
     col_to_use_row = [7, 1, 2]
-    colinfo = ColInfo(split_last='store_single',
-                      insert_last='name',
-                      col_to_use=col_to_use,
-                      col_to_use_row=col_to_use_row, tinfo=2,
-                      s03=[], s08=[])
+    colinfo = ColInfo('store_single', 'name', [], [], col_to_use,
+                      col_to_use_row, 2)
     cfg = ConfigExcelListTransform(col_ref=ColumnRef.BY_NUMBER,
                                    colinfo=colinfo, tinfo=2)
     with pytest.raises(KeyError) as exc_info:
@@ -164,19 +157,15 @@ def get_mock_init_args(colref: ColumnRef):
     if colref == ColumnRef.BY_NUMBER:
         col_to_us1 = [2, 3, 0, 1, 4, 4, 4, 4, 4, 1]
         col_to_use_r1 = [7, 1, 2]
-        colinf1 = ColInfo(split_last='right_name', insert_last=None,
-                          col_to_use=col_to_us1,
-                          col_to_use_row=col_to_use_r1, tinfo=2,
-                          s03=[], s08=[])
+        colinf1 = ColInfo('right_name', None, [], [], col_to_us1,
+                          col_to_use_r1, 2)
         return MockInitArgs(colref=colref, colinfo=colinf1, tinfo=2)
     col_to_use = ['street', 'street number', 'name', 'last name',
                   'Phone', 'Phone', 'Phone', 'Phone', 'Phone',
                   'Last Name']
     col_to_use_r2 = ['Club Name', 'name', 'last name']
-    colinf2 = ColInfo(split_last='right_name', insert_last=None,
-                      col_to_use=col_to_use,
-                      col_to_use_row=col_to_use_r2, tinfo='a',
-                      s03=[], s08=[])
+    colinf2 = ColInfo('right_name', None, [], [], col_to_use, col_to_use_r2,
+                      'a')
     return MockInitArgs(colref=colref, colinfo=colinf2, tinfo='a')
 
 
@@ -184,8 +173,7 @@ def get_mock_init_args(colref: ColumnRef):
 def test_cfg_transf_def_vals(capsys, cref):
     """Test ConfigExcelListTransform._def_vals_for_optional."""
     args = get_mock_init_args(colref=cref)
-    cfg = ConfigExcelListTransform(col_ref=args.colref,
-                                   colinfo=args.colinfo,
+    cfg = ConfigExcelListTransform(col_ref=args.colref, colinfo=args.colinfo,
                                    tinfo=args.tinfo)
     data = cfg._def_vals_for_optional()  # pylint: disable=protected-access # noqa: E501
     out, err = capsys.readouterr()
@@ -208,18 +196,15 @@ def test_cfg_transf_def_vals(capsys, cref):
 def test_cfg_transf_encoding_def(capsys, cref):
     """Test encoding in default constructed ConfigExcelListTransform."""
     args = get_mock_init_args(colref=cref)
-    cfg = ConfigExcelListTransform(col_ref=args.colref,
-                                   colinfo=args.colinfo,
+    cfg = ConfigExcelListTransform(col_ref=args.colref, colinfo=args.colinfo,
                                    tinfo=args.tinfo)
     assert 'utf_8_sig' == cfg.in_csv_encoding
     assert 'utf-8' == cfg.out_csv_encoding
     txt = cfg.as_json_string()
     assert 'in_csv_encoding' in txt
     assert 'utf-8' in txt
-    cf2 = ConfigExcelListTransform(col_ref=args.colref,
-                                   colinfo=args.colinfo,
-                                   tinfo=args.tinfo,
-                                   from_json_text=txt,
+    cf2 = ConfigExcelListTransform(col_ref=args.colref, colinfo=args.colinfo,
+                                   tinfo=args.tinfo, from_json_text=txt,
                                    from_json_filename=None)
     out, err = capsys.readouterr()
     assert '' == out
@@ -238,8 +223,7 @@ def test_cfg_transf_enc_1_ok(capsys,  # pylint: disable=too-many-arguments,too-m
                              in_enc, out_enc, cref, scol, sval):
     """Test configured encoding for ConfigExcelListTransform."""
     args = get_mock_init_args(colref=cref)
-    cfg = ConfigExcelListTransform(col_ref=args.colref,
-                                   colinfo=args.colinfo,
+    cfg = ConfigExcelListTransform(col_ref=args.colref, colinfo=args.colinfo,
                                    tinfo=args.tinfo)
     assert 'utf_8_sig' == cfg.in_csv_encoding
     assert 'utf-8' == cfg.out_csv_encoding
@@ -252,10 +236,8 @@ def test_cfg_transf_enc_1_ok(capsys,  # pylint: disable=too-many-arguments,too-m
     txt = cfg.as_json_string()
     assert in_enc in txt
     assert out_enc in txt
-    cf2 = ConfigExcelListTransform(col_ref=args.colref,
-                                   colinfo=args.colinfo,
-                                   tinfo=args.tinfo,
-                                   from_json_text=txt,
+    cf2 = ConfigExcelListTransform(col_ref=args.colref, colinfo=args.colinfo,
+                                   tinfo=args.tinfo, from_json_text=txt,
                                    from_json_filename=None)
     out, err = capsys.readouterr()
     assert '' == out
@@ -273,17 +255,14 @@ def test_cfg_transf_enc_1_ok(capsys,  # pylint: disable=too-many-arguments,too-m
 def test_cfg_transf_enc_1_nok(capsys, in_enc, out_enc, cref):
     """Test not OK configured encoding for ConfigExcelListTransform."""
     with pytest.raises(SystemExit):
-        args = get_mock_init_args(colref=cref)
-        cfg = ConfigExcelListTransform(col_ref=args.colref,
-                                       colinfo=args.colinfo,
-                                       tinfo=args.tinfo)
+        arg = get_mock_init_args(colref=cref)
+        cfg = ConfigExcelListTransform(col_ref=arg.colref, colinfo=arg.colinfo,
+                                       tinfo=arg.tinfo)
         cfg.in_csv_encoding = in_enc
         cfg.out_csv_encoding = out_enc
         txt = cfg.as_json_string()
-        _ = ConfigExcelListTransform(col_ref=args.colref,
-                                     colinfo=args.colinfo,
-                                     tinfo=args.tinfo,
-                                     from_json_text=txt,
+        _ = ConfigExcelListTransform(col_ref=arg.colref, colinfo=arg.colinfo,
+                                     tinfo=arg.tinfo, from_json_text=txt,
                                      from_json_filename=None)
     out, err = capsys.readouterr()
     assert '' == out
@@ -297,8 +276,7 @@ def test_cfg_transf_enc_1_nok(capsys, in_enc, out_enc, cref):
 def test_cfg_transf_enc_2_ok(capsys, in_enc, out_enc, cref):
     """Test default encoding for ConfigExcelListTransform."""
     args = get_mock_init_args(colref=cref)
-    cfg = ConfigExcelListTransform(col_ref=args.colref,
-                                   colinfo=args.colinfo,
+    cfg = ConfigExcelListTransform(col_ref=args.colref, colinfo=args.colinfo,
                                    tinfo=args.tinfo)
     assert 'utf_8_sig' == cfg.in_csv_encoding
     assert 'utf-8' == cfg.out_csv_encoding
@@ -310,8 +288,7 @@ def test_cfg_transf_enc_2_ok(capsys, in_enc, out_enc, cref):
     lines = txt.splitlines()
     filtered_lines = [row for row in lines if 'encoding' not in row]
     filtered_txt = '\n'.join(filtered_lines)
-    cf2 = ConfigExcelListTransform(col_ref=args.colref,
-                                   colinfo=args.colinfo,
+    cf2 = ConfigExcelListTransform(col_ref=args.colref, colinfo=args.colinfo,
                                    tinfo=args.tinfo,
                                    from_json_text=filtered_txt,
                                    from_json_filename=None)
@@ -363,8 +340,7 @@ def test_check_sep_not_sep_nok(capsys, sep, nosep, msgs):
 def test_check_split_row_cfg_ok(capsys, cref, rsplit):
     """Test OK cases for check_split_row_cfg."""
     args = get_mock_init_args(colref=cref[0])
-    cfg = ConfigExcelListTransform(col_ref=args.colref,
-                                   colinfo=args.colinfo,
+    cfg = ConfigExcelListTransform(col_ref=args.colref, colinfo=args.colinfo,
                                    tinfo=args.tinfo)
     rsplit2 = deepcopy(rsplit)
     for i in rsplit2:
@@ -396,8 +372,7 @@ def test_check_split_row_cfg_ok(capsys, cref, rsplit):
 def test_check_split_row_cfg_nok(capsys, cref, rsplit, msgs):
     """Test not OK cases for check_split_row_cfg."""
     args = get_mock_init_args(colref=cref[0])
-    cfg = ConfigExcelListTransform(col_ref=args.colref,
-                                   colinfo=args.colinfo,
+    cfg = ConfigExcelListTransform(col_ref=args.colref, colinfo=args.colinfo,
                                    tinfo=args.tinfo)
     rsplit2 = deepcopy(rsplit)
     for i in rsplit2:
@@ -423,8 +398,7 @@ def test_check_split_row_cfg_nok(capsys, cref, rsplit, msgs):
 def test_check_merge_row_cfg_ok(capsys, cref, rmerg):
     """Test OK cases for check_split_row_cfg."""
     args = get_mock_init_args(colref=cref[0])
-    cfg = ConfigExcelListTransform(col_ref=args.colref,
-                                   colinfo=args.colinfo,
+    cfg = ConfigExcelListTransform(col_ref=args.colref, colinfo=args.colinfo,
                                    tinfo=args.tinfo)
     rsplit2 = deepcopy(rmerg)
     for i in rsplit2:
@@ -457,8 +431,7 @@ def test_check_merge_row_cfg_ok(capsys, cref, rmerg):
 def test_check_merge_row_cfg_nok(capsys, cref, rmerg, msgs):
     """Test not OK cases for check_split_row_cfg."""
     args = get_mock_init_args(colref=cref[0])
-    cfg = ConfigExcelListTransform(col_ref=args.colref,
-                                   colinfo=args.colinfo,
+    cfg = ConfigExcelListTransform(col_ref=args.colref, colinfo=args.colinfo,
                                    tinfo=args.tinfo)
     rsplit2 = deepcopy(rmerg)
     for i in rsplit2:

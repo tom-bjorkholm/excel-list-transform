@@ -54,8 +54,7 @@ def test_read_csv_named_use_num(capsys):
     dial.delimiter = ','
     file = './test/test_excel_list_transform/test_read.csv'
     data = read_csv_named_use_num(file, dialect=csv.excel,
-                                  encoding='utf_8_sig',
-                                  max_column_read=20)
+                                  encoding='utf_8_sig', max_column_read=20)
     assert len(data) == 5
     assert data[2]['Efternamn'] == 'Ek'
     assert data[0]['Förnamn'] == 'Anna'
@@ -163,8 +162,8 @@ def test_write_csv_num_encmiss(capsys):
     data = [['a', 'b'], ['Hör', 'vadå']]
     with TemporaryDirectory() as dname:
         fname = dname + '/b.csv'
-        write_csv_num(data=data, filename=fname,
-                      dialect=csv.unix_dialect, encoding='utf8')
+        write_csv_num(data=data, filename=fname, dialect=csv.unix_dialect,
+                      encoding='utf8')
         rdata = read_csv_num(filename=fname, dialect=csv.unix_dialect,
                              encoding='iso8859-1', max_column_read=20)
         out, err = capsys.readouterr()
@@ -182,9 +181,8 @@ def test_write_csv_name_encmiss(capsys):
             {'a': 'Hör', 'b': 'vadå'}]
     with TemporaryDirectory() as dname:
         fname = dname + '/b.csv'
-        write_csv_named(data=data, filename=fname,
-                        dialect=csv.unix_dialect, encoding='utf8',
-                        column_order=['a', 'b'])
+        write_csv_named(data=data, filename=fname, dialect=csv.unix_dialect,
+                        encoding='utf8', column_order=['a', 'b'])
         rdata = read_csv_named(filename=fname, dialect=csv.unix_dialect,
                                encoding='iso8859-1', max_column_read=20)
         out, err = capsys.readouterr()
@@ -202,9 +200,8 @@ def test_write_csv_name_encmis2(capsys):
             {'a': 'Hör', 'b': 'vadå'}]
     with TemporaryDirectory() as dname:
         fname = dname + '/b.csv'
-        write_csv_named(data=data, filename=fname,
-                        dialect=csv.unix_dialect, encoding='utf8',
-                        column_order=['a', 'b'])
+        write_csv_named(data=data, filename=fname, dialect=csv.unix_dialect,
+                        encoding='utf8', column_order=['a', 'b'])
         rdata = read_csv_named(filename=fname, dialect=csv.unix_dialect,
                                encoding='iso8859-1', max_column_read=1)
         out, err = capsys.readouterr()

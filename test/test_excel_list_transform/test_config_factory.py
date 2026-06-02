@@ -68,8 +68,7 @@ def test_cfg_fact_get_text_nok(capsys,  # pylint: disable=too-many-arguments, to
 @pytest.mark.parametrize('txt', ['abc', 'def'])
 def test_cfg_fact_get_text_ok_txt(capsys, txt):
     """Test OK case with text of _config_factory_get_text."""
-    ret = _config_factory_get_text(from_json_text=txt,
-                                   from_json_filename=None)
+    ret = _config_factory_get_text(from_json_text=txt, from_json_filename=None)
     out, err = capsys.readouterr()
     assert ret == txt
     assert '' == out
@@ -149,8 +148,7 @@ def test_cfg_fact_fr_json_ok_txt(capsys, kind):
     """Test OK cases txt of config_factory_from_json."""
     orig = kind()
     txt = orig.as_json_string()
-    cfg = config_factory_from_json(from_json_text=txt,
-                                   from_json_filename=None)
+    cfg = config_factory_from_json(from_json_text=txt, from_json_filename=None)
     out, err = capsys.readouterr()
     assert isinstance(cfg, kind)
     assert '' == out

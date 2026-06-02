@@ -213,8 +213,7 @@ def openpyxl_reader(filename, max_column_read=40):
 def csv_reader(filename, max_column_read=40):
     """Read CSV with excel dialect."""
     return read_csv_num(filename=filename, dialect=csv_excel_dialect,
-                        encoding='utf_8_sig',
-                        max_column_read=max_column_read)
+                        encoding='utf_8_sig', max_column_read=max_column_read)
 
 
 @pytest.mark.parametrize('refcol', [ColumnRef.BY_NAME, ColumnRef.BY_NUMBER])
@@ -231,11 +230,9 @@ def test_cfg_gen_used(capsys,  # pylint: disable=too-many-arguments, too-many-po
     test_data = ExampleData()
     res = None
     with TemporaryDirectory() as dname:
-        files = FileNames(indata=dname + '/a.xlsx',
-                          cfg=dname + '/a.cfg',
-                          out=dname + '/' + outname)
-        generate_examplecfg(cfgtype=cfg, filename=files.cfg,
-                            colref=refcol)
+        files = FileNames(dname + '/a.xlsx', dname + '/a.cfg',
+                          dname + '/' + outname)
+        generate_examplecfg(cfgtype=cfg, filename=files.cfg, colref=refcol)
         write_excel_num(data=indgen(test_data), filename=files.indata)
         transform_named_files(infilename=files.indata, outfilename=files.out,
                               cfgfilename=files.cfg)
@@ -267,9 +264,8 @@ def test_cfg_and_cmd(capsys,  # pylint: disable=too-many-arguments,too-many-posi
     test_data = ExampleData()
     res = None
     with TemporaryDirectory() as dname:
-        files = FileNames(indata=dname + '/a.xlsx',
-                          cfg=dname + '/a.cfg',
-                          out=dname + '/' + outname)
+        files = FileNames(dname + '/a.xlsx', dname + '/a.cfg',
+                          dname + '/' + outname)
         transform_cmd([example, '-r', refcol.name.lower(), '-k', cfg,
                       '-o', files.cfg])
         write_excel_num(data=indgen(test_data), filename=files.indata)
@@ -292,10 +288,8 @@ def test_sa_cfg_and_cmd(capsys,  # pylint: disable=too-many-arguments,too-many-p
                         refcol, example):
     """Test to generate SailArena configuration and use it."""
     with TemporaryDirectory() as dname:
-        files = FileNames(indata='./test/test_excel_list_transform/' +
-                          'SA_example.csv',
-                          cfg=dname + '/a.cfg',
-                          out=dname + '/out.xlsx')
+        files = FileNames('./test/test_excel_list_transform/SA_example.csv',
+                          dname + '/a.cfg', dname + '/out.xlsx')
         transform_cmd([example, '-r', refcol.name.lower(), '-k', 'sa_to_rrs',
                       '-o', files.cfg])
         transform_cmd(['transform', '-i', files.indata, '-o', files.out,

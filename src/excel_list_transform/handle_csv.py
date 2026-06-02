@@ -16,8 +16,7 @@ def read_csv_num(filename: str, dialect: type[Dialect], encoding: str,
                  max_column_read: int) -> NumData:
     """Read a csv file in specified dialect (numbered columns)."""
     res: NumDataSeq = []
-    with open(file=filename, mode="r",
-              encoding=encoding, newline='') as cfile:
+    with open(file=filename, mode="r", encoding=encoding, newline='') as cfile:
         creader = reader(cfile, dialect=dialect)
         for row in creader:
             res.append(list(row)[:max_column_read])
@@ -25,8 +24,7 @@ def read_csv_num(filename: str, dialect: type[Dialect], encoding: str,
 
 
 def read_csv_named_use_num(filename: str, dialect: type[Dialect],
-                           encoding: str,
-                           max_column_read: int) -> NameData:
+                           encoding: str, max_column_read: int) -> NameData:
     """Read a csv file using numbered columns for named columns."""
     data = read_csv_num(filename=filename, dialect=dialect, encoding=encoding,
                         max_column_read=max_column_read)
@@ -38,8 +36,7 @@ def read_csv_named(filename: str, dialect: type[Dialect], encoding: str,
     """Read a csv file in specified dialect (named columns)."""
     res = []
     first_line: bool = True
-    with open(file=filename, mode="r",
-              encoding=encoding, newline='') as cfile:
+    with open(file=filename, mode="r", encoding=encoding, newline='') as cfile:
         creader = DictReader(cfile, dialect=dialect)
         for row in creader:
             if first_line:
@@ -57,8 +54,7 @@ def read_csv_named(filename: str, dialect: type[Dialect], encoding: str,
 def write_csv_num(data: NumData, filename: str, dialect: type[Dialect],
                   encoding: str) -> None:
     """Write a csv file in specified dialect."""
-    with open(file=filename, mode="w", encoding=encoding,
-              newline='') as cfile:
+    with open(file=filename, mode="w", encoding=encoding, newline='') as cfile:
         cwriter = writer(cfile, dialect=dialect)
         for row in data:
             cwriter.writerow(row)
@@ -67,8 +63,7 @@ def write_csv_num(data: NumData, filename: str, dialect: type[Dialect],
 def write_csv_named(data: NameData, filename: str, dialect: type[Dialect],
                     encoding: str, column_order: list[str]) -> None:
     """Write a csv file in specified dialect."""
-    with open(file=filename, mode="w", encoding=encoding,
-              newline='') as cfile:
+    with open(file=filename, mode="w", encoding=encoding, newline='') as cfile:
         cwriter = DictWriter(f=cfile, dialect=dialect, fieldnames=column_order,
                              extrasaction='ignore')
         cwriter.writeheader()

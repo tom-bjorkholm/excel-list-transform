@@ -45,6 +45,5 @@ def transform_named_files(infilename: str, outfilename: str,
                       Callable[[str, str, Config], None]] = \
         {ColumnRef.BY_NUMBER: transform_named_files_num,
          ColumnRef.BY_NAME: transform_named_files_name}
-    dispatch[cfg.column_ref](fixed_infilename, fixed_outfilename,
-                             cfg)
+    dispatch[cfg.column_ref](fixed_infilename, fixed_outfilename, cfg)
     return 0

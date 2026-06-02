@@ -33,17 +33,14 @@ def write_testdata_file(data: NumData, cfg: ConfigExcelListTransform,
                   encoding=cfg.in_csv_encoding)
 
 
-def read_testdata_file(cfg: ConfigExcelListTransform,
-                       filename: str) -> NumData:
+def read_test_file(cfg: ConfigExcelListTransform, filename: str) -> NumData:
     """Read test data from named file."""
     if cfg.out_type == FileType.EXCEL:
-        return read_excel_num(filename=filename + '.xlsx',
-                              max_column_read=20,
+        return read_excel_num(filename=filename + '.xlsx', max_column_read=20,
                               strip_col_names=False, strip_values=False)
     return read_csv_num(filename=filename + '.csv',
                         dialect=cfg.get_out_csv_dialect(),
-                        encoding=cfg.out_csv_encoding,
-                        max_column_read=20)
+                        encoding=cfg.out_csv_encoding, max_column_read=20)
 
 
 def check_equal_ignore_str_int(lhs, rhs):
@@ -147,7 +144,7 @@ def test_transfm_nmd_files_row_num(capsys,  # pylint: disable=too-many-arguments
                             filename=infilename)
         transform_named_files(infilename=infilename, outfilename=outfilename,  # pylint: disable=duplicate-code  # noqa: E501
                               cfgfilename=cfgname)
-        res = read_testdata_file(cfg=cfg, filename=outfilename)
+        res = read_test_file(cfg=cfg, filename=outfilename)
         out, err = capsys.readouterr()
         assert '' == err
         assert f'Wrote {outfilename}' in out

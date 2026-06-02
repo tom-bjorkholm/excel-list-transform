@@ -215,8 +215,7 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
         return cols
 
     @staticmethod
-    def get_cols_multi(rule: RuleMerge[Column],
-                       tinfo: Column) -> list[Column]:
+    def get_cols_multi(rule: RuleMerge[Column], tinfo: Column) -> list[Column]:
         """Get list of columns for merge rule."""
         cols: list[Column] = []
         for row in rule:
@@ -235,8 +234,8 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
         ConfigExcelListTransform.check_no_duplicates(cols, param_name)
 
     @staticmethod
-    def _check_no_duplicate_multi(rule: RuleMerge[Column],
-                                  param_name: str, tinfo: Column) -> None:
+    def _check_no_duplicate_multi(rule: RuleMerge[Column], param_name: str,
+                                  tinfo: Column) -> None:
         """Flag as error if column is refered to multiple times."""
         cols: list[Column] = ConfigExcelListTransform.get_cols_multi(rule,
                                                                      tinfo)
@@ -260,8 +259,8 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
     @staticmethod
     def get_converter_dict(enum_type: type[Enum]) -> ParseConverter:
         """Get dict for converting to given enum_type."""
-        return ParseConverter(result_type=enum_type,
-                              func=string_to_enum_best_match,
+        converter = string_to_enum_best_match
+        return ParseConverter(result_type=enum_type, func=converter,
                               args={'num_type': enum_type})
 
     def parse_converters(self) -> dict[str, ParseConverter]:
@@ -327,8 +326,8 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
                                                  'from': str, 'to': str,
                                                  'case': CaseSensitivity}}
         self.check_array_dicts(name_of_cfg='s09_rewrite_columns',
-                               array=self.s09_rewrite_columns,
-                               kind_key='kind', kind_type=RewriteKind,
+                               array=self.s09_rewrite_columns, kind_key='kind',
+                               kind_type=RewriteKind,
                                dict_of_templates=template)
 
     @staticmethod
@@ -385,7 +384,6 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
                                 min_size_outer_list=0, min_size_inner_list=1)
         self.check_lst_dict(paramname='s02_merge_rows',
                             inp=self.s02_merge_rows, key='separator',
-                            key_optional=False, valtype=str,
-                            min_size_list=0)
+                            key_optional=False, valtype=str, min_size_list=0)
         self.check_array_keys('s02_merge_rows', self.s02_merge_rows,
                               mandatory_keys=keys, allowed_keys=None)

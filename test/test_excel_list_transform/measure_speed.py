@@ -15,8 +15,8 @@ from excel_list_transform.generate_cfg import generate_examplecfg
 from excel_list_transform.transform_cmd import transform_cmd
 
 
-def measure_single_run(dirname: str, refcol: ColumnRef,
-                       size: int, kind: str) -> float:
+def measure_single_run(dirname: str, refcol: ColumnRef, size: int,
+                       kind: str) -> float:
     """Measure speed for a single command run."""
     print(f'Start measuring time for processing {size} rows...')
     start = default_timer()
@@ -49,15 +49,12 @@ def measure_speed_for_size(size: int) -> dict[ColumnRef, float]:
     return ret
 
 
-def print_results(data: dict[int, dict[ColumnRef, float]],
-                  file) -> None:
+def print_results(data: dict[int, dict[ColumnRef, float]], file) -> None:
     """Print the results of running tests."""
     print('Speed measurement of processing 20 input columns per row.',
           file=file)
-    print('Processing results in 11 output columns per row.\n',
-          file=file)
-    print('Num rows\tSeconds by_name\t  Seconds by_number',
-          file=file)
+    print('Processing results in 11 output columns per row.\n', file=file)
+    print('Num rows\tSeconds by_name\t  Seconds by_number', file=file)
     for size, result in data.items():
         print(f'{size: 8, }\t{result[ColumnRef.BY_NAME]: 15.2f}' +
               f'\t  {result[ColumnRef.BY_NUMBER]: 17.2f}',

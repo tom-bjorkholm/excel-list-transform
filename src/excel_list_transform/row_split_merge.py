@@ -5,7 +5,7 @@
 # MIT License
 
 import sys
-from typing import overload, cast
+from typing import overload
 from copy import deepcopy
 from excel_list_transform.commontypes import Value, \
     Row, NumRow, NameRow, Data
@@ -78,19 +78,16 @@ def split_one_str(instr: str, separators: list[str],
 
 
 @overload
-def one_split_one_row(inrow: NumRow, column: int,
-                      separators: list[str],
+def one_split_one_row(inrow: NumRow, column: int, separators: list[str],
                       not_separators: list[str]) -> Data[NumRow]: ...
 
 
 @overload
-def one_split_one_row(inrow: NameRow, column: str,
-                      separators: list[str],
+def one_split_one_row(inrow: NameRow, column: str, separators: list[str],
                       not_separators: list[str]) -> Data[NameRow]: ...
 
 
-def one_split_one_row(inrow: Row, column: Column,
-                      separators: list[str],
+def one_split_one_row(inrow: Row, column: Column, separators: list[str],
                       not_separators: list[str]) -> Data[Row]:
     """Handle one split row directive for one row."""
     assert (isinstance(inrow, list) and isinstance(column, int)) or \
@@ -103,8 +100,7 @@ def one_split_one_row(inrow: Row, column: Column,
               file=sys.stderr)
         sys.exit(1)
     assert isinstance(instr, str)
-    splitted: list[str] = split_one_str(instr=instr,
-                                        separators=separators,
+    splitted: list[str] = split_one_str(instr=instr, separators=separators,
                                         not_separators=not_separators)
     if len(splitted) <= 1:
         return [inrow]
@@ -199,14 +195,12 @@ def split_rows(indata: Data[Row],
 
 
 @overload
-def split_rows_cfg(indata: Data[NameRow],
-                   cfg: ConfigXlsListTransfName,
+def split_rows_cfg(indata: Data[NameRow], cfg: ConfigXlsListTransfName,
                    tinfo: str) -> Data[NameRow]: ...
 
 
 @overload
-def split_rows_cfg(indata: Data[NumRow],
-                   cfg: ConfigXlsListTransfNum,
+def split_rows_cfg(indata: Data[NumRow], cfg: ConfigXlsListTransfNum,
                    tinfo: int) -> Data[NumRow]: ...
 
 
@@ -224,8 +218,7 @@ def split_rows_cfg(indata: Data[Row],
             isinstance(cfg.s01_split_rows[0]['column'], str)) or \
            (isinstance(tinfo, int) and
             isinstance(cfg.s01_split_rows[0]['column'], int))
-    direc: RuleRowSplit[Column] = \
-        cast(RuleRowSplit[Column], cfg.s01_split_rows)
+    direc: RuleRowSplit[Column] = cfg.s01_split_rows
     return split_rows(indata=indata, directives=direc)
 
 
@@ -352,19 +345,16 @@ def identify_rows_to_merge(rows: Data[Row], columns_to_cmp: list[Column],
 
 
 @overload
-def one_merge_rows(indata: Data[NameRow],
-                   columns_to_cmp: list[str],
+def one_merge_rows(indata: Data[NameRow], columns_to_cmp: list[str],
                    separator: str, tinfo: str) -> Data[NameRow]: ...
 
 
 @overload
-def one_merge_rows(indata: Data[NumRow],
-                   columns_to_cmp: list[int],
+def one_merge_rows(indata: Data[NumRow], columns_to_cmp: list[int],
                    separator: str, tinfo: int) -> Data[NumRow]: ...
 
 
-def one_merge_rows(indata: Data[Row],
-                   columns_to_cmp: list[Column],
+def one_merge_rows(indata: Data[Row], columns_to_cmp: list[Column],
                    separator: str, tinfo: Column) -> Data[Row]:
     """Merge rows based on content of single rule."""
     if len(indata) < 2:
@@ -380,8 +370,7 @@ def one_merge_rows(indata: Data[Row],
     return data
 
 
-def one_rule_merge_rows(indata: Data[Row],
-                        rule: SingleRuleMerge[Column],
+def one_rule_merge_rows(indata: Data[Row], rule: SingleRuleMerge[Column],
                         tinfo: Column) -> Data[Row]:
     """Merge rows based on a single rule."""
     if len(indata) < 2:
@@ -394,8 +383,7 @@ def one_rule_merge_rows(indata: Data[Row],
     assert 'separator' in rule
     separator = rule['separator']
     assert isinstance(separator, str)
-    return one_merge_rows(indata=indata,
-                          columns_to_cmp=columns,
+    return one_merge_rows(indata=indata, columns_to_cmp=columns,
                           separator=separator, tinfo=tinfo)
 
 

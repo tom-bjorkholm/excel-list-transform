@@ -94,8 +94,7 @@ def config_factory_from_json(from_json_text: Optional[str] = None,
         _config_factory_exit(msg, None)
     refpar: JsonType = data['column_ref']
     assert isinstance(refpar, str)
-    numerator = string_to_enum_best_match(inp=refpar,
-                                          num_type=ColumnRef)
+    numerator = string_to_enum_best_match(inp=refpar, num_type=ColumnRef)
     return _CONFIGS[numerator](from_json_text=from_json_text,
                                from_json_filename=from_json_filename,
                                auto_ch_hook=auto_ch_hook)

@@ -24,10 +24,9 @@ def gen_cfg_cmd(args: argparse.Namespace) -> int:
     """Generate example cfg file."""
     outfilename: str = args.output[0]
     cfgtype: str = args.kind[0]
-    colref: ColumnRef = string_to_enum_best_match(args.reference[0],
-                                                  ColumnRef)
-    return generate_examplecfg(filename=outfilename,
-                               cfgtype=cfgtype, colref=colref)
+    colref: ColumnRef = string_to_enum_best_match(args.reference[0], ColumnRef)
+    return generate_examplecfg(filename=outfilename, cfgtype=cfgtype,
+                               colref=colref)
 
 
 def rfmt_cmd(args: argparse.Namespace) -> int:
@@ -51,8 +50,7 @@ def migrate_cmd(args: argparse.Namespace) -> int:
     """Migrate configuration file."""
     outfilename = args.output[0]
     infilename = args.input[0]
-    return migrate_cfg(infile=infilename,
-                       outfile=outfilename)
+    return migrate_cfg(infile=infilename, outfile=outfilename)
 
 
 USAGE_ORDER = '''
@@ -118,8 +116,8 @@ def gen_cfg_args_named(subparsers: SubParseAct, sub_pars_name: str) -> None:
     cfg_parser.add_argument('-r', '--reference', nargs=1, required=True,
                             help=ref_help, choices=reftypes)
     cfg_output_help = 'Name of configuration (output) file to create.'
-    cfg_parser.add_argument('-o', '--output', nargs=1,
-                            help=cfg_output_help, required=True)
+    cfg_parser.add_argument('-o', '--output', nargs=1, help=cfg_output_help,
+                            required=True)
 
 
 def gen_cfg_args(subparsers: SubParseAct) -> None:

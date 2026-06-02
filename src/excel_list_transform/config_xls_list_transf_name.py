@@ -16,8 +16,7 @@ from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
 class ConfigXlsListTransfName(ConfigExcelListTransform[str]):  # pylint: disable=too-many-instance-attributes, line-too-long # noqa: E501
     """Class with configuration for excel list transform."""
 
-    def __init__(self,
-                 from_json_text: Optional[str] = None,
+    def __init__(self, from_json_text: Optional[str] = None,
                  from_json_filename: Optional[str] = None,
                  auto_ch_hook: ConfigAutoChangeHook =
                  MigrateCfgWarnHook()) -> None:
@@ -39,8 +38,7 @@ class ConfigXlsListTransfName(ConfigExcelListTransform[str]):  # pylint: disable
             ['Class', 'Division', 'Nationality', 'Sail Number', 'Boat Name',
              'First Name', 'Last Name', 'Club Name', 'Email', 'Phone',
              'WhatsApp']
-        super().__init__(col_ref=ColumnRef.BY_NAME,
-                         colinfo=colinfo, tinfo='a',
+        super().__init__(col_ref=ColumnRef.BY_NAME, colinfo=colinfo, tinfo='a',
                          from_json_text=from_json_text,
                          from_json_filename=from_json_filename,
                          auto_ch_hook=auto_ch_hook)

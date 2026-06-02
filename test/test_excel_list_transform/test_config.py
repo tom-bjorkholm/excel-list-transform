@@ -165,8 +165,7 @@ def test_config_something_def(capsys):
     assert err == ''
 
 
-@pytest.mark.parametrize('indel, outdel',
-                         [(';', ','), (':', ';')])
+@pytest.mark.parametrize('indel, outdel', [(';', ','), (':', ';')])
 def test_config_something_changed(capsys, indel, outdel):
     """Test ConfigSomething with changed values."""
     xst = ConfigSomething()
@@ -257,8 +256,7 @@ def test_config_something_cha_bad(capsys, abc_not_pqr, value, exm):
     assert exm in err
 
 
-@pytest.mark.parametrize('indel, outdel',
-                         [(';', ','), (':', ';')])
+@pytest.mark.parametrize('indel, outdel', [(';', ','), (':', ';')])
 def test_config_something_writeread(capsys, indel, outdel):
     """Test ConfigSomething writing and reading."""
     xst = ConfigSomething()
@@ -279,8 +277,7 @@ def test_config_something_writeread(capsys, indel, outdel):
     assert err == ''
 
 
-@pytest.mark.parametrize('indel, outdel',
-                         [(';', ','), (':', ';')])
+@pytest.mark.parametrize('indel, outdel', [(';', ','), (':', ';')])
 def test_config_something_writeinit(capsys, indel, outdel):
     """Test ConfigSomething writing and reading."""
     xst = ConfigSomething()
@@ -549,9 +546,8 @@ def csv_combinations_chcker(nam,   # pylint: disable=too-many-arguments, too-man
 @pytest.mark.parametrize('ltr,er6', [(None, False), ('end', False),
                                      ('>', False), (None, False)])
 def test_config_smt_csv_comb_s(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments, line-too-long, too-many-locals # noqa: E501
-                               nam, dmt, esc, quo, qch,
-                               ltr, er1, er2, er3, er4, er5,
-                               er6):
+                               nam, dmt, esc, quo, qch, ltr, er1, er2, er3,
+                               er4, er5, er6):
     """Test combinations of CSV configurations thorough."""
     err = er1 or er2 or er3 or er4 or er5 or er6
     csv_combinations_chcker(nam, dmt, esc, quo, qch, ltr, err)
@@ -574,9 +570,8 @@ def test_config_smt_csv_comb_s(capsys,  # pylint: disable=too-many-arguments, to
 @pytest.mark.parametrize('qch,er5', [(None, False)])
 @pytest.mark.parametrize('ltr,er6', [('>', False), (None, False)])
 def test_config_smt_csv_comb_f1(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments, line-too-long, too-many-locals # noqa: E501
-                                nam, dmt, esc, quo, qch,
-                                ltr, er1, er2, er3, er4, er5,
-                                er6):
+                                nam, dmt, esc, quo, qch, ltr, er1, er2, er3,
+                                er4, er5, er6):
     """Test combinations of CSV configurations f1."""
     err = er1 or er2 or er3 or er4 or er5 or er6
     csv_combinations_chcker(nam, dmt, esc, quo, qch, ltr, err)
@@ -596,8 +591,7 @@ def test_config_smt_csv_comb_f1(capsys,  # pylint: disable=too-many-arguments, t
 @pytest.mark.parametrize('ltr,er6', [(None, False), ('end', False),
                                      ('>', False)])
 def test_config_smt_csv_comb_f6(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments, line-too-long, too-many-locals # noqa: E501
-                                nam, dmt, esc, quo,
-                                qch, ltr, er1, er2, er3,
+                                nam, dmt, esc, quo, qch, ltr, er1, er2, er3,
                                 er4, er5, er6):
     """Test combinations of CSV configurations f6."""
     err = er1 or er2 or er3 or er4 or er5 or er6

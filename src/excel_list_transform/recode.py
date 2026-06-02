@@ -7,8 +7,8 @@ from typing import Optional
 import argparse
 
 
-def recode(infilename: str, inencoding: str,
-           outfilename: str, outencoding: str) -> None:
+def recode(infilename: str, inencoding: str, outfilename: str,
+           outencoding: str) -> None:
     """Read with one encoding and write with another encoding."""
     try:
         with open(file=infilename, mode='r', errors='strict',
@@ -32,16 +32,14 @@ def recode(infilename: str, inencoding: str,
                       file=sys.stderr)
                 sys.exit(1)
     except FileNotFoundError:
-        print(f'Error: Input file {infilename} not found.',
-              file=sys.stderr)
+        print(f'Error: Input file {infilename} not found.', file=sys.stderr)
         sys.exit(1)
     except LookupError:
         print(f'Error: Unrecognized input encoding {inencoding}',
               file=sys.stderr)
         sys.exit(1)
     except IOError as exc:  # pragma: no cover
-        print(f'Unexpected I/O error: {exc.strerror}',
-              file=sys.stderr)
+        print(f'Unexpected I/O error: {exc.strerror}', file=sys.stderr)
         sys.exit(1)
     print(f'Wrote file {outfilename}', file=sys.stderr)
 

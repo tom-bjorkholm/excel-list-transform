@@ -96,9 +96,8 @@ def test_write_excel_1_num(capsys, zpar, lib):
     with TemporaryDirectory() as dname:
         fname = dname + '/b.xlsx'
         write_excel_num(zpar, fname, excel_lib=lib)
-        data = read_excel_num(fname, max_column_read=20,
-                              strip_col_names=False, strip_values=False,
-                              excel_lib=lib)
+        data = read_excel_num(fname, max_column_read=20, strip_col_names=False,
+                              strip_values=False, excel_lib=lib)
         assert len(data) == len(zpar)
         assert data == zpar
     out, err = capsys.readouterr()
@@ -150,9 +149,8 @@ def test_write_excel_2_num(capsys, zpar, inlib, outlib):
     with TemporaryDirectory() as dname:
         fname = dname + '/b.xlsx'
         write_excel_num(zpar, fname, excel_lib=outlib)
-        data = read_excel_num(fname, max_column_read=20,
-                              strip_col_names=False, strip_values=False,
-                              excel_lib=inlib)
+        data = read_excel_num(fname, max_column_read=20, strip_col_names=False,
+                              strip_values=False, excel_lib=inlib)
         assert len(data) == len(zpar)
         assert data == zpar
     out, err = capsys.readouterr()
@@ -231,13 +229,13 @@ def test_excel_data_strip(capsys, ind, stitle, svalue, outd):
 @pytest.mark.parametrize('row,maxc,expected',
                          [((1, 2, 3), 1, [1]),
                           ((2, 'a', 1.0, 'b'), 3, [2, 'a', 1.0]),
-                          ((datetime(year=2025, month=6, day=7,
-                                     hour=22, minute=14),
+                          ((datetime(year=2025, month=6, day=7, hour=22,
+                                     minute=14),
                             date(year=2014, month=12, day=25),
                             time(hour=22, minute=24, second=59)),
                            20,
-                           [datetime(year=2025, month=6, day=7,
-                                     hour=22, minute=14),
+                           [datetime(year=2025, month=6, day=7, hour=22,
+                                     minute=14),
                             datetime(year=2014, month=12, day=25),
                             '22:24:59']),
                           ((Decimal('1.5'), 2, Decimal(4.0)), 10,

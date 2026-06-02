@@ -88,8 +88,7 @@ def regex_replace_value(value: str, fro: str, to: str,
 regex_replace_value_cache: dict[str, dict[int, Pattern[str]]] = {}
 
 
-def rewrite_value(value: Optional[str],
-                  spec: SingleRuleRewrite[Column],
+def rewrite_value(value: Optional[str], spec: SingleRuleRewrite[Column],
                   tinfo: Column) -> Optional[str]:
     """Return a value rewritten according to spec."""
     if value is None:
@@ -104,12 +103,10 @@ def rewrite_value(value: Optional[str],
         chars1 = spec['chars']
         if chars1 is not None:
             assert isinstance(chars1, str)
-        return strip_value(value=ret, chars=chars1,
-                           casehandle=casehandle)
+        return strip_value(value=ret, chars=chars1, casehandle=casehandle)
     if kind == RewriteKind.REMOVECHARS:
         chars: list[str] = get_checked_type(spec['chars'], list)
-        return remove_from_value(value=ret, chars=chars,
-                                 casehandle=casehandle)
+        return remove_from_value(value=ret, chars=chars, casehandle=casehandle)
     fro: str = get_checked_type(spec['from'], str)
     to: str = get_checked_type(spec['to'], str)
     if kind == RewriteKind.STR_SUBSTITUTE:

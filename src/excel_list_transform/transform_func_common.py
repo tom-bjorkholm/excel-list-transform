@@ -55,16 +55,15 @@ def cols_must_exist_lst(cols: list[Column], row: NumRowSeq | NameRowMap,
 
 def cols_must_exist_dict(rule:  Rule[Column] | RuleSplit[Column] |
                          RuleRewrite[Column],
-                         row: NumRowSeq | NameRowMap,
-                         param: str, tinfo: Column) -> None:
+                         row: NumRowSeq | NameRowMap, param: str,
+                         tinfo: Column) -> None:
     """Stop with error report if columns does not exist."""
     cols = ConfigExcelListTransform.get_cols_single(rule=rule, tinfo=tinfo)
     cols_must_exist_lst(cols=cols, row=row, param=param, tinfo=tinfo)
 
 
-def cols_must_exist_dictlst(rule: RuleMerge[Column],
-                            row: NumRowSeq | NameRowMap,
-                            param: str, tinfo: Column) -> None:
+def cols_must_exist_multi(rule: RuleMerge[Column], row: NumRowSeq | NameRowMap,
+                          param: str, tinfo: Column) -> None:
     """Stop with error report if columns does not exist."""
     cols = ConfigExcelListTransform.get_cols_multi(rule=rule, tinfo=tinfo)
     cols_must_exist_lst(cols=cols, row=row, param=param, tinfo=tinfo)
@@ -176,8 +175,8 @@ def merge_columns(indata: Data[Row], cfg: ConfigExcelListTransform[Column],
         return indata
     ret = deepcopy(indata)
     for row in ret:
-        cols_must_exist_dictlst(rule=cfg.s05_merge_columns, row=row,
-                                param='s05_merge_columns', tinfo=tinfo)
+        cols_must_exist_multi(rule=cfg.s05_merge_columns, row=row,
+                              param='s05_merge_columns', tinfo=tinfo)
         for i in reversed(cfg.s05_merge_columns):
             colspec = i['columns']
             assert isinstance(colspec, list)
@@ -194,8 +193,7 @@ def merge_columns(indata: Data[Row], cfg: ConfigExcelListTransform[Column],
             if len(vals) > 0:
                 sep = i['separator']
                 assert isinstance(sep, str)
-                insert_into_row(row=row, colref=colref,
-                                val=sep.join(vals))
+                insert_into_row(row=row, colref=colref, val=sep.join(vals))
             else:
                 insert_into_row(row=row, colref=colref, val=None)
     return ret
@@ -213,8 +211,7 @@ def row_element(row: Row, idx: Column, tinfo: Column) -> Value:
     return row[idx]
 
 
-def set_row_element(row: Row, idx: Column, tinfo: Column,
-                    val: Value) -> None:
+def set_row_element(row: Row, idx: Column, tinfo: Column, val: Value) -> None:
     """Keep mypy happy with accessing element in dict or list."""
     assert isinstance(idx, type(tinfo))
     if isinstance(idx, int):

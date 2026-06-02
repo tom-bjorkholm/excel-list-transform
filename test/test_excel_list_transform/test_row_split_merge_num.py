@@ -57,8 +57,7 @@ def test_one_split_one_nu_nok1(capsys,  # pylint: disable=too-many-arguments,too
                                inrow, col, seps, noseps, msgs):
     """Test not OK cases of one_split_one_row num."""
     with pytest.raises(SystemExit):
-        _ = one_split_one_row(inrow=deepcopy(inrow),
-                              column=deepcopy(col),
+        _ = one_split_one_row(inrow=deepcopy(inrow), column=deepcopy(col),
                               separators=deepcopy(seps),
                               not_separators=deepcopy(noseps))
     out, err = capsys.readouterr()
@@ -87,8 +86,7 @@ def test_one_split_one_nu_nok1(capsys,  # pylint: disable=too-many-arguments,too
 def test_one_split_num_ok1(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
                            indata, col, seps, noseps, res):
     """Test OK cases of one_split num."""
-    ret = one_split(indata=deepcopy(indata), column=deepcopy(col),
-                    separators=deepcopy(seps),
+    ret = one_split(deepcopy(indata), deepcopy(col), deepcopy(seps),
                     not_separators=deepcopy(noseps))
     out, err = capsys.readouterr()
     assert ret == res
@@ -289,9 +287,7 @@ def test_merge_strings2(capsys, inlst, sep, res):
                             ['1-4', '2-5', '3-6']])])
 def test_merge_ident_rows_num(capsys, data, rowidxs, sep, res):
     """Test OK cases of merge_identified_rows."""
-    ret = merge_identified_rows(rows=deepcopy(data),
-                                row_numbers=deepcopy(rowidxs),
-                                separator=sep, tinfo=1)
+    ret = merge_identified_rows(deepcopy(data), deepcopy(rowidxs), sep, 1)
     out, err = capsys.readouterr()
     assert ret == res
     assert '' == out
@@ -318,9 +314,7 @@ DATA1 = [['aa', 'bb', 3],
                           ([['b', 'a']], [0], [])])
 def test_iden_rows_to_merge1nu(capsys, data, cols, res):
     """Test OK cases of merge identified rows."""
-    ret = identify_rows_to_merge(rows=deepcopy(data),
-                                 columns_to_cmp=deepcopy(cols),
-                                 tinfo=1)
+    ret = identify_rows_to_merge(deepcopy(data), deepcopy(cols), 1)
     out, err = capsys.readouterr()
     assert ret == res
     assert '' == out
@@ -371,8 +365,7 @@ DATASINGLE = [['aa', 'bb', 3]]
                           (DATA1, [2], ' ', DATA1CS)])
 def test_one_merge_rows_num_ok1(capsys, data, cols, sep, res):
     """Test OK cases of one merge rows num."""
-    ret = one_merge_rows(indata=deepcopy(data),
-                         columns_to_cmp=deepcopy(cols),
+    ret = one_merge_rows(indata=deepcopy(data), columns_to_cmp=deepcopy(cols),
                          separator=deepcopy(sep), tinfo=1)
     out, err = capsys.readouterr()
     assert ret == res
@@ -396,8 +389,7 @@ def test_one_merge_rows_num_ok1(capsys, data, cols, sep, res):
 def test_one_rule_merge_rows_nu_ok1(capsys, data, cols, sep, res):
     """Test OK cases of one merge rows num."""
     rule = {'columns': deepcopy(cols), 'separator': deepcopy(sep)}
-    ret = one_rule_merge_rows(indata=deepcopy(data), rule=rule,
-                              tinfo=1)
+    ret = one_rule_merge_rows(indata=deepcopy(data), rule=rule, tinfo=1)
     out, err = capsys.readouterr()
     assert ret == res
     assert '' == out
@@ -422,8 +414,7 @@ def test_merge_rows_num_ok1(capsys, data, cols, sep, res):
     cfg1.s02_merge_rows = [rule]
     txt = cfg1.as_json_string()
     cfg2 = ConfigXlsListTransfNum(from_json_text=txt)
-    ret = merge_rows(indata=deepcopy(data), rules=cfg2.s02_merge_rows,
-                     tinfo=1)
+    ret = merge_rows(indata=deepcopy(data), rules=cfg2.s02_merge_rows, tinfo=1)
     out, err = capsys.readouterr()
     assert ret == res
     assert '' == out
@@ -442,8 +433,7 @@ def test_merge_rows_num_ok2(capsys, data, rule, res):
     cfg1.s02_merge_rows = deepcopy(rule)
     txt = cfg1.as_json_string()
     cfg2 = ConfigXlsListTransfNum(from_json_text=txt)
-    ret = merge_rows(indata=deepcopy(data), rules=cfg2.s02_merge_rows,
-                     tinfo=1)
+    ret = merge_rows(indata=deepcopy(data), rules=cfg2.s02_merge_rows, tinfo=1)
     out, err = capsys.readouterr()
     assert ret == res
     assert '' == out

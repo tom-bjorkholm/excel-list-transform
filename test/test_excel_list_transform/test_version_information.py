@@ -247,8 +247,7 @@ def mocked_get_project_page(_, project: str,
         raise NoSuchProjectError(project=project, url='')
     mockvals: PageReturn = pagereturns.pop()
     for mockret in mockvals:
-        packages.append(DistributionPackage(filename=f'{project}.whl',
-                                            url='',
+        packages.append(DistributionPackage(filename=f'{project}.whl', url='',
                                             project=project,
                                             package_type='wheel',
                                             version=mockret.version,
@@ -345,8 +344,7 @@ def test_get_avail_version(capsys,  # pylint: disable=too-many-arguments,too-man
     assert '' == err
 
 
-def mock_get_available_version(pkgname: str,
-                               pkgversion: Version,
+def mock_get_available_version(pkgname: str, pkgversion: Version,
                                python_version: Version) -> AvailableVersion:
     """Get information on available version in PyPi."""
     assert pkgversion is not None
@@ -354,10 +352,8 @@ def mock_get_available_version(pkgname: str,
     for ans in mock_get_available_version.answers:
         if ans.pkgname == pkgname:
             return ans
-    return AvailableVersion(pkgname=pkgname, is_best_for_new_py=False,
-                            is_better_for_pyver=False,
-                            best_ver=Version('0.0'),
-                            better_ver=Version('0.0'))
+    return AvailableVersion(False, False, Version('0.0'), Version('0.0'),
+                            pkgname)
 
 
 mock_get_available_version.answers = []
@@ -435,18 +431,13 @@ def test_get_available_versions(capsys, monkeypatch, inp, ans, res):
 
 
 PBAVAIL1: AvailableVersions = [
-    AvailableVersion(pkgname='abc', is_best_for_new_py=False,
-                     is_better_for_pyver=False,
-                     best_ver=Version('1.0'), better_ver=Version('1.0'))
+    AvailableVersion(False, False, Version('1.0'), Version('1.0'), 'abc')
 ]
 PBTXT1 = ''
 PBAVAIL2: AvailableVersions = [
-    AvailableVersion(pkgname='abc', is_best_for_new_py=False,
-                     is_better_for_pyver=True,
-                     best_ver=Version('2.0'), better_ver=Version('2.0')),
-    AvailableVersion(pkgname='longer_name', is_best_for_new_py=True,
-                     is_better_for_pyver=False,
-                     best_ver=Version('10.0'), better_ver=Version('1.0'))
+    AvailableVersion(True, False, Version('2.0'), Version('2.0'), 'abc'),
+    AvailableVersion(False, True, Version('10.0'), Version('1.0'),
+                     'longer_name')
 ]
 PBTXT2 = '''Upgraded packages are available for this python version:
 abc ........ 2.0
@@ -454,12 +445,9 @@ Even newer packages are available if upgrading python:
 longer_name  10.0
 '''
 PBAVAIL3: AvailableVersions = [
-    AvailableVersion(pkgname='abc', is_best_for_new_py=True,
-                     is_better_for_pyver=True,
-                     best_ver=Version('2.1'), better_ver=Version('2.0')),
-    AvailableVersion(pkgname='longer_name', is_best_for_new_py=True,
-                     is_better_for_pyver=True,
-                     best_ver=Version('10.0'), better_ver=Version('1.0'))
+    AvailableVersion(True, True, Version('2.1'), Version('2.0'), 'abc'),
+    AvailableVersion(True, True, Version('10.0'), Version('1.0'),
+                     'longer_name')
 ]
 PBTXT3 = '''Upgraded packages are available for this python version:
 abc ........ 2.0
@@ -509,10 +497,8 @@ def test_print_info_on_new_1(capsys, monkeypatch):
         assert vers[0].pkgname == 'excel-list-transform'
 
     mod = 'excel_list_transform.version_information.VersionInformation.'
-    monkeypatch.setattr(mod + 'get_available_versions',
-                        mock_get_avail)
-    monkeypatch.setattr(mod + 'print_if_better_versions',
-                        mock_print_if_better)
+    monkeypatch.setattr(mod + 'get_available_versions', mock_get_avail)
+    monkeypatch.setattr(mod + 'print_if_better_versions', mock_print_if_better)
     vers = VersionInformation()
     vers.print_info_on_new_pkgs()
     out, err = capsys.readouterr()

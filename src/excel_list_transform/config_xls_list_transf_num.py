@@ -32,8 +32,7 @@ def get_merge_first_column(rule: SingleRuleMerge[int]) -> int:
 class ConfigXlsListTransfNum(ConfigExcelListTransform[int]):  # pylint: disable=too-many-instance-attributes, line-too-long # noqa: E501
     """Class with configuration for excel list transform."""
 
-    def __init__(self,
-                 from_json_text: Optional[str] = None,
+    def __init__(self, from_json_text: Optional[str] = None,
                  from_json_filename: Optional[str] = None,
                  auto_ch_hook: ConfigAutoChangeHook =
                  MigrateCfgWarnHook()) -> None:
@@ -43,23 +42,19 @@ class ConfigXlsListTransfNum(ConfigExcelListTransform[int]):  # pylint: disable=
         col_to_use = [15, 16, 1, 2, 5, 5, 5, 5, 5, 6]
         col_to_use_row = [7, 1, 2]
         colinfo: ColInfo[int] = \
-            ColInfo[int](split_last='store_single', insert_last='name',
-                         s03=[{'column': 15, 'separator': ' ',
-                               'where': SplitWhere.RIGHTMOST,
-                               'store_single': SplitWhere.LEFTMOST}],
-                         s08=[{'column': 1, 'name': 'Division',
-                               'value': None},
-                              {'column': 7, 'name': 'Other',
-                               'value': 'some text'}],
-                         col_to_use=col_to_use,
-                         col_to_use_row=col_to_use_row, tinfo=2)
-        super().__init__(col_ref=ColumnRef.BY_NUMBER,
-                         colinfo=colinfo, tinfo=2,
+            ColInfo[int]('store_single', 'name',
+                         [{'column': 15, 'separator': ' ',
+                           'where': SplitWhere.RIGHTMOST,
+                           'store_single': SplitWhere.LEFTMOST}],
+                         [{'column': 1, 'name': 'Division', 'value': None},
+                          {'column': 7, 'name': 'Other',
+                           'value': 'some text'}],
+                         col_to_use, col_to_use_row, 2)
+        super().__init__(col_ref=ColumnRef.BY_NUMBER, colinfo=colinfo, tinfo=2,
                          from_json_text=from_json_text,
                          from_json_filename=from_json_filename,
                          auto_ch_hook=auto_ch_hook)
-        self.check_no_duplicates(self.s04_remove_columns,
-                                 's04_remove_columns')
+        self.check_no_duplicates(self.s04_remove_columns, 's04_remove_columns')
         self._check_increasing_multi(self.s05_merge_columns,
                                      's05_merge_columns', 2)
         self.check_no_duplicates(self.s06_place_columns_first,

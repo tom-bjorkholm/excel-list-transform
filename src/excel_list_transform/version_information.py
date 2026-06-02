@@ -126,8 +126,7 @@ class VersionInformation():
         return date.today()
 
     @staticmethod
-    def get_available_version(pkgname: str,
-                              pkgversion: Version,
+    def get_available_version(pkgname: str, pkgversion: Version,
                               python_version: Version) -> AvailableVersion:
         """Get information on available version in PyPi."""
         bestver = Version('0.0.1')

@@ -25,8 +25,7 @@ def test_cfg_valid_chr_enc_ok(capsys, enc, is_ok):
     assert '' == err
 
 
-@pytest.mark.parametrize('enc',
-                         [8, True])
+@pytest.mark.parametrize('enc', [8, True])
 def test_cfg_valid_chr_enc_nok(capsys, enc):
     """Test not OK cases of valid_char_encoding."""
     with pytest.raises(Exception) as exc:
@@ -37,8 +36,7 @@ def test_cfg_valid_chr_enc_nok(capsys, enc):
     assert 'must be str' in str(exc)
 
 
-@pytest.mark.parametrize('enc',
-                         ['utf-8', 'iso8859-1'])
+@pytest.mark.parametrize('enc', ['utf-8', 'iso8859-1'])
 def test_cfg_check_chr_enc_ok(capsys, enc):
     """Test OK cases of check_char_encoding."""
     Config.check_char_encoding(enc)
@@ -47,8 +45,7 @@ def test_cfg_check_chr_enc_ok(capsys, enc):
     assert '' == err
 
 
-@pytest.mark.parametrize('enc',
-                         ['utf-88', 'abc123'])
+@pytest.mark.parametrize('enc', ['utf-88', 'abc123'])
 def test_cfg_check_chr_enc_nok(capsys, enc):
     """Test not OK cases of check_char_encoding."""
     with pytest.raises(SystemExit):
@@ -228,8 +225,7 @@ def test_rename_backward_compatible(capsys, ind, outd, errtxt):
     """Test Config._rename_backward_compatible."""
     data = deepcopy(ind)
     cfg = DummyCfg()
-    cfg._rename_backward_compatible(  # pylint: disable=protected-access # noqa: E501
-                                    json_data=data)
+    cfg._rename_backward_compatible(json_data=data)  # pylint: disable=protected-access # noqa: E501
     out, err = capsys.readouterr()
     assert '' == out
     assert err == errtxt
@@ -249,8 +245,8 @@ def test_rename_backward_compatible(capsys, ind, outd, errtxt):
 def test_check_list_dict_ok(capsys,  # pylint: disable=too-many-arguments, too-many-positional-arguments # noqa: E501
                             par, inp, key, opt, vtype, mls):
     """Test OK cases of Config.check_lst_dict."""
-    Config.check_lst_dict(paramname=par, inp=inp, key=key,
-                          key_optional=opt, valtype=vtype, min_size_list=mls)
+    Config.check_lst_dict(paramname=par, inp=inp, key=key, key_optional=opt,
+                          valtype=vtype, min_size_list=mls)
     out, err = capsys.readouterr()
     assert '' == out
     assert '' == err

@@ -103,13 +103,12 @@ class Config():
         {key: {'result type': res_type, 'func': function,
         'args': {arg_name: arg_value}}}.
         """
-        return {'in_type': ParseConverter(result_type=int,
-                                          func=over_ride_needed,
+        converter = over_ride_needed
+        return {'in_type': ParseConverter(result_type=int, func=converter,
                                           args={})}
 
     @staticmethod
-    def check_key_match(expected_keys: list[str],
-                        j_keys: list[str],
+    def check_key_match(expected_keys: list[str], j_keys: list[str],
                         ok_to_use_defaults: bool) -> None:
         """Check if keys in imported JSON match exptected keys."""
         if not ok_to_use_defaults:
@@ -226,8 +225,7 @@ class Config():
         for value in json_data:
             if isinstance(value, dict):
                 assert isinstance(value, dict)
-                ret |= Config._bwcompat_single(rename=rename,
-                                               json_data=value)
+                ret |= Config._bwcompat_single(rename=rename, json_data=value)
             if isinstance(value, list):
                 assert isinstance(value, list)
                 ret |= Config._bwcompat_single_lst(rename=rename,
@@ -300,12 +298,10 @@ class Config():
             file.write(text)
 
     @staticmethod
-    def get_csv_dialect(*, name: Optional[str],  # pylint: disable=too-many-arguments, line-too-long, too-many-branches # noqa: E501
-                        delimiter: Optional[str],
+    def get_csv_dialect(*, name: Optional[str], delimiter: Optional[str],  # pylint: disable=too-many-arguments, line-too-long, too-many-branches # noqa: E501
                         quoting: Optional[str], quotechar: Optional[str],
                         lineterminator: Optional[str],
-                        escapechar: Optional[str]
-                        ) -> type[csv.Dialect]:
+                        escapechar: Optional[str]) -> type[csv.Dialect]:
         """Get CSV dialect object matching arguments."""
         ret: Optional[type[csv.Dialect]] = None
         if name is None or name.lower() == 'csv.excel':
@@ -380,8 +376,7 @@ class Config():
                     sys.exit(1)
 
     @staticmethod
-    def check_lst_dict(paramname: str,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
-                       inp: Sequence[Mapping[str, Any]],
+    def check_lst_dict(paramname: str, inp: Sequence[Mapping[str, Any]],  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
                        key: str, key_optional: bool, valtype: type,
                        min_size_list: int) -> None:
         """Check that input is a list of dicts of str to list of valtype.
@@ -426,10 +421,9 @@ class Config():
                 sys.exit(1)
 
     @staticmethod
-    def check_lst_dict_lst(paramname: str,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
-                           inp: Sequence[Mapping[str, Any]],
-                           key: str, key_optional: bool,
-                           valtype: type, min_size_outer_list: int,
+    def check_lst_dict_lst(paramname: str, inp: Sequence[Mapping[str, Any]],  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
+                           key: str, key_optional: bool, valtype: type,
+                           min_size_outer_list: int,
                            min_size_inner_list: int) -> None:
         """Check that input is a list of dicts of str to list of valtype.
 
@@ -441,9 +435,9 @@ class Config():
         @param min_size_outer_list Minimum number of elements in outer list
         @param min_size_inner_list Minimum number of elements in inner list
         """
-        Config.check_lst_dict(paramname=paramname, inp=inp,
-                              key=key, key_optional=key_optional,
-                              valtype=list, min_size_list=min_size_outer_list)
+        Config.check_lst_dict(paramname=paramname, inp=inp, key=key,
+                              key_optional=key_optional, valtype=list,
+                              min_size_list=min_size_outer_list)
         assert isinstance(inp, list)
         errtxt = f'Error in parameter {paramname}.\n'
         for elem in inp:
@@ -475,8 +469,8 @@ class Config():
         return to_type(input_value)
 
     @staticmethod
-    def check_array_dicts(name_of_cfg: str,  # pylint: disable=too-many-locals
-                          array: list[dict[str, Any]],
+    # pylint: disable-next=too-many-locals
+    def check_array_dicts(name_of_cfg: str, array: list[dict[str, Any]],
                           kind_key: str, kind_type: type,
                           dict_of_templates: Mapping[Keya, Mapping[str, type]]
                           ) -> None:

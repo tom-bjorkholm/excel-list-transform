@@ -106,8 +106,7 @@ def test_one_split_one_na_nok1(capsys,  # pylint: disable=too-many-arguments,too
                                inrow, col, seps, noseps, msgs):
     """Test not OK cases of one_split_one_row_name."""
     with pytest.raises(SystemExit):
-        _ = one_split_one_row(inrow=deepcopy(inrow),
-                              column=deepcopy(col),
+        _ = one_split_one_row(inrow=deepcopy(inrow), column=deepcopy(col),
                               separators=deepcopy(seps),
                               not_separators=deepcopy(noseps))
     out, err = capsys.readouterr()
@@ -136,8 +135,7 @@ def test_one_split_one_na_nok1(capsys,  # pylint: disable=too-many-arguments,too
 def test_one_split_name_ok1(capsys,  # pylint: disable=too-many-arguments,too-many-positional-arguments # noqa: E501
                             indata, col, seps, noseps, res):
     """Test OK cases of one_split_name."""
-    ret = one_split(indata=deepcopy(indata), column=deepcopy(col),
-                    separators=deepcopy(seps),
+    ret = one_split(deepcopy(indata), deepcopy(col), deepcopy(seps),
                     not_separators=deepcopy(noseps))
     out, err = capsys.readouterr()
     assert ret == res
@@ -333,9 +331,7 @@ def test_merge_strings(capsys, inlst, sep, res):
                             {'a': '1-4', 'b': '2-5', 'c': '3-6'}])])
 def test_merge_ident_rows_name(capsys, data, rowidxs, sep, res):
     """Test OK cases of merge_identified_rows."""
-    ret = merge_identified_rows(rows=deepcopy(data),
-                                row_numbers=deepcopy(rowidxs),
-                                separator=sep, tinfo='a')
+    ret = merge_identified_rows(deepcopy(data), deepcopy(rowidxs), sep, 'a')
     out, err = capsys.readouterr()
     assert ret == res
     assert '' == out
@@ -361,9 +357,7 @@ DATA1 = [{'a': 'aa', 'b': 'bb', 'c': 3},
                            [[0, 2, 6], [1, 3, 4]])])
 def test_iden_rows_to_merge1(capsys, data, cols, res):
     """Test OK cases of merge identified rows."""
-    ret = identify_rows_to_merge(rows=deepcopy(data),
-                                 columns_to_cmp=deepcopy(cols),
-                                 tinfo='a')
+    ret = identify_rows_to_merge(deepcopy(data), deepcopy(cols), 'a')
     out, err = capsys.readouterr()
     assert ret == res
     assert '' == out
@@ -413,8 +407,7 @@ DATASINGLE = [{'a': 'aa', 'b': 'bb', 'c': 3}]
                           (DATASINGLE, ['a', 'c'], '+', DATASINGLE)])
 def test_one_merge_rows_name_ok1(capsys, data, cols, sep, res):
     """Test OK cases of one merge rows name."""
-    ret = one_merge_rows(indata=deepcopy(data),
-                         columns_to_cmp=deepcopy(cols),
+    ret = one_merge_rows(indata=deepcopy(data), columns_to_cmp=deepcopy(cols),
                          separator=deepcopy(sep), tinfo='a')
     out, err = capsys.readouterr()
     assert ret == res

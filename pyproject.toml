@@ -8,7 +8,7 @@ version = "0.8.6"
 authors = [
   { name="Tom Björkholm", email="klausuler_linnet0q@icloud.com" },
 ]
-description = "Transform a list in excel or CSV"
+description = "Transform a list in excel, ODS or CSV."
 readme = "README_pypi.md"
 requires-python = ">=3.13"
 classifiers = [

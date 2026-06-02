@@ -6,7 +6,7 @@ from setuptools import setup
 setup(
   name='excel-list-transform',
   version='0.8.6',
-  description='Transform a list in excel or CSV.',
+  description='Transform a list in excel, ODS or CSV.',
   author='Tom Björkholm',
   author_email='klausuler_linnet0q@icloud.com',
   python_requires='>=3.13',
@@ -14,6 +14,10 @@ setup(
   package_dir={'excel_list_transform': 'src/excel_list_transform'},
   package_data={'excel_list_transform': ['src/py.typed']},
   install_requires=[
+    'tableio-cfg-json >= 0.2',
+    'tableio >= 0.9',
+    'config-as-json >= 1.0',
+    'versionreporter >= 0.2',
     'openpyxl >= 3.1.5',
     'types-openpyxl >= 3.1.5.20250919',
     'pylightxl >= 1.61',

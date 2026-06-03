@@ -11,6 +11,8 @@ from copy import deepcopy
 from datetime import date
 from tempfile import TemporaryDirectory
 from importlib.metadata import version as metadata_version
+import sys
+from packaging.version import Version
 import pytest
 from pytest import MonkeyPatch
 from pytest import CaptureFixture
@@ -18,7 +20,7 @@ from excel_list_transform.transform_cmd import transform_cmd
 from excel_list_transform.config_enums import ColumnRef
 from excel_list_transform.handle_excel import write_excel_num, \
     read_excel_num
-from excel_list_transform.version_information import VersionInformation
+from excel_list_transform.version_information import ExcelListVersionReporter
 from excel_list_transform.commontypes import NumData
 
 
@@ -209,14 +211,22 @@ def test_xlsr_cmd_vers_help(capsys: CaptureFixture[str],
     assert '' == err
 
 
-def test_version_cmd1(capsys: CaptureFixture[str]) -> None:
+def test_version_cmd1(capsys: CaptureFixture[str],
+                      monkeypatch: MonkeyPatch) -> None:
     """Test command to print version information."""
+    def no_new_packages(_: ExcelListVersionReporter,
+                        versions: dict[str, Version]) -> None:
+        """Skip PyPI lookup in this command test."""
+        assert versions is not None
+
+    mod = 'excel_list_transform.version_information.'
+    mod += 'ExcelListVersionReporter._print_info_on_new_pkgs'
+    monkeypatch.setattr(mod, no_new_packages)
     transform_cmd(['version'])
     out, err = capsys.readouterr()
+    python_version = '.'.join([str(s) for s in sys.version_info[0:3]])
     assert '' == err
-    assert \
-        f'Python .............. {str(VersionInformation.python_version())}' \
-        in out
+    assert f'Python .............. {python_version}' in out
     assert f'excel_list_transform  {metadata_version("excel_list_transform")}'\
         in out
 
@@ -233,14 +243,15 @@ def test_cmd_ver_check_if_u(capsys: CaptureFixture[str],
                             ver: tuple[int, int, int, int, int], dat: date,
                             errprint: bool) -> None:
     """Test version check if unsupported python widh old Python."""
-    mod1 = 'excel_list_transform.version_information.sys.version_info'
+    mod1 = 'versionreporter.versionreporter.sys.version_info'
     monkeypatch.setattr(mod1, ver)
 
     def mock_day(_: object) -> date:
         """Mock Version._today."""
         assert isinstance(dat, date)
         return dat
-    mod2 = 'excel_list_transform.version_information.VersionInformation._today'
+    mod2 = 'excel_list_transform.version_information.'
+    mod2 += 'ExcelListVersionReporter._today'
     monkeypatch.setattr(mod2, mock_day)
     with pytest.raises(SystemExit):
         transform_cmd(['--help'])

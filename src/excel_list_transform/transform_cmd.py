@@ -16,7 +16,7 @@ from excel_list_transform.generate_cfg import generate_examplecfg
 from excel_list_transform.generate_cfg import get_example_names
 from excel_list_transform.config_enums import ColumnRef
 from excel_list_transform.str_to_enum import string_to_enum_best_match
-from excel_list_transform.version_information import VersionInformation
+from excel_list_transform.version_information import ExcelListVersionReporter
 from excel_list_transform.migrate_cfg import migrate_cfg
 
 
@@ -41,7 +41,7 @@ def rfmt_cmd(args: argparse.Namespace) -> int:
 
 def version_cmd(_: argparse.Namespace) -> int:
     """Print version information."""
-    vers = VersionInformation()
+    vers = ExcelListVersionReporter()
     vers.print()
     return 0
 
@@ -186,7 +186,7 @@ def migrate_args(subparsers: SubParseAct) -> None:
 
 def transform_cmd(arguments: Optional[list[str]] = None) -> None:
     """Command to transform list in excel or CSV file."""
-    VersionInformation().check_if_unsupported_python()
+    ExcelListVersionReporter().check_if_unsupported_python()
     epimain = 'More detailed help is available for each sub-command.'
     if arguments is None:  # pragma: no cover
         arguments = sys_argv

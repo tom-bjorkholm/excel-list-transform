@@ -10,10 +10,10 @@ authors = [
 ]
 description = "Transform a list in excel, ODS or CSV."
 readme = "README_pypi.md"
+license = "MIT"
 requires-python = ">=3.13"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
 dynamic = ["dependencies"]

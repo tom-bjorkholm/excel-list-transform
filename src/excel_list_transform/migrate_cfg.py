@@ -6,8 +6,8 @@
 
 import sys
 from os.path import exists
+from config_as_json import ConfigAutoChangeHook
 from excel_list_transform.config_factory import config_factory_from_json
-from excel_list_transform.config_auto_change_hook import ConfigAutoChangeHook
 
 
 def migrate_cfg(infile: str, outfile: str) -> int:

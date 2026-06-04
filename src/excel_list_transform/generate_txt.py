@@ -52,43 +52,31 @@ def generate_syntax_txt(filename: str, example_description: str,
 
     Type of input and output file
     ==============================
-    The type of input file to read is determined by "in_type".
-    The type of ouput file to write is determined by "out_type".
-    "in_type" and "out_type" can have values "CSV" or "EXCEL".
+    The type of input file to read is configured in the "input_table"
+    section. The type of output file to write is configured in the
+    "output_table" section. These sections use the TableIO JSON
+    configuration syntax.
 
-    Excel files can be read and written using three libraries.
-    "in_excel_library" and "out_excel_library" can have values
-    "OPENPYXL", "XLSXWRITER" or "PYLIGHTXL". These are different
-    third party libraries that can read/write excel. My experience
-    is that "PYLIGHTXL" most often is able to read and write excel
-    files correctly. If you have trouble reading/writing your
-    particular excel file, please try different combinations of
-    these libraries. "in_excel_library" is always needed in
-    the configuration file but is not used if the input is CSV.
-    "out_excel_library" is always needed in the configuration file
-    but is not used if the output is CSV.
+    The most important keyword in each table section is "format_name".
+    Generated examples commonly use "Excel" or "CSV", but TableIO may
+    support more formats. In most cases you should leave
+    "implementation" missing or set to null. Then TableIO chooses a
+    suitable implementation. If you know that you need a specific
+    implementation, you can add it manually.
 
-    Currently "PYLIGHTXL" appears to be best to write files for
-    Microsoft Excel to open without complaints. But "OPENPYXL"
-    appears to be best to write files to be imported by
-    https://www.racingrulesofsailing.org .
-    When newer versions arrive this might change...
+    CSV files may differ slightly depending on the programs used to
+    read/write them and the locale used. CSV-specific settings are
+    configured in the nested "csv" section inside "input_table" or
+    "output_table". The "character_encoding" keyword in the table
+    section controls the text encoding.
+    https://en.wikipedia.org/wiki/Character_encoding
 
-    Comma separated values files (CSV files) may differ slightly
-    depening on the programs used to read/write them and the locale
-    used. "in_csv_dialect" and "out_csv_dialect" changes how CSV files
-    are read and written. They are always needed in the configuration
-    file, but are not used if the input and output are excel files.
-
-    Comma separated values files might have different encoding for
-    the text in the file. https://en.wikipedia.org/wiki/Character_encoding
-    This is specified with "in_csv_encoding" and "out_csv_encoding".
-    Unless you know that you need another encoding leave these as
-    in the generated example configuration. (In version 0.5 these
-    configuration parameters are missing. To be compatible with 0.5
-    configuration files "in_csv_encoding" defaults to "utf_8_sig"
-    and "out_csv_encoding" defaults to "utf-8" if missing in the
-    configutation file.)
+    Output tables can request extra presentation features. Set
+    "output_borders" to true to request table borders. Set
+    "output_filtered_table" to true to request a filtered table area.
+    These features are ignorable requests. TableIO will prefer an
+    implementation that can provide them, but the transform can still
+    write the output if the selected file format cannot represent them.
 
 
     Extra spaces in excel input files

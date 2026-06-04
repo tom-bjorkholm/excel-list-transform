@@ -6,27 +6,28 @@
 
 import sys
 from copy import deepcopy
-from excel_list_transform.config_auto_change_hook import ConfigAutoChangeHook
+from typing import Optional, TextIO
+from config_as_json import MigrateCfgWarnHook as BaseMigrateCfgWarnHook
 
 
-class MigrateCfgWarnHook(ConfigAutoChangeHook):
+class MigrateCfgWarnHook(BaseMigrateCfgWarnHook):
     """Class that warns user to migrate configuration file."""
 
-    @staticmethod
-    def migrate_warn_msg() -> str:
-        """Get message warning user suggesting migrating config."""
-        txt = '\nBackward compatibility was used to read configuration file.'
-        txt += '\nThis version of the program understood the configuration,\n'
-        txt += 'but newer versions of the program may not understand it.\n\n'
+    @classmethod
+    def migrate_instructions(cls) -> str:
+        """Return application-specific migration instructions."""
+        _ = cls
+        txt = ''
         txt += 'Use "migrate-cfg" sub-command to migrate configuration '
         txt += 'to new format.\n\n'
         return deepcopy(txt)  # copy to make sure original is not manipulated.
 
-    def auto_changed(self, old_keys_handled: list[str],
-                     def_vals_handled: list[str]) -> None:
-        """Warn user to migrate configuration.
+    def default_value_provided(self, def_val_key: str) -> None:
+        """Record old-style default insertion as a ROCF value."""
+        self.rocf_missing_value_provided(def_val_key)
 
-        Override of base class method.
-        Automatic changes have been made, this means configuration file is old.
-        """
-        print(self.migrate_warn_msg(), file=sys.stderr, end='')
+    def all_autochanges_done(self,
+                             stderr_file: Optional[TextIO] = None) -> None:
+        """Report collected automatic changes using current stderr."""
+        err_file = sys.stderr if stderr_file is None else stderr_file
+        super().all_autochanges_done(stderr_file=err_file)

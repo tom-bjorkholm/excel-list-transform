@@ -5,9 +5,11 @@
 # MIT License
 
 from copy import deepcopy
+from tableio import CsvDialect
+from tableio_cfg_json import TioJsonCsvConfig
 from excel_list_transform.file_extension import fix_file_extension
 from excel_list_transform.config_enums import ColumnRef, FileType, \
-    RewriteKind, CaseSensitivity, ExcelLib, SplitWhere
+    RewriteKind, CaseSensitivity, SplitWhere
 from excel_list_transform.config_factory import config_factory_from_enum
 from excel_list_transform.generate_txt import generate_syntax_txt
 from excel_list_transform.config_excel_list_transform import \
@@ -124,15 +126,8 @@ def generate_syntax_sa2r_name(filename: str, colref: ColumnRef) -> None:
     """Generate config example for sa_to_rrs."""
     assert colref == ColumnRef.BY_NAME
     cfg = ConfigXlsListTransfName()
-    cfg.out_excel_library = ExcelLib.OPENPYXL
-    cfg.in_type = FileType.CSV
-    cfg.out_type = FileType.EXCEL
-    cfg.in_csv_encoding = 'cp1252'
-    cfg.in_csv_dialect = {'name': 'csv.excel',
-                          'delimiter': ';', 'quoting': None,
-                          'quotechar': '"',
-                          'lineterminator': None,
-                          'escapechar': None}
+    set_input_csv(cfg=cfg, encoding='cp1252', delimiter=';')
+    set_output_excel(cfg)
     cfg.s01_split_rows = []
     cfg.s02_merge_rows = []
     cfg.s03_split_columns = []
@@ -151,9 +146,8 @@ def generate_syntax_sw2r_name(filename: str, colref: ColumnRef) -> None:
     """Generate config example for sw_to_rrs."""
     assert colref == ColumnRef.BY_NAME
     cfg = ConfigXlsListTransfName()
-    cfg.out_excel_library = ExcelLib.OPENPYXL
-    cfg.in_type = FileType.EXCEL
-    cfg.out_type = FileType.EXCEL
+    set_input_excel(cfg)
+    set_output_excel(cfg)
     cfg.s01_split_rows = []
     cfg.s02_merge_rows = []
     cfg.s03_split_columns = [{'column': 'Name',
@@ -175,19 +169,40 @@ TXT_SW2R_NAME = SYNTAX_SW2R_COMMON + BY_NAME_COMMON
 TXT_SA2R_NAME = SYNTAX_SA2R_COMMON + BY_NAME_COMMON
 
 
+def set_input_csv(cfg: ConfigXlsListTransfName | ConfigXlsListTransfNum,
+                  encoding: str, delimiter: str) -> None:
+    """Configure input as CSV."""
+    cfg.in_type = FileType.CSV
+    cfg.input_table.character_encoding = encoding
+    cfg.input_table.csv = TioJsonCsvConfig(dialect=CsvDialect.EXCEL,
+                                           delimiter=delimiter, quotechar='"')
+
+
+def set_input_excel(cfg: ConfigXlsListTransfName | ConfigXlsListTransfNum
+                    ) -> None:
+    """Configure input as Excel."""
+    cfg.in_type = FileType.EXCEL
+
+
+def set_output_csv(cfg: ConfigXlsListTransfName | ConfigXlsListTransfNum
+                   ) -> None:
+    """Configure output as CSV."""
+    cfg.out_type = FileType.CSV
+
+
+def set_output_excel(cfg: ConfigXlsListTransfName | ConfigXlsListTransfNum
+                     ) -> None:
+    """Configure output as Excel."""
+    cfg.out_type = FileType.EXCEL
+    cfg.output_table.implementation = None
+
+
 def generate_syntax_sa2r_num(filename: str, colref: ColumnRef) -> None:
     """Generate config example for sa_to_rrs."""
     assert colref == ColumnRef.BY_NUMBER
     cfg = ConfigXlsListTransfNum()
-    cfg.out_excel_library = ExcelLib.OPENPYXL
-    cfg.in_type = FileType.CSV
-    cfg.out_type = FileType.EXCEL
-    cfg.in_csv_encoding = 'cp1252'
-    cfg.in_csv_dialect = {'name': 'csv.excel',
-                          'delimiter': ';', 'quoting': None,
-                          'quotechar': '"',
-                          'lineterminator': None,
-                          'escapechar': None}
+    set_input_csv(cfg=cfg, encoding='cp1252', delimiter=';')
+    set_output_excel(cfg)
     cfg.s01_split_rows = []
     cfg.s02_merge_rows = []
     cfg.s03_split_columns = []
@@ -204,9 +219,8 @@ def generate_syntax_sw2r_num(filename: str, colref: ColumnRef) -> None:
     """Generate config example for sw_to_rrs."""
     assert colref == ColumnRef.BY_NUMBER
     cfg = ConfigXlsListTransfNum()
-    cfg.out_excel_library = ExcelLib.OPENPYXL
-    cfg.in_type = FileType.EXCEL
-    cfg.out_type = FileType.EXCEL
+    set_input_excel(cfg)
+    set_output_excel(cfg)
     cfg.s01_split_rows = []
     cfg.s02_merge_rows = []
     cfg.s03_split_columns = [{'column': 5, 'separator': ' ',
@@ -232,9 +246,8 @@ def generate_syntax_o2r_name(filename: str, colref: ColumnRef) -> None:
     """Generate config example for office_forms_to_rrs."""
     assert colref == ColumnRef.BY_NAME
     cfg = ConfigXlsListTransfName()
-    cfg.out_excel_library = ExcelLib.OPENPYXL
-    cfg.in_type = FileType.EXCEL
-    cfg.out_type = FileType.EXCEL
+    set_input_excel(cfg)
+    set_output_excel(cfg)
     cfg.s01_split_rows = []
     cfg.s02_merge_rows = []
     cfg.s03_split_columns = []
@@ -267,9 +280,8 @@ def generate_syntax_o2r_num(filename: str, colref: ColumnRef) -> None:
     """Generate config example for office_forms_to_rrs."""
     assert colref == ColumnRef.BY_NUMBER
     cfg = ConfigXlsListTransfNum()
-    cfg.out_excel_library = ExcelLib.OPENPYXL
-    cfg.in_type = FileType.EXCEL
-    cfg.out_type = FileType.EXCEL
+    set_input_excel(cfg)
+    set_output_excel(cfg)
     cfg.s01_split_rows = []
     cfg.s02_merge_rows = []
     cfg.s03_split_columns = []
@@ -308,9 +320,8 @@ def generate_syntax_o2s_name(filename: str, colref: ColumnRef) -> None:
     """Generate config example for office_forms_to_sw."""
     assert colref == ColumnRef.BY_NAME
     cfg = ConfigXlsListTransfName()
-    cfg.out_excel_library = ExcelLib.OPENPYXL
-    cfg.in_type = FileType.EXCEL
-    cfg.out_type = FileType.CSV
+    set_input_excel(cfg)
+    set_output_csv(cfg)
     cfg.s01_split_rows = []
     cfg.s02_merge_rows = []
     cfg.s03_split_columns = []
@@ -340,9 +351,8 @@ def generate_syntax_o2s_num(filename: str, colref: ColumnRef) -> None:
     """Generate config example for office_forms_to_sw."""
     assert colref == ColumnRef.BY_NUMBER
     cfg = ConfigXlsListTransfNum()
-    cfg.out_excel_library = ExcelLib.OPENPYXL
-    cfg.in_type = FileType.EXCEL
-    cfg.out_type = FileType.CSV
+    set_input_excel(cfg)
+    set_output_csv(cfg)
     cfg.s01_split_rows = []
     cfg.s02_merge_rows = []
     cfg.s03_split_columns = []
@@ -384,9 +394,8 @@ def generate_syntax_r2s_name(filename: str, colref: ColumnRef) -> None:
     """Generate config example for rrs_to_sw."""
     assert colref == ColumnRef.BY_NAME
     cfg = ConfigXlsListTransfName()
-    cfg.out_excel_library = ExcelLib.OPENPYXL
-    cfg.in_type = FileType.EXCEL
-    cfg.out_type = FileType.CSV
+    set_input_excel(cfg)
+    set_output_csv(cfg)
     cfg.s03_split_columns = []
     cfg.s01_split_rows = []
     cfg.s02_merge_rows = []
@@ -418,9 +427,8 @@ def generate_syntax_r2s_num(filename: str, colref: ColumnRef) -> None:
     """Generate config example for rrs_to_sw."""
     assert colref == ColumnRef.BY_NUMBER
     cfg = ConfigXlsListTransfNum()
-    cfg.out_excel_library = ExcelLib.OPENPYXL
-    cfg.in_type = FileType.EXCEL
-    cfg.out_type = FileType.CSV
+    set_input_excel(cfg)
+    set_output_csv(cfg)
     cfg.s01_split_rows = []
     cfg.s02_merge_rows = []
     cfg.s03_split_columns = []
@@ -454,8 +462,8 @@ TXT_R2S_NUM = SYNTAX_R2S_COMMON + BY_NUMBER_COMMON
 def generate_syntax_example(filename: str, colref: ColumnRef) -> None:
     """Generate config example for example."""
     cfg = config_factory_from_enum(colref)
-    cfg.out_type = FileType.CSV
-    cfg.in_csv_dialect['name'] = 'csv.unix_dialect'
+    set_output_csv(cfg)
+    cfg.input_table.csv = TioJsonCsvConfig(dialect=CsvDialect.UNIX)
     cfg.write(to_json_filename=filename)
 
 
@@ -469,8 +477,8 @@ to demonstrates all configuration options, and to be small.
 def generate_rowsplitmerge(filename: str, colref: ColumnRef) -> None:
     """Generate config example for row_split_merge."""
     cfg = config_factory_from_enum(colref)
-    cfg.in_type = FileType.EXCEL
-    cfg.out_type = FileType.EXCEL
+    set_input_excel(cfg)
+    set_output_excel(cfg)
     cfg.s03_split_columns = []
     cfg.s05_merge_columns = []
     cfg.s07_rename_columns = []

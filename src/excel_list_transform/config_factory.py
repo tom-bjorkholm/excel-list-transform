@@ -9,6 +9,7 @@ from typing import Optional
 import sys
 from json import loads as json_loads
 from json import JSONDecodeError
+from config_as_json import ConfigAutoChangeHook
 from excel_list_transform.config_enums import ColumnRef
 from excel_list_transform.config_xls_list_transf_name import \
     ConfigXlsListTransfName
@@ -17,7 +18,6 @@ from excel_list_transform.config_xls_list_transf_num import \
 from excel_list_transform.str_to_enum import string_to_enum_best_match
 from excel_list_transform.commontypes import JsonType
 from excel_list_transform.file_must_exist import file_must_exist
-from excel_list_transform.config_auto_change_hook import ConfigAutoChangeHook
 from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
 
 

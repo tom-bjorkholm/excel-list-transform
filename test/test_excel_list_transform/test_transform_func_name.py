@@ -19,14 +19,25 @@ from excel_list_transform.transform_func_named import \
     check_indata_name, transform_data_name
 from excel_list_transform.transform_func import transform_named_files
 from excel_list_transform.handle_excel import read_excel_num, write_excel_named
-from excel_list_transform.handle_csv import read_csv_num, write_csv_named
+from excel_list_transform.handle_csv import write_csv_named
+from excel_list_transform.handle_tableio import read_table_num
 from excel_list_transform.config_xls_list_transf_name import \
     ConfigXlsListTransfName
-from excel_list_transform.commontypes import NameData
+from excel_list_transform.commontypes import NameData, NumData
 from excel_list_transform.config_enums import RewriteKind, CaseSensitivity, \
     SplitWhere, FileType
 from excel_list_transform.transform_func_common import col_must_exist_name, \
     store_col_split_name, split_columns, merge_columns, rewrite_columns
+
+
+def read_csv_table(filename: str, cfg: ConfigXlsListTransfName) -> NumData:
+    """Read TableIO CSV output as numbered rows."""
+    read_cfg = ConfigXlsListTransfName()
+    read_cfg.input_table.format_name = 'CSV'
+    read_cfg.input_table.character_encoding = cfg.out_csv_encoding
+    read_cfg.input_table.csv = deepcopy(cfg.output_table.csv)
+    read_cfg.max_column_read = 20
+    return read_table_num(filename=filename, cfg=read_cfg)
 
 
 @pytest.mark.parametrize('col, row, par',
@@ -585,9 +596,7 @@ def test_rfmt_nmd_fls_xl2csv(capsys: CaptureFixture[str], enc: Any) -> None:
         # pylint: disable-next=duplicate-code
         transform_named_files(infilename=infilename, outfilename=outfilename,
                               cfgfilename=cfgname)
-        res = read_csv_num(filename=outfilename + '.csv',
-                           dialect=cfg.get_out_csv_dialect(),
-                           encoding=cfg.out_csv_encoding, max_column_read=20)
+        res = read_csv_table(filename=outfilename + '.csv', cfg=cfg)
         out, err = capsys.readouterr()
         assert '' == err
         assert f'Wrote {outfilename}.csv' == out.strip()

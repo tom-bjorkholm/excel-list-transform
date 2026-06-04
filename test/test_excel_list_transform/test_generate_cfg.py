@@ -11,13 +11,16 @@ from collections.abc import Callable
 from collections import namedtuple
 from tempfile import TemporaryDirectory
 from copy import deepcopy
-from csv import excel as csv_excel_dialect
 import pytest
 from pytest import CaptureFixture
+from tableio import CsvDialect
+from tableio_cfg_json import TioJsonCsvConfig
 from excel_list_transform.generate_cfg import generate_examplecfg
 from excel_list_transform.config_enums import ColumnRef, ExcelLib
+from excel_list_transform.config_xls_list_transf_num import \
+    ConfigXlsListTransfNum
 from excel_list_transform.handle_excel import read_excel_num, write_excel_num
-from excel_list_transform.handle_csv import read_csv_num
+from excel_list_transform.handle_tableio import read_table_num
 from excel_list_transform.transform_func import transform_named_files
 from excel_list_transform.transform_cmd import transform_cmd
 from excel_list_transform.commontypes import NumData, NumRow, Value, \
@@ -216,10 +219,25 @@ def openpyxl_reader(filename: str, max_column_read: int = 40) -> NumData:
                           excel_lib=ExcelLib.OPENPYXL)
 
 
+def csv_delimiter(filename: str) -> str:
+    """Return likely CSV delimiter from first line in a test file."""
+    with open(file=filename, mode='r', encoding='utf_8_sig') as csv_file:
+        first_line = csv_file.readline()
+    if first_line.count(';') > first_line.count(','):
+        return ';'
+    return ','
+
+
 def csv_reader(filename: str, max_column_read: int = 40) -> NumData:
-    """Read CSV with excel dialect."""
-    return read_csv_num(filename=filename, dialect=csv_excel_dialect,
-                        encoding='utf_8_sig', max_column_read=max_column_read)
+    """Read CSV with TableIO."""
+    cfg = ConfigXlsListTransfNum()
+    cfg.input_table.format_name = 'CSV'
+    cfg.input_table.character_encoding = 'utf_8_sig'
+    cfg.input_table.csv = TioJsonCsvConfig(dialect=CsvDialect.EXCEL,
+                                           delimiter=csv_delimiter(filename),
+                                           quotechar='"')
+    cfg.max_column_read = max_column_read
+    return read_table_num(filename=filename, cfg=cfg)
 
 
 @pytest.mark.parametrize('refcol', [ColumnRef.BY_NAME, ColumnRef.BY_NUMBER])

@@ -4,10 +4,13 @@
 # Copyright (c) 2024-2025 Tom Björkholm
 # MIT License
 
+import json
 from tempfile import TemporaryDirectory
 import pytest
 from pytest import MonkeyPatch
 from pytest import CaptureFixture
+from tableio import CsvDialect
+from tableio_cfg_json import TioJsonCsvConfig
 from excel_list_transform.migrate_cfg import migrate_cfg
 from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
 from excel_list_transform.config_factory import config_factory_from_json
@@ -20,11 +23,37 @@ from excel_list_transform.assert_dict_equal import assert_dict_equal
 from excel_list_transform.transform_cmd import transform_cmd
 
 
+def configure_old_io(cfg: ConfigXlsListTransfName |
+                     ConfigXlsListTransfNum) -> None:
+    """Set expected TableIO settings from old migration fixtures."""
+    cfg.out_type = FileType.CSV
+    cfg.input_table.character_encoding = 'utf_8_sig'
+    cfg.output_table.character_encoding = 'utf-8'
+    cfg.input_table.csv = TioJsonCsvConfig(dialect=CsvDialect.UNIX,
+                                           delimiter=',', quotechar='"')
+    cfg.output_table.csv = TioJsonCsvConfig(dialect=CsvDialect.EXCEL,
+                                            delimiter=',', quotechar='"')
+
+
+def assert_new_config_file(filename: str) -> None:
+    """Assert that a migrated file uses the new config shape."""
+    with open(file=filename, mode='r', encoding='utf-8') as file:
+        data = json.load(file)
+    assert 'input_table' in data
+    assert 'output_table' in data
+    assert data['input_table'].get('implementation') is None
+    assert data['output_table'].get('implementation') is None
+    old_keys = ['in_type', 'out_type', 'in_csv_dialect',
+                'out_csv_dialect', 'in_csv_encoding', 'out_csv_encoding',
+                'in_excel_library', 'out_excel_library']
+    for old_key in old_keys:
+        assert old_key not in data
+
+
 def test_migrate_cfg1(capsys: CaptureFixture[str]) -> None:
     """Test migration of 0.7.13 config file."""
     refcfg = ConfigXlsListTransfName()
-    refcfg.out_type = FileType.CSV
-    refcfg.in_csv_dialect['name'] = 'csv.unix_dialect'
+    configure_old_io(refcfg)
     refcfg.s01_split_rows = []
     refcfg.s02_merge_rows = []
     refcfg.s03_split_columns[0]['right_name'] = 'Family Name'
@@ -37,6 +66,7 @@ def test_migrate_cfg1(capsys: CaptureFixture[str]) -> None:
         assert err == MigrateCfgWarnHook.migrate_warn_msg()
         res = migrate_cfg(infile=infilename, outfile=outfilename)
         cfg = config_factory_from_json(from_json_filename=outfilename)
+        assert_new_config_file(outfilename)
         out, err = capsys.readouterr()
         assert_dict_equal(refcfg.__dict__, cfg.__dict__,
                           ['_hook_cfg_autochange'])
@@ -50,8 +80,7 @@ def test_migrate_cfg1(capsys: CaptureFixture[str]) -> None:
 def test_migrate_cfg2(capsys: CaptureFixture[str]) -> None:
     """Test migration of 0.7.13 config file."""
     refcfg = ConfigXlsListTransfNum()
-    refcfg.out_type = FileType.CSV
-    refcfg.in_csv_dialect['name'] = 'csv.unix_dialect'
+    configure_old_io(refcfg)
     refcfg.s01_split_rows = []
     refcfg.s02_merge_rows = []
     refcfg.s07_rename_columns[1]['name'] = 'Family Name'
@@ -64,6 +93,7 @@ def test_migrate_cfg2(capsys: CaptureFixture[str]) -> None:
         assert err == MigrateCfgWarnHook.migrate_warn_msg()
         res = migrate_cfg(infile=infilename, outfile=outfilename)
         cfg = config_factory_from_json(from_json_filename=outfilename)
+        assert_new_config_file(outfilename)
         out, err = capsys.readouterr()
         assert_dict_equal(refcfg.__dict__, cfg.__dict__,
                           ['_hook_cfg_autochange'])
@@ -109,8 +139,7 @@ def test_migrate_cmd1(capsys: CaptureFixture[str], ipar: str,
                       opar: str) -> None:
     """Test migration of 0.7.13 config file."""
     refcfg = ConfigXlsListTransfName()
-    refcfg.out_type = FileType.CSV
-    refcfg.in_csv_dialect['name'] = 'csv.unix_dialect'
+    configure_old_io(refcfg)
     refcfg.s01_split_rows = []
     refcfg.s02_merge_rows = []
     refcfg.s03_split_columns[0]['right_name'] = 'Family Name'
@@ -121,6 +150,7 @@ def test_migrate_cmd1(capsys: CaptureFixture[str], ipar: str,
         args = ['migrate-cfg', ipar, infilename, opar, outfilename]
         transform_cmd(arguments=args)
         cfg = config_factory_from_json(from_json_filename=outfilename)
+        assert_new_config_file(outfilename)
         out, err = capsys.readouterr()
         assert_dict_equal(refcfg.__dict__, cfg.__dict__,
                           ['_hook_cfg_autochange'])
@@ -136,8 +166,7 @@ def test_migrate_cmd2(capsys: CaptureFixture[str], ipar: str,
                       opar: str) -> None:
     """Test migration of 0.7.13 config file."""
     refcfg = ConfigXlsListTransfNum()
-    refcfg.out_type = FileType.CSV
-    refcfg.in_csv_dialect['name'] = 'csv.unix_dialect'
+    configure_old_io(refcfg)
     refcfg.s01_split_rows = []
     refcfg.s02_merge_rows = []
     refcfg.s07_rename_columns[1]['name'] = 'Family Name'
@@ -148,6 +177,7 @@ def test_migrate_cmd2(capsys: CaptureFixture[str], ipar: str,
         args = ['migrate-cfg', ipar, infilename, opar, outfilename]
         transform_cmd(arguments=args)
         cfg = config_factory_from_json(from_json_filename=outfilename)
+        assert_new_config_file(outfilename)
         out, err = capsys.readouterr()
         assert_dict_equal(refcfg.__dict__, cfg.__dict__,
                           ['_hook_cfg_autochange'])

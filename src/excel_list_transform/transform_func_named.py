@@ -7,12 +7,7 @@
 
 import sys
 from copy import deepcopy
-from excel_list_transform.handle_csv import read_csv_named, write_csv_named
-from excel_list_transform.handle_excel import \
-    read_excel_named, write_excel_named
-from excel_list_transform.config_enums import \
-    FileType
-from excel_list_transform.config import Config
+from config_as_json import Config
 from excel_list_transform.config_xls_list_transf_name import \
     ConfigXlsListTransfName
 from excel_list_transform.check_indata_common import check_indata_common
@@ -21,6 +16,8 @@ from excel_list_transform.transform_func_common import \
     cols_must_exist_dict, split_columns, merge_columns, rewrite_columns
 from excel_list_transform.row_split_merge import split_rows_cfg, \
     merge_rows_cfg
+from excel_list_transform.handle_tableio import read_table_named, \
+    write_table_named
 
 
 def rename_columns_name(indata: NameData,
@@ -120,25 +117,9 @@ def transform_named_files_name(infilename: str, outfilename: str,
     """Transform list in the named excel file to named file."""
     cfgn: ConfigXlsListTransfName = \
         get_checked_type(value=cfg, istype=ConfigXlsListTransfName)
-    indata = None
-    if cfgn.in_type == FileType.CSV:
-        indata = read_csv_named(infilename, cfgn.get_in_csv_dialect(),
-                                encoding=cfgn.in_csv_encoding,
-                                max_column_read=cfgn.max_column_read)
-    else:
-        indata = read_excel_named(infilename,
-                                  max_column_read=cfgn.max_column_read,
-                                  strip_col_names=cfgn.in_excel_col_name_strip,
-                                  strip_values=cfgn.in_excel_values_strip,
-                                  excel_lib=cfgn.in_excel_library)
+    indata = read_table_named(infilename, cfgn)
     outdata = transform_data_name(indata=indata, cfg=cfgn)
-    if cfgn.out_type == FileType.CSV:
-        write_csv_named(data=outdata, filename=outfilename,
-                        dialect=cfgn.get_out_csv_dialect(),
-                        encoding=cfgn.out_csv_encoding,
-                        column_order=cfgn.s10_column_order)
-    else:
-        write_excel_named(data=outdata, filename=outfilename,
-                          column_order=cfgn.s10_column_order,
-                          excel_lib=cfgn.out_excel_library)
-    print(f'Wrote {outfilename}')
+    written_file = write_table_named(data=outdata, filename=outfilename,
+                                     cfg=cfgn,
+                                     column_order=cfgn.s10_column_order)
+    print(f'Wrote {written_file}')

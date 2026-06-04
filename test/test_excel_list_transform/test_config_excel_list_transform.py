@@ -9,12 +9,13 @@
 from typing import Any
 from collections import namedtuple
 from copy import deepcopy
+import sys
 import pytest
 from pytest import CaptureFixture
+from config_as_json import InvalidConfiguration
 from excel_list_transform.config_enums import ColumnRef, FileType
 from excel_list_transform.config_excel_list_transform import \
-    ConfigExcelListTransform, ColInfo
-from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
+    ConfigExcelListTransform, ConfigReadOld, ColInfo
 from excel_list_transform.assert_dict_equal import assert_dict_equal
 
 
@@ -35,19 +36,16 @@ def test_cfg_xlt_lst_def_def(capsys: CaptureFixture[str]) -> None:
     assert cfg.max_column_read == 20
     str_cfg = cfg.as_json_string()
     assert len(str_cfg) > 1
-    assert 'in_type' in str_cfg
+    assert 'input_table' in str_cfg
+    assert 'output_table' in str_cfg
+    assert 'in_type' not in str_cfg
+    assert 'out_type' not in str_cfg
     zcfg = ConfigExcelListTransform(col_ref=ColumnRef.BY_NAME, colinfo=colinfo,
                                     tinfo='a')
     assert_dict_equal(cfg.__dict__, zcfg.__dict__, ['_hook_cfg_autochange'])
     ycfg = ConfigExcelListTransform(col_ref=ColumnRef.BY_NAME, colinfo=colinfo,
                                     tinfo='a', from_json_text=str_cfg)
     assert_dict_equal(cfg.__dict__, ycfg.__dict__, ['_hook_cfg_autochange'])
-    assert cfg.out_csv_dialect['lineterminator'] is None
-    assert ycfg.out_csv_dialect['lineterminator'] is None
-    assert cfg.out_csv_dialect.keys() == ycfg.out_csv_dialect.keys()
-    assert cfg.out_csv_dialect.keys() == zcfg.out_csv_dialect.keys()
-    assert cfg.out_csv_dialect == ycfg.out_csv_dialect
-    assert cfg.out_csv_dialect == zcfg.out_csv_dialect
     assert cfg.get_out_csv_dialect().lineterminator == \
         ycfg.get_out_csv_dialect().lineterminator
     assert ycfg.get_out_csv_dialect().lineterminator == '\r\n'
@@ -68,7 +66,7 @@ def test_xlt_rd_rd_inc4(capsys: CaptureFixture[str], t: Any) -> None:
     cfg = ConfigExcelListTransform(col_ref=ColumnRef.BY_NUMBER,
                                    colinfo=colinfo, tinfo=2)
     with pytest.raises(KeyError) as exc_info:
-        cfg.parse_json(t, ok_to_use_defaults=True)
+        cfg.parse_json(t, ok_to_use_defaults=True, stderr_file=sys.stderr)
     assert exc_info.type is KeyError
     out, err = capsys.readouterr()
     assert out == ''
@@ -185,22 +183,21 @@ def get_mock_init_args(colref: ColumnRef) -> Any:
 
 @pytest.mark.parametrize('cref', [ColumnRef.BY_NAME, ColumnRef.BY_NUMBER])
 def test_cfg_transf_def_vals(capsys: CaptureFixture[str], cref: Any) -> None:
-    """Test ConfigExcelListTransform._def_vals_for_optional."""
-    args = get_mock_init_args(colref=cref)
-    cfg = ConfigExcelListTransform(col_ref=args.colref, colinfo=args.colinfo,
-                                   tinfo=args.tinfo)
-    # pylint: disable-next=protected-access
-    data = cfg._def_vals_for_optional()
+    """Test defaults supplied for old configuration files."""
+    _ = cref
+    data = ConfigReadOld._old_defaults()  # pylint: disable=protected-access
     out, err = capsys.readouterr()
     assert '' == out
     assert '' == err
-    assert len(data) == 6
+    assert len(data) == 10
     assert 'in_csv_encoding' in data
     assert 'out_csv_encoding' in data
     assert 'in_excel_col_name_strip' in data
     assert 'in_excel_values_strip' in data
     assert 's01_split_rows' in data
     assert 's02_merge_rows' in data
+    assert 'output_borders' in data
+    assert 'output_filtered_table' in data
     split_rows = data['s01_split_rows']
     merge_rows = data['s02_merge_rows']
     assert isinstance(split_rows, list)
@@ -220,8 +217,9 @@ def test_cfg_tr_enc_def(capsys: CaptureFixture[str], cref: Any) -> None:
     assert 'utf_8_sig' == cfg.in_csv_encoding
     assert 'utf-8' == cfg.out_csv_encoding
     txt = cfg.as_json_string()
-    assert 'in_csv_encoding' in txt
-    assert 'utf-8' in txt
+    assert 'character_encoding' not in txt
+    assert 'in_csv_encoding' not in txt
+    assert 'out_csv_encoding' not in txt
     cf2 = ConfigExcelListTransform(col_ref=args.colref, colinfo=args.colinfo,
                                    tinfo=args.tinfo, from_json_text=txt,
                                    from_json_filename=None)
@@ -276,19 +274,16 @@ def test_cfg_transf_enc_1_ok(capsys: CaptureFixture[str], in_enc: Any,
 def test_cfg_transf_enc_1_nok(capsys: CaptureFixture[str], in_enc: Any,
                               out_enc: Any, cref: Any) -> None:
     """Test not OK configured encoding for ConfigExcelListTransform."""
-    with pytest.raises(SystemExit):
+    with pytest.raises(InvalidConfiguration):
         arg = get_mock_init_args(colref=cref)
         cfg = ConfigExcelListTransform(col_ref=arg.colref, colinfo=arg.colinfo,
                                        tinfo=arg.tinfo)
         cfg.in_csv_encoding = in_enc
         cfg.out_csv_encoding = out_enc
-        txt = cfg.as_json_string()
-        _ = ConfigExcelListTransform(col_ref=arg.colref, colinfo=arg.colinfo,
-                                     tinfo=arg.tinfo, from_json_text=txt,
-                                     from_json_filename=None)
+        _ = cfg.as_json_string(stderr_file=sys.stderr)
     out, err = capsys.readouterr()
     assert '' == out
-    assert 'is not a recognized encoding' in err
+    assert 'is not a recognized character encoding' in err
 
 
 @pytest.mark.parametrize('cref', [ColumnRef.BY_NAME, ColumnRef.BY_NUMBER])
@@ -317,7 +312,7 @@ def test_cfg_transf_enc_2_ok(capsys: CaptureFixture[str], in_enc: Any,
                                    from_json_filename=None)
     out, err = capsys.readouterr()
     assert '' == out
-    assert MigrateCfgWarnHook.migrate_warn_msg() == err
+    assert '' == err
     assert cf2.in_csv_encoding == 'utf_8_sig'
     assert cf2.out_csv_encoding == 'utf-8'
 

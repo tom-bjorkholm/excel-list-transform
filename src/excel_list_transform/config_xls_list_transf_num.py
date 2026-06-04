@@ -5,12 +5,13 @@
 # MIT License
 
 
-from typing import Optional
+import sys
+from typing import Optional, TextIO
+from config_as_json import ConfigAutoChangeHook, PathOrStr
 from excel_list_transform.config_enums import SplitWhere, ColumnRef
 from excel_list_transform.config_excel_list_transform \
     import ConfigExcelListTransform, RulePlace, RuleRemove, \
     SingleRuleMerge, SingleRuleSplit, SingleRule, ColInfo
-from excel_list_transform.config_auto_change_hook import ConfigAutoChangeHook
 from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
 
 
@@ -33,10 +34,12 @@ class ConfigXlsListTransfNum(ConfigExcelListTransform[int]):  # pylint: disable=
     """Class with configuration for excel list transform."""
 
     def __init__(self, from_json_text: Optional[str] = None,
-                 from_json_filename: Optional[str] = None,
+                 from_json_filename: Optional[PathOrStr] = None,
                  auto_ch_hook: ConfigAutoChangeHook =
-                 MigrateCfgWarnHook()) -> None:
+                 MigrateCfgWarnHook(),
+                 stderr_file: Optional[TextIO] = None) -> None:
         """Construct configuration for excel list transform."""
+        err_file = sys.stderr if stderr_file is None else stderr_file
         self.s04_remove_columns: RuleRemove = [1, 2, 3]
         self.s06_place_columns_first: RulePlace = [7, 3, 6]
         col_to_use = [15, 16, 1, 2, 5, 5, 5, 5, 5, 6]
@@ -53,7 +56,7 @@ class ConfigXlsListTransfNum(ConfigExcelListTransform[int]):  # pylint: disable=
         super().__init__(col_ref=ColumnRef.BY_NUMBER, colinfo=colinfo, tinfo=2,
                          from_json_text=from_json_text,
                          from_json_filename=from_json_filename,
-                         auto_ch_hook=auto_ch_hook)
+                         auto_ch_hook=auto_ch_hook, stderr_file=err_file)
         self.check_no_duplicates(self.s04_remove_columns, 's04_remove_columns')
         self._check_increasing_multi(self.s05_merge_columns,
                                      's05_merge_columns', 2)

@@ -16,7 +16,8 @@ from excel_list_transform.config_enums import FileType, ColumnRef
 from excel_list_transform.commontypes import NumData
 from excel_list_transform.transform_func import transform_named_files
 from excel_list_transform.handle_excel import write_excel_num, read_excel_num
-from excel_list_transform.handle_csv import read_csv_num, write_csv_num
+from excel_list_transform.handle_csv import write_csv_num
+from excel_list_transform.handle_tableio import read_table_num
 from excel_list_transform.config_excel_list_transform import \
     ConfigExcelListTransform
 from excel_list_transform.config_xls_list_transf_num import \
@@ -41,9 +42,12 @@ def read_test_file(cfg: ConfigExcelListTransform[Any],
     if cfg.out_type == FileType.EXCEL:
         return read_excel_num(filename=filename + '.xlsx', max_column_read=20,
                               strip_col_names=False, strip_values=False)
-    return read_csv_num(filename=filename + '.csv',
-                        dialect=cfg.get_out_csv_dialect(),
-                        encoding=cfg.out_csv_encoding, max_column_read=20)
+    read_cfg = ConfigXlsListTransfNum()
+    read_cfg.input_table.format_name = 'CSV'
+    read_cfg.input_table.character_encoding = cfg.out_csv_encoding
+    read_cfg.input_table.csv = deepcopy(cfg.output_table.csv)
+    read_cfg.max_column_read = 20
+    return read_table_num(filename=filename + '.csv', cfg=read_cfg)
 
 
 def chk_eq_ign_str_int(lhs: Any, rhs: Any) -> None:

@@ -21,11 +21,23 @@ from excel_list_transform.transform_func_num import \
     check_indata_num, transform_data_num, fix_indata_empty_rows_num
 from excel_list_transform.transform_func import transform_named_files
 from excel_list_transform.handle_excel import write_excel_num, read_excel_num
-from excel_list_transform.handle_csv import read_csv_num, write_csv_num
+from excel_list_transform.handle_csv import write_csv_num
+from excel_list_transform.handle_tableio import read_table_num
 from excel_list_transform.config_xls_list_transf_num import \
     ConfigXlsListTransfNum
+from excel_list_transform.commontypes import NumData
 from excel_list_transform.transform_func_common import col_must_exist_num, \
     store_col_split_num, split_columns, merge_columns, rewrite_columns
+
+
+def read_csv_table(filename: str, cfg: ConfigXlsListTransfNum) -> NumData:
+    """Read TableIO CSV output as numbered rows."""
+    read_cfg = ConfigXlsListTransfNum()
+    read_cfg.input_table.format_name = 'CSV'
+    read_cfg.input_table.character_encoding = cfg.out_csv_encoding
+    read_cfg.input_table.csv = deepcopy(cfg.output_table.csv)
+    read_cfg.max_column_read = 20
+    return read_table_num(filename=filename, cfg=read_cfg)
 
 
 @pytest.mark.parametrize('col, row, par',
@@ -649,9 +661,7 @@ def test_rfmt_nmd_fls_xl2csv(capsys: CaptureFixture[str], enc: Any) -> None:
         # pylint: disable-next=duplicate-code
         transform_named_files(infilename=infilename, outfilename=outfilename,
                               cfgfilename=cfgname)
-        res = read_csv_num(filename=outfilename + '.csv',
-                           dialect=cfg.get_out_csv_dialect(),
-                           encoding=cfg.out_csv_encoding, max_column_read=20)
+        res = read_csv_table(filename=outfilename + '.csv', cfg=cfg)
         out, err = capsys.readouterr()
         assert '' == err
         assert f'Wrote {outfilename}.csv' == out.strip()

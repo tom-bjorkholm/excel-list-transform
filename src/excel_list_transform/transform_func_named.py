@@ -56,12 +56,13 @@ def insert_columns_name(indata: NameData,
     return ret
 
 
-def fix_indata_empty_rows_name(indata: NameData) -> None:  # pylint: disable=duplicate-code # noqa: E501
+# pylint: disable-next=duplicate-code
+def fix_named_empty_rows(indata: NameData) -> None:
     """Check rows and remove empty rows with column name refs."""
     for i, row in reversed(list(enumerate(indata))):
         if not isinstance(row, dict):
             msg = 'Internal error. Expected dict of columns but got '
-            msg += type(row).__name__  # pylint: disable=duplicate-code # noqa: E501
+            msg += type(row).__name__
             print(msg, file=sys.stderr)
             raise TypeError(msg)
         if len(row) == 0:
@@ -84,7 +85,7 @@ def fix_indata_empty_rows_name(indata: NameData) -> None:  # pylint: disable=dup
 def check_indata_name(indata: NameData) -> None:
     """Check that the indata is well formed with column name refs."""
     check_indata_common(indata=indata,
-                        fix_indata_empty_rows=fix_indata_empty_rows_name)
+                        fix_indata_empty_rows=fix_named_empty_rows)
     cols = None
     for row in indata:
         rowcols = sorted(row.keys())

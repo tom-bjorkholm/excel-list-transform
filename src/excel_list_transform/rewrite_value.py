@@ -115,6 +115,7 @@ def rewrite_value(value: Optional[str], spec: SingleRuleRewrite[Column],
     if kind == RewriteKind.REGEX_SUBSTITUTE:
         return regex_replace_value(value=ret, fro=fro, to=to,
                                    casehandle=casehandle)
-    assert_never(f'unexpected value kind={kind.name} in ' +
-                 'rewrite_value')  # pylint: disable=unreachable,line-too-long  # pragma: no cover # noqa: E501
-    assert False  # pylint: disable=unreachable,line-too-long  # pragma: no cover # noqa: E501
+    # pylint: disable-next=unreachable
+    assert_never(f'unexpected value kind={kind.name} in rewrite_value')
+    # pylint: disable-next=unreachable
+    assert False  # pragma: no cover

@@ -13,15 +13,16 @@ from collections import namedtuple
 from tempfile import TemporaryDirectory
 import pytest
 from pytest import CaptureFixture
+from test_excel_list_transform.tableio_helpers import \
+    configure_input_csv, configure_input_excel, configure_output_csv, \
+    configure_output_excel, read_excel_num, write_csv_num, write_excel_num
 from excel_list_transform.config_enums import RewriteKind, CaseSensitivity, \
-    SplitWhere, FileType
+    SplitWhere
 from excel_list_transform.transform_func_num import \
     remove_columns_num, place_columns_first, \
     rename_columns_num, insert_columns_num, \
     check_indata_num, transform_data_num, fix_indata_empty_rows_num
 from excel_list_transform.transform_func import transform_named_files
-from excel_list_transform.handle_excel import write_excel_num, read_excel_num
-from excel_list_transform.handle_csv import write_csv_num
 from excel_list_transform.handle_tableio import read_table_num
 from excel_list_transform.config_xls_list_transf_num import \
     ConfigXlsListTransfNum
@@ -34,7 +35,8 @@ def read_csv_table(filename: str, cfg: ConfigXlsListTransfNum) -> NumData:
     """Read TableIO CSV output as numbered rows."""
     read_cfg = ConfigXlsListTransfNum()
     read_cfg.input_table.format_name = 'CSV'
-    read_cfg.input_table.character_encoding = cfg.out_csv_encoding
+    read_cfg.input_table.character_encoding = \
+        cfg.output_table.character_encoding
     read_cfg.input_table.csv = deepcopy(cfg.output_table.csv)
     read_cfg.max_column_read = 20
     return read_table_num(filename=filename, cfg=read_cfg)
@@ -637,7 +639,8 @@ def test_tr_data_ok_num(capsys: CaptureFixture[str]) -> None:
 def test_rfmt_nmd_fls_xl2csv(capsys: CaptureFixture[str], enc: Any) -> None:
     """Test transform_name_files from xlsx to csv (num refs)."""
     cfg = ConfigXlsListTransfNum()
-    cfg.out_csv_encoding = enc
+    configure_input_excel(cfg)
+    configure_output_csv(cfg, encoding=enc)
     test_data = get_test_data_num()
     cfg.s01_split_rows = []
     cfg.s02_merge_rows = []
@@ -648,9 +651,6 @@ def test_rfmt_nmd_fls_xl2csv(capsys: CaptureFixture[str], enc: Any) -> None:
     cfg.s07_rename_columns = test_data.rename_cols
     cfg.s08_insert_columns = test_data.insert_cols
     cfg.s09_rewrite_columns = test_data.rewrite_cols
-    # pylint: disable-next=duplicate-code
-    cfg.in_type = FileType.EXCEL
-    cfg.out_type = FileType.CSV
     with TemporaryDirectory() as dirname:
         # pylint: disable-next=duplicate-code
         cfgname = dirname + '/test.cfg'
@@ -673,7 +673,8 @@ def test_rfmt_nmd_fls_xl2csv(capsys: CaptureFixture[str], enc: Any) -> None:
 def test_rfmt_nmd_fls_csv2xl(capsys: CaptureFixture[str], enc: Any) -> None:
     """Test transform_name_files from csv to xlsx (num refs)."""
     cfg = ConfigXlsListTransfNum()
-    cfg.in_csv_encoding = enc
+    configure_input_csv(cfg, encoding=enc)
+    configure_output_excel(cfg)
     test_data = get_test_data_num()
     cfg.s01_split_rows = []
     cfg.s02_merge_rows = []
@@ -684,9 +685,6 @@ def test_rfmt_nmd_fls_csv2xl(capsys: CaptureFixture[str], enc: Any) -> None:
     cfg.s07_rename_columns = test_data.rename_cols
     cfg.s08_insert_columns = test_data.insert_cols
     cfg.s09_rewrite_columns = test_data.rewrite_cols
-    # pylint: disable-next=duplicate-code
-    cfg.out_type = FileType.EXCEL
-    cfg.in_type = FileType.CSV
     with TemporaryDirectory() as dirname:
         # pylint: disable-next=duplicate-code
         cfgname = dirname + '/test.cfg'
@@ -694,14 +692,12 @@ def test_rfmt_nmd_fls_csv2xl(capsys: CaptureFixture[str], enc: Any) -> None:
         infilename = dirname + '/in'
         outfilename = dirname + '/out'
         write_csv_num(data=test_data.indata, filename=infilename + '.csv',
-                      dialect=cfg.get_in_csv_dialect(),
-                      encoding=cfg.in_csv_encoding)
+                      encoding=enc)
         # pylint: disable-next=duplicate-code
         transform_named_files(infilename=infilename, outfilename=outfilename,
                               cfgfilename=cfgname)
-        res = read_excel_num(filename=outfilename + '.xlsx',
-                             max_column_read=20, strip_col_names=False,
-                             strip_values=False)
+        res = read_excel_num(filename=outfilename + '.xlsx', max_col_read=20,
+                             strip_col_names=False, strip_values=False)
         out, err = capsys.readouterr()
         assert '' == err
         assert f'Wrote {outfilename}.xlsx' == out.strip()

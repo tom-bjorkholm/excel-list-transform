@@ -99,11 +99,13 @@ def insert_columns_num(indata: NumData,
     return ret
 
 
-def fix_indata_empty_rows_num(indata: NumData) -> None:  # pylint: disable=duplicate-code # noqa: E501
+# pylint: disable-next=duplicate-code
+def fix_indata_empty_rows_num(indata: NumData) -> None:
     """Check rows and remove empty rows with column number refs."""
     for i, row in reversed(list(enumerate(indata))):
-        assert isinstance(row, list), 'Internal error. Expected list of ' + \
-            f'columns but got {type(row).__name__}'  # pylint: disable=duplicate-code # noqa: E501
+        assert isinstance(row, list), (
+            'Internal error. Expected list of columns but got '
+            f'{type(row).__name__}')
         if len(row) == 0:
             del indata[i]
         elif len(row) == 1:

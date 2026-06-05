@@ -8,7 +8,6 @@ from typing import cast
 from tableio import FileAccess, tio_config_create
 from excel_list_transform.commontypes import NameData, NameDataMap, \
     NumData, NumDataSeq
-from excel_list_transform.config_enums import FileType
 from excel_list_transform.config_excel_list_transform import \
     ConfigExcelListTransform, input_capabilities, output_capabilities
 from excel_list_transform.handle_empty_column import handle_empty_column_in_lst
@@ -16,8 +15,17 @@ from excel_list_transform.num_named_conversion import named_cols_from_num_cols
 
 
 def _allow_overwrite(filename: str) -> None:
-    """Allow TableIO to overwrite an existing output file."""
-    _ = filename
+    """Ask the user whether TableIO may overwrite an existing file."""
+    print(f'Output file {filename} already exists.')
+    answer = input('Overwrite it? [y/N] ')
+    if answer.strip().lower() not in ['y', 'yes']:
+        raise FileExistsError(f'Output file already exists: {filename}')
+
+
+def _is_excel_input(cfg: ConfigExcelListTransform[int] |
+                    ConfigExcelListTransform[str]) -> bool:
+    """Return whether the input TableIO format is Excel."""
+    return cfg.input_table.format_name.lower() == 'excel'
 
 
 def _trim_table(data: NumDataSeq, max_column_read: int) -> NumData:
@@ -54,7 +62,7 @@ def read_table_num(filename: str,
     data = _trim_table(cast(NumDataSeq, read_result.data),
                        max_column_read=cfg.max_column_read)
     data = handle_empty_column_in_lst(data)
-    if cfg.in_type == FileType.EXCEL:
+    if _is_excel_input(cfg):
         data = _strip_table(data, cfg.in_excel_col_name_strip,
                             cfg.in_excel_values_strip)
     return data

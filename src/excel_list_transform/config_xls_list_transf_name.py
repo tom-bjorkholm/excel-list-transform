@@ -6,24 +6,22 @@
 
 
 import sys
-from typing import Optional, TextIO
+from typing import Optional, TextIO, override
 from config_as_json import ConfigAutoChangeHook, PathOrStr
 from excel_list_transform.config_enums import SplitWhere, ColumnRef
 from excel_list_transform.config_excel_list_transform import \
     ConfigExcelListTransform, RuleOrder, ColInfo
-from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
 
 
-class ConfigXlsListTransfName(ConfigExcelListTransform[str]):  # pylint: disable=too-many-instance-attributes, line-too-long # noqa: E501
+# pylint: disable-next=too-many-instance-attributes,duplicate-code
+class ConfigXlsListTransfName(ConfigExcelListTransform[str]):
     """Class with configuration for excel list transform."""
 
-    def __init__(self, from_json_text: Optional[str] = None,
+    def __init__(self, from_json_data_text: Optional[str] = None,
                  from_json_filename: Optional[PathOrStr] = None,
-                 auto_ch_hook: ConfigAutoChangeHook =
-                 MigrateCfgWarnHook(),
-                 stderr_file: Optional[TextIO] = None) -> None:
+                 auto_ch_hook: Optional[ConfigAutoChangeHook] = None,
+                 stderr_file: TextIO = sys.stderr) -> None:
         """Construct configuration for excel list transform."""
-        err_file = sys.stderr if stderr_file is None else stderr_file
         col_to_use = ['street', 'street number', 'name', 'last name',
                       'Phone', 'Phone', 'Phone', 'Phone', 'Phone',
                       'Last Name']
@@ -42,7 +40,11 @@ class ConfigXlsListTransfName(ConfigExcelListTransform[str]):  # pylint: disable
              'First Name', 'Last Name', 'Club Name', 'Email', 'Phone',
              'WhatsApp']
         super().__init__(col_ref=ColumnRef.BY_NAME, colinfo=colinfo, tinfo='a',
-                         from_json_text=from_json_text,
+                         from_json_data_text=from_json_data_text,
                          from_json_filename=from_json_filename,
-                         auto_ch_hook=auto_ch_hook, stderr_file=err_file)
+                         auto_ch_hook=auto_ch_hook, stderr_file=stderr_file)
+
+    @override
+    def validate_column_rules(self) -> None:
+        """Validate name-based transform-rule settings."""
         self.check_no_duplicates(self.s10_column_order, 's10_column_order')

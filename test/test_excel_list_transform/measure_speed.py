@@ -9,8 +9,8 @@ from tempfile import TemporaryDirectory
 import sys
 from timeit import default_timer
 from typing import TextIO
-from test_generate_cfg import ExampleData
-from excel_list_transform.handle_excel import write_excel_num
+from test_excel_list_transform.test_generate_cfg import ExampleData
+from test_excel_list_transform.tableio_helpers import write_excel_num
 from excel_list_transform.config_enums import ColumnRef
 from excel_list_transform.generate_cfg import generate_examplecfg
 from excel_list_transform.transform_cmd import transform_cmd

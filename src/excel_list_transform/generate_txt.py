@@ -1,8 +1,56 @@
 #! /usr/local/bin/python3
-"""Generate example configuration files."""
+"""Generate example configuration syntax descriptions."""
 
 # Copyright (c) 2024-2025 Tom Björkholm
 # MIT License
+
+from tableio import FileAccess
+from tableio_cfg_json import describe_config_members, \
+    describe_config_reference, get_config_member_names
+from excel_list_transform.config_excel_list_transform import \
+    input_capabilities, output_capabilities
+
+
+def _unique_items(items: list[str]) -> list[str]:
+    """Return items with duplicates removed while preserving order."""
+    ret: list[str] = []
+    for item in items:
+        if item not in ret:
+            ret.append(item)
+    return ret
+
+
+def _tableio_syntax_txt() -> str:
+    """Return TableIO configuration syntax text for input and output."""
+    in_names = get_config_member_names(capabilities=input_capabilities(),
+                                       file_access=FileAccess.READ)
+    out_names = get_config_member_names(capabilities=output_capabilities(),
+                                        file_access=FileAccess.CREATE)
+    names = _unique_items(list(in_names) + list(out_names))
+    txt = '''
+    TableIO input_table
+    ===================
+
+    The "input_table" section configures the table file reader.
+    '''
+    txt += describe_config_members(capabilities=input_capabilities(),
+                                   file_access=FileAccess.READ)
+    txt += '''
+
+    TableIO output_table
+    ====================
+
+    The "output_table" section configures the table file writer.
+    '''
+    txt += describe_config_members(capabilities=output_capabilities(),
+                                   file_access=FileAccess.CREATE)
+    txt += '''
+
+    TableIO parameter reference
+    ===========================
+    '''
+    txt += describe_config_reference(member_names=names)
+    return txt
 
 
 def generate_syntax_txt(filename: str, example_description: str,
@@ -78,6 +126,7 @@ def generate_syntax_txt(filename: str, example_description: str,
     implementation that can provide them, but the transform can still
     write the output if the selected file format cannot represent them.
 
+    ''' + _tableio_syntax_txt() + '''
 
     Extra spaces in excel input files
     =================================

@@ -8,26 +8,11 @@
 from enum import Enum, auto
 
 
-class FileType(Enum):
-    """Is I/O file excel or CSV."""
-
-    EXCEL = auto()
-    CSV = auto()
-
-
 class SplitWhere(Enum):
     """Use leftmost or rightmost separator for splitting."""
 
     LEFTMOST = auto()
     RIGHTMOST = auto()
-
-
-class ExcelLib(Enum):
-    """Use specified library for excel reading or writing."""
-
-    OPENPYXL = auto()
-    XLSXWRITER = auto()
-    PYLIGHTXL = auto()
 
 
 class RewriteKind(Enum):

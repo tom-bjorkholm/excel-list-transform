@@ -16,10 +16,10 @@ from packaging.version import Version
 import pytest
 from pytest import MonkeyPatch
 from pytest import CaptureFixture
+from test_excel_list_transform.tableio_helpers import read_excel_num, \
+    write_excel_num
 from excel_list_transform.transform_cmd import transform_cmd
 from excel_list_transform.config_enums import ColumnRef
-from excel_list_transform.handle_excel import write_excel_num, \
-    read_excel_num
 from excel_list_transform.version_information import ExcelListVersionReporter
 from excel_list_transform.commontypes import NumData
 
@@ -301,7 +301,7 @@ def test_row_spl_mrg_cmd_cfg(capsys: CaptureFixture[str],
         write_excel_num(data=deepcopy(indata), filename=infile)
         transform_cmd(['transform', '-c', cfgfile, '-i', infile,
                        '-o', outfile])
-        res = read_excel_num(filename=outfile, max_column_read=20,
+        res = read_excel_num(filename=outfile, max_col_read=20,
                              strip_col_names=False, strip_values=False)
         assert res == outdata
     out, err = capsys.readouterr()

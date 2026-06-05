@@ -9,6 +9,7 @@
 from typing import Any
 from copy import deepcopy
 from datetime import datetime
+import sys
 import pytest
 from pytest import CaptureFixture
 from excel_list_transform.row_split_merge import \
@@ -218,8 +219,8 @@ def test_spl_rows_numcfg_ok1(capsys: CaptureFixture[str], indata: Any,
     """Test OK cases for split_rows numcfg."""
     cfg1 = ConfigXlsListTransfNum()
     cfg1.s01_split_rows = direc
-    jsontxt = cfg1.as_json_string()
-    cfg2 = ConfigXlsListTransfNum(from_json_text=jsontxt)
+    jsontxt = cfg1.as_json_string(stderr_file=sys.stderr)
+    cfg2 = ConfigXlsListTransfNum(from_json_data_text=jsontxt)
     ret = split_rows_cfg(indata=deepcopy(indata), cfg=cfg2, tinfo=1)
     out, err = capsys.readouterr()
     assert ret == res
@@ -429,8 +430,8 @@ def test_merge_rows_num_ok1(capsys: CaptureFixture[str], data: Any, cols: Any,
     rule = {'columns': deepcopy(cols), 'separator': deepcopy(sep)}
     cfg1 = ConfigXlsListTransfNum()
     cfg1.s02_merge_rows = [rule]
-    txt = cfg1.as_json_string()
-    cfg2 = ConfigXlsListTransfNum(from_json_text=txt)
+    txt = cfg1.as_json_string(stderr_file=sys.stderr)
+    cfg2 = ConfigXlsListTransfNum(from_json_data_text=txt)
     ret = merge_rows(indata=deepcopy(data), rules=cfg2.s02_merge_rows, tinfo=1)
     out, err = capsys.readouterr()
     assert ret == res
@@ -449,8 +450,8 @@ def test_merge_rows_num_ok2(capsys: CaptureFixture[str], data: Any, rule: Any,
     """Test OK cases of merge rows num more than one rule."""
     cfg1 = ConfigXlsListTransfNum()
     cfg1.s02_merge_rows = deepcopy(rule)
-    txt = cfg1.as_json_string()
-    cfg2 = ConfigXlsListTransfNum(from_json_text=txt)
+    txt = cfg1.as_json_string(stderr_file=sys.stderr)
+    cfg2 = ConfigXlsListTransfNum(from_json_data_text=txt)
     ret = merge_rows(indata=deepcopy(data), rules=cfg2.s02_merge_rows, tinfo=1)
     out, err = capsys.readouterr()
     assert ret == res
@@ -473,8 +474,8 @@ def test_merge_rows_num_ok3(capsys: CaptureFixture[str], data: Any, cols: Any,
     rule = {'columns': deepcopy(cols), 'separator': deepcopy(sep)}
     cfg1 = ConfigXlsListTransfNum()
     cfg1.s02_merge_rows = [rule]
-    txt = cfg1.as_json_string()
-    cfg2 = ConfigXlsListTransfNum(from_json_text=txt)
+    txt = cfg1.as_json_string(stderr_file=sys.stderr)
+    cfg2 = ConfigXlsListTransfNum(from_json_data_text=txt)
     ret = merge_rows_cfg(indata=deepcopy(data), cfg=cfg2, tinfo=1)
     out, err = capsys.readouterr()
     assert ret == res
@@ -498,8 +499,8 @@ def test_merge_rows_num_ok4(capsys: CaptureFixture[str], data: Any, rule: Any,
     """Test OK cases of merge rows num more than one rule."""
     cfg1 = ConfigXlsListTransfNum()
     cfg1.s02_merge_rows = deepcopy(rule)
-    txt = cfg1.as_json_string()
-    cfg2 = ConfigXlsListTransfNum(from_json_text=txt)
+    txt = cfg1.as_json_string(stderr_file=sys.stderr)
+    cfg2 = ConfigXlsListTransfNum(from_json_data_text=txt)
     ret = merge_rows_cfg(indata=deepcopy(data), cfg=cfg2, tinfo=1)
     out, err = capsys.readouterr()
     assert ret == res

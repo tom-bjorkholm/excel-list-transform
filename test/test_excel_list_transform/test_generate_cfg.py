@@ -15,11 +15,12 @@ import pytest
 from pytest import CaptureFixture
 from tableio import CsvDialect
 from tableio_cfg_json import TioJsonCsvConfig
+from test_excel_list_transform.tableio_helpers import read_excel_num, \
+    write_excel_num
 from excel_list_transform.generate_cfg import generate_examplecfg
-from excel_list_transform.config_enums import ColumnRef, ExcelLib
+from excel_list_transform.config_enums import ColumnRef
 from excel_list_transform.config_xls_list_transf_num import \
     ConfigXlsListTransfNum
-from excel_list_transform.handle_excel import read_excel_num, write_excel_num
 from excel_list_transform.handle_tableio import read_table_num
 from excel_list_transform.transform_func import transform_named_files
 from excel_list_transform.transform_cmd import transform_cmd
@@ -213,10 +214,9 @@ FileNames = namedtuple('FileNames', ['indata', 'cfg', 'out'])
 
 
 def openpyxl_reader(filename: str, max_column_read: int = 40) -> NumData:
-    """Read excel with openpyxl."""
-    return read_excel_num(filename=filename, max_column_read=max_column_read,
-                          strip_col_names=False, strip_values=False,
-                          excel_lib=ExcelLib.OPENPYXL)
+    """Read Excel output through the app TableIO reader."""
+    return read_excel_num(filename=filename, max_col_read=max_column_read,
+                          strip_col_names=False, strip_values=False)
 
 
 def csv_delimiter(filename: str) -> str:

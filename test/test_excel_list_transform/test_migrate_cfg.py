@@ -5,20 +5,23 @@
 # MIT License
 
 import json
+import sys
 from tempfile import TemporaryDirectory
 import pytest
 from pytest import MonkeyPatch
 from pytest import CaptureFixture
+from config_as_json import Config, config_factory_from_json
 from tableio import CsvDialect
 from tableio_cfg_json import TioJsonCsvConfig
+from test_excel_list_transform.tableio_helpers import \
+    configure_output_csv
 from excel_list_transform.migrate_cfg import migrate_cfg
 from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
-from excel_list_transform.config_factory import config_factory_from_json
+from excel_list_transform.config_match import MATCH_CONFIGS
 from excel_list_transform.config_xls_list_transf_name import \
     ConfigXlsListTransfName
 from excel_list_transform.config_xls_list_transf_num import \
     ConfigXlsListTransfNum
-from excel_list_transform.config_enums import FileType
 from excel_list_transform.assert_dict_equal import assert_dict_equal
 from excel_list_transform.transform_cmd import transform_cmd
 
@@ -26,7 +29,7 @@ from excel_list_transform.transform_cmd import transform_cmd
 def configure_old_io(cfg: ConfigXlsListTransfName |
                      ConfigXlsListTransfNum) -> None:
     """Set expected TableIO settings from old migration fixtures."""
-    cfg.out_type = FileType.CSV
+    configure_output_csv(cfg)
     cfg.input_table.character_encoding = 'utf_8_sig'
     cfg.output_table.character_encoding = 'utf-8'
     cfg.input_table.csv = TioJsonCsvConfig(dialect=CsvDialect.UNIX,
@@ -50,6 +53,14 @@ def assert_new_config_file(filename: str) -> None:
         assert old_key not in data
 
 
+def read_config(filename: str) -> Config:
+    """Read an app config file through the config-as-json factory."""
+    return config_factory_from_json(match_configs=MATCH_CONFIGS,
+                                    auto_ch_hook=MigrateCfgWarnHook(),
+                                    from_json_filename=filename,
+                                    stderr_file=sys.stderr)
+
+
 def test_migrate_cfg1(capsys: CaptureFixture[str]) -> None:
     """Test migration of 0.7.13 config file."""
     refcfg = ConfigXlsListTransfName()
@@ -61,11 +72,12 @@ def test_migrate_cfg1(capsys: CaptureFixture[str]) -> None:
     infilename = 'test/test_excel_list_transform/bak_compat_0_7_13_name.cfg'
     with TemporaryDirectory() as dirname:
         outfilename = dirname + '/a.cfg'
-        _ = config_factory_from_json(from_json_filename=infilename)
+        _ = read_config(infilename)
         _, err = capsys.readouterr()
         assert err == MigrateCfgWarnHook.migrate_warn_msg()
         res = migrate_cfg(infile=infilename, outfile=outfilename)
-        cfg = config_factory_from_json(from_json_filename=outfilename)
+        cfg = read_config(outfilename)
+        assert isinstance(cfg, ConfigXlsListTransfName)
         assert_new_config_file(outfilename)
         out, err = capsys.readouterr()
         assert_dict_equal(refcfg.__dict__, cfg.__dict__,
@@ -88,11 +100,12 @@ def test_migrate_cfg2(capsys: CaptureFixture[str]) -> None:
     infilename = 'test/test_excel_list_transform/bak_compat_0_7_13_number.cfg'
     with TemporaryDirectory() as dirname:
         outfilename = dirname + '/a.cfg'
-        _ = config_factory_from_json(from_json_filename=infilename)
+        _ = read_config(infilename)
         _, err = capsys.readouterr()
         assert err == MigrateCfgWarnHook.migrate_warn_msg()
         res = migrate_cfg(infile=infilename, outfile=outfilename)
-        cfg = config_factory_from_json(from_json_filename=outfilename)
+        cfg = read_config(outfilename)
+        assert isinstance(cfg, ConfigXlsListTransfNum)
         assert_new_config_file(outfilename)
         out, err = capsys.readouterr()
         assert_dict_equal(refcfg.__dict__, cfg.__dict__,
@@ -149,7 +162,8 @@ def test_migrate_cmd1(capsys: CaptureFixture[str], ipar: str,
         outfilename = dirname + '/a.cfg'
         args = ['migrate-cfg', ipar, infilename, opar, outfilename]
         transform_cmd(arguments=args)
-        cfg = config_factory_from_json(from_json_filename=outfilename)
+        cfg = read_config(outfilename)
+        assert isinstance(cfg, ConfigXlsListTransfName)
         assert_new_config_file(outfilename)
         out, err = capsys.readouterr()
         assert_dict_equal(refcfg.__dict__, cfg.__dict__,
@@ -176,7 +190,8 @@ def test_migrate_cmd2(capsys: CaptureFixture[str], ipar: str,
         outfilename = dirname + '/a.cfg'
         args = ['migrate-cfg', ipar, infilename, opar, outfilename]
         transform_cmd(arguments=args)
-        cfg = config_factory_from_json(from_json_filename=outfilename)
+        cfg = read_config(outfilename)
+        assert isinstance(cfg, ConfigXlsListTransfNum)
         assert_new_config_file(outfilename)
         out, err = capsys.readouterr()
         assert_dict_equal(refcfg.__dict__, cfg.__dict__,

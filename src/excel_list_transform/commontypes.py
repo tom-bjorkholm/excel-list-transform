@@ -9,7 +9,8 @@ from typing import Optional, cast, Sequence, Mapping, TypeVar, \
     Any
 from datetime import datetime
 # imports needed by mypy, but not by python:
-from typing import Union, List, Dict  # pylint: disable=unused-import,ungrouped-imports # noqa: E501
+# pylint: disable-next=unused-import,ungrouped-imports
+from typing import Union, List, Dict
 
 
 # types used to describe input and output data

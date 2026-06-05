@@ -6,22 +6,23 @@
 
 
 import sys
-from csv import Dialect
+from collections import Counter
 from copy import deepcopy
 from enum import Enum
-from typing import Optional, Callable, TypeVar, NamedTuple, \
-    Generic, TypedDict, TextIO, override
+from typing import Optional, Callable, TypeVar, NamedTuple, Generic, \
+    Mapping, Sequence, TypedDict, TextIO, override
 from config_as_json import Config, ConfigAutoChangeHook, ConfigNesting, \
     ConfigNestingKind, NestedConfigs, ParseConverter, PathOrStr, \
-    ReadOldConfiguration, RocfKeyMove, RocfKeyRename, ValidationPlan
+    ReadOldConfiguration, RocfKeyMove, RocfKeyRename, ValidationPlan, \
+    MemberValidationStep, WholeConfigValidationStep, ValueTypeValidator, \
+    CallingWholeConfigValidator
 from tableio import CAP_IGNORABLE, CAP_NEEDED, Capabilities, CsvDialect, \
     FileAccess, TableBorderStyle
-from tableio_cfg_json import TioJsonConfig, TioJsonCsvConfig
-from excel_list_transform.config_enums import FileType, SplitWhere, \
-    ExcelLib, RewriteKind, CaseSensitivity, ColumnRef
+from tableio_cfg_json import TioJsonConfig
+from excel_list_transform.config_enums import SplitWhere, RewriteKind, \
+    CaseSensitivity, ColumnRef
 from excel_list_transform.str_to_enum import string_to_enum_best_match
 from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
-from excel_list_transform.config import Config as OldConfig
 
 
 Column = TypeVar('Column', int, str)
@@ -177,13 +178,13 @@ class ConfigReadOld(ReadOldConfiguration):
                          auto_ch_hook: ConfigAutoChangeHook,
                          stderr_file: TextIO) -> dict[str, object]:
         """Add old implicit defaults before declarative migration."""
-        _ = auto_ch_hook
         _ = stderr_file
         if not self._is_old_shape(json_data):
             return json_data
         for key, value in self._old_defaults().items():
             if key not in json_data:
                 json_data[key] = deepcopy(value)
+                auto_ch_hook.rocf_missing_value_provided(key)
         return json_data
 
     @classmethod
@@ -194,8 +195,8 @@ class ConfigReadOld(ReadOldConfiguration):
     @staticmethod
     def _old_defaults() -> dict[str, object]:
         """Return defaults needed by older supported config files."""
-        return {'in_type': FileType.EXCEL.name,
-                'out_type': FileType.EXCEL.name,
+        return {'in_type': 'EXCEL',
+                'out_type': 'EXCEL',
                 'in_csv_encoding': 'utf_8_sig',
                 'out_csv_encoding': 'utf-8',
                 'in_excel_col_name_strip': False,
@@ -260,19 +261,20 @@ class ColInfo(NamedTuple, Generic[Column]):
     tinfo: Column
 
 
-class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-many-instance-attributes,too-many-public-methods,line-too-long # noqa: E501
+# pylint: disable-next=too-many-instance-attributes,too-many-public-methods
+class ConfigExcelListTransform(Config, Generic[Column]):
     """Class with configuration for excel list transform."""
 
-    def __init__(self, *, col_ref: ColumnRef,  # pylint: disable=too-many-arguments # noqa: E501
-                 colinfo: ColInfo[Column], tinfo: Column,
-                 from_json_text: Optional[str] = None,
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
+    def __init__(self, *, col_ref: ColumnRef, colinfo: ColInfo[Column],
+                 tinfo: Column, from_json_data_text: Optional[str] = None,
                  from_json_filename: Optional[PathOrStr] = None,
-                 auto_ch_hook: ConfigAutoChangeHook =
-                 MigrateCfgWarnHook(),
-                 stderr_file: Optional[TextIO] = None) -> None:
+                 auto_ch_hook: Optional[ConfigAutoChangeHook] = None,
+                 stderr_file: TextIO = sys.stderr) -> None:
         """Construct configuration for excel list transform."""
-        err_file = sys.stderr if stderr_file is None else stderr_file
         assert isinstance(colinfo.tinfo, type(tinfo))
+        hook = MigrateCfgWarnHook() if auto_ch_hook is None \
+            else auto_ch_hook
         self._colinfo: ColInfo[Column] = deepcopy(colinfo)
         self._columntype: type[Column] = type(tinfo)
         self.column_ref: ColumnRef = col_ref
@@ -321,9 +323,9 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
              {'column': col2use.pop(0), 'kind': RewriteKind.STR_SUBSTITUTE,
               'from': 'donald', 'to': 'duck',
               'case': CaseSensitivity.IGNORE_CASE}]
-        super().__init__(from_json_data_text=from_json_text,
+        super().__init__(from_json_data_text=from_json_data_text,
                          from_json_filename=from_json_filename,
-                         auto_ch_hook=auto_ch_hook, stderr_file=err_file)
+                         auto_ch_hook=hook, stderr_file=stderr_file)
 
     @override
     def nested_configs(self) -> NestedConfigs:
@@ -335,16 +337,34 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
                                           config_type=OutputTableConfig)
         }
 
+    def _read_old_config(self) -> ReadOldConfiguration:
+        """Return old-format migration rules."""
+        return ConfigReadOld()
+
+    _get_read_old_configuration = _read_old_config
+
     @override
     def get_validation_plan(self, stderr_file: TextIO) -> ValidationPlan:
         """Return validation plan for config-as-json."""
         _ = stderr_file
-        return []
+        bool_names = ['in_excel_col_name_strip', 'in_excel_values_strip',
+                      'output_borders', 'output_filtered_table']
+        return [
+            MemberValidationStep(member_names=['max_column_read'],
+                                 validator=ValueTypeValidator(
+                                     int, not_allowed_type=bool)),
+            MemberValidationStep(member_names=bool_names,
+                                 validator=ValueTypeValidator(bool)),
+            WholeConfigValidationStep(validator=CallingWholeConfigValidator(
+                method_name='validate_transform_rules'))]
 
-    @override
-    def validate(self, stderr_file: TextIO) -> None:
-        """Validate nested TableIO config and transform-rule settings."""
-        super().validate(stderr_file=stderr_file)
+    def validate_transform_rules(self) -> None:
+        """Validate transform-rule settings."""
+        self.validate_base_rules()
+        self.validate_column_rules()
+
+    def validate_base_rules(self) -> None:
+        """Validate common transform-rule settings."""
         colinfo = self._colinfo
         self.check_array_configs(split_last=colinfo.split_last,
                                  insert_last=colinfo.insert_last)
@@ -359,11 +379,8 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
         self.check_split_row_cfg()
         self.check_merge_row_cfg()
 
-    @override
-    def as_json_string(self, stderr_file: Optional[TextIO] = None) -> str:
-        """Return string with this configuration as JSON data."""
-        err_file = sys.stderr if stderr_file is None else stderr_file
-        return super().as_json_string(stderr_file=err_file)
+    def validate_column_rules(self) -> None:
+        """Validate column-reference-specific transform-rule settings."""
 
     def table_border_style(self) -> TableBorderStyle:
         """Return the TableIO border style requested by the config."""
@@ -371,119 +388,130 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
             return TableBorderStyle.OUTER_FIRST_ROW_THICK_INNER_THIN
         return TableBorderStyle.NONE
 
-    @property
-    def in_csv_encoding(self) -> str:
-        """Return old-style input CSV encoding for internal callers."""
-        return self.input_table.character_encoding or 'utf_8_sig'
-
-    @in_csv_encoding.setter
-    def in_csv_encoding(self, value: str) -> None:
-        """Set input character encoding using old-style member name."""
-        self.input_table.character_encoding = value
-
-    @property
-    def out_csv_encoding(self) -> str:
-        """Return old-style output CSV encoding for internal callers."""
-        return self.output_table.character_encoding or 'utf-8'
-
-    @out_csv_encoding.setter
-    def out_csv_encoding(self, value: str) -> None:
-        """Set output character encoding using old-style member name."""
-        self.output_table.character_encoding = value
-
-    @property
-    def in_type(self) -> FileType:
-        """Return old-style input file type for legacy callers."""
-        return self._old_file_type(self.input_table.format_name)
-
-    @in_type.setter
-    def in_type(self, value: FileType) -> None:
-        """Set input format using old-style file type."""
-        self.input_table.format_name = old_file_type_to_format(value)
-        if value == FileType.CSV:
-            self._ensure_old_csv_defaults(self.input_table)
-
-    @property
-    def out_type(self) -> FileType:
-        """Return old-style output file type for legacy callers."""
-        return self._old_file_type(self.output_table.format_name)
-
-    @out_type.setter
-    def out_type(self, value: FileType) -> None:
-        """Set output format using old-style file type."""
-        self.output_table.format_name = old_file_type_to_format(value)
-        if value == FileType.CSV:
-            self._ensure_old_csv_defaults(self.output_table)
-
-    @staticmethod
-    def _old_file_type(format_name: str) -> FileType:
-        """Return old-style file type for a TableIO format name."""
-        if format_name.lower() == 'csv':
-            return FileType.CSV
-        return FileType.EXCEL
-
-    @staticmethod
-    def _csv_config(table_cfg: TioJsonConfig) -> TioJsonCsvConfig:
-        """Return existing or newly created nested CSV configuration."""
-        if table_cfg.csv is None:
-            table_cfg.csv = TioJsonCsvConfig()
-        assert isinstance(table_cfg.csv, TioJsonCsvConfig)
-        return table_cfg.csv
-
-    @staticmethod
-    def _ensure_old_csv_defaults(table_cfg: TioJsonConfig) -> None:
-        """Provide old comma CSV defaults for old-style setters."""
-        if table_cfg.csv is None:
-            table_cfg.csv = TioJsonCsvConfig(dialect=CsvDialect.EXCEL,
-                                             delimiter=',', quotechar='"')
-
-    @staticmethod
-    def _csv_dialect_name(csv_cfg: TioJsonCsvConfig) -> str:
-        """Return old-style CSV dialect name for a TableIO CSV config."""
-        if csv_cfg.dialect == CsvDialect.UNIX:
-            return 'csv.unix_dialect'
-        if csv_cfg.delimiter == '\t':
-            return 'csv.excel_tab'
-        return 'csv.excel'
-
-    @staticmethod
-    def _csv_quoting_name(quoting: Optional[str]) -> Optional[str]:
-        """Return old-style CSV quoting name for a TableIO quoting name."""
-        if quoting is None:
-            return None
-        values = {'all': 'csv.quote_all',
-                  'minimal': 'csv.quote_minimal',
-                  'none': 'csv.quote_none',
-                  'nonnumeric': 'csv.quote_nonnumeric'}
-        return values[quoting]
-
-    @classmethod
-    def _csv_spec(cls, table_cfg: TioJsonConfig) -> dict[str, Optional[str]]:
-        """Return old-style CSV spec for internal CSV test helpers."""
-        csv_cfg = cls._csv_config(table_cfg)
-        return {'name': cls._csv_dialect_name(csv_cfg),
-                'delimiter': csv_cfg.delimiter,
-                'quoting': cls._csv_quoting_name(csv_cfg.quoting),
-                'quotechar': csv_cfg.quotechar,
-                'lineterminator': csv_cfg.lineterminator,
-                'escapechar': csv_cfg.escapechar}
-
-    def get_out_csv_dialect(self) -> type[Dialect]:
-        """Return old-style CSV dialect for output test helpers."""
-        return OldConfig.get_csv_dialect(**self._csv_spec(self.output_table))
-
-    def get_in_csv_dialect(self) -> type[Dialect]:
-        """Return old-style CSV dialect for input test helpers."""
-        return OldConfig.get_csv_dialect(**self._csv_spec(self.input_table))
-
     def sort_sx_hook(self) -> None:
         """Sort s[0-9]_ as needed (hook)."""
 
-    check_array_keys = staticmethod(OldConfig.check_array_keys)
-    check_lst_dict = staticmethod(OldConfig.check_lst_dict)
-    check_lst_dict_lst = staticmethod(OldConfig.check_lst_dict_lst)
-    check_array_dicts = staticmethod(OldConfig.check_array_dicts)
-    check_no_duplicates = staticmethod(OldConfig.check_no_duplicates)
+    @staticmethod
+    def check_no_duplicates(expanded_data: list[str] | list[int],
+                            param_name: str) -> None:
+        """Exit with an error if configuration values are duplicated."""
+        dup = [str(k) for k, v in Counter(expanded_data).items() if v > 1]
+        if not dup:
+            return
+        msg = f'Duplicates not allowed in {param_name}. Duplicate values: '
+        msg += ','.join(dup)
+        print(msg, file=sys.stderr)
+        sys.exit(1)
+
+    @staticmethod
+    def check_array_keys(name_of_cfg: str,
+                         array: Sequence[Mapping[str, object]],
+                         mandatory_keys: list[str],
+                         allowed_keys: Optional[list[str]] = None) -> None:
+        """Check allowed and mandatory keys in a list of dictionaries."""
+        to_allow = deepcopy(mandatory_keys)
+        if allowed_keys is not None:
+            to_allow += deepcopy(allowed_keys)
+        for row in array:
+            for used_key in row:
+                if used_key not in to_allow:
+                    msg = f'Found non-allowed key "{used_key}"'
+                    print(msg + f' in config of {name_of_cfg}',
+                          file=sys.stderr)
+                    sys.exit(1)
+            for key in mandatory_keys:
+                if key not in row:
+                    msg = f'Missing key "{key}"'
+                    print(msg + f' in config of {name_of_cfg}',
+                          file=sys.stderr)
+                    sys.exit(1)
+
+    @staticmethod
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
+    def check_lst_dict(paramname: str, inp: Sequence[Mapping[str, object]],
+                       key: str, key_optional: bool, valtype: type,
+                       min_size_list: int) -> None:
+        """Check a list of dictionaries with one typed value per row."""
+        errtxt = f'Error in parameter {paramname}. '
+        if len(inp) < min_size_list:
+            msg = f'Minimum {min_size_list} elements needed in list but '
+            msg += f'only {len(inp)} found.'
+            print(errtxt + msg, file=sys.stderr)
+            sys.exit(1)
+        for elem in inp:
+            if key not in elem:
+                if key_optional:
+                    continue
+                print(errtxt + f'Expected key {key} not in dict in list',
+                      file=sys.stderr)
+                sys.exit(1)
+            val = elem[key]
+            if not isinstance(val, valtype):
+                msg = f'Value for key {key} expected to be of type '
+                msg += f'{valtype.__name__} but is of type '
+                msg += type(val).__name__
+                print(errtxt + msg, file=sys.stderr)
+                sys.exit(1)
+
+    @staticmethod
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
+    def check_lst_dict_lst(paramname: str, inp: Sequence[Mapping[str, object]],
+                           key: str, key_optional: bool, valtype: type,
+                           min_size_outer_list: int,
+                           min_size_inner_list: int) -> None:
+        """Check a list of dictionaries with one typed list per row."""
+        ConfigExcelListTransform.check_lst_dict(
+            paramname=paramname, inp=inp, key=key, key_optional=key_optional,
+            valtype=list, min_size_list=min_size_outer_list)
+        errtxt = f'Error in parameter {paramname}. '
+        for elem in inp:
+            if key not in elem and key_optional:
+                continue
+            val = elem[key]
+            assert isinstance(val, list)
+            if len(val) < min_size_inner_list:
+                msg = f'List for key {key} shall be minimum '
+                msg += f'{min_size_inner_list} elements. '
+                msg += f'But it is {len(val)} elements only.'
+                print(errtxt + msg, file=sys.stderr)
+                sys.exit(1)
+            for item in val:
+                if not isinstance(item, valtype):
+                    msg = f'Value for key {key} expected to be list of '
+                    msg += f'{valtype.__name__}. But element in list is '
+                    msg += type(item).__name__
+                    print(errtxt + msg, file=sys.stderr)
+                    sys.exit(1)
+
+    @staticmethod
+    def check_array_dicts(name_of_cfg: str, array: Sequence[Mapping[str,
+                                                                    object]],
+                          kind_key: str, kind_type: type[RewriteKind],
+                          dict_of_templates: Mapping[RewriteKind,
+                                                     Mapping[str, type]]
+                          ) -> None:
+        """Check list-of-dicts entries selected by an enum kind key."""
+        for index, row in enumerate(array):
+            litem = f'(list index {index})'
+            if kind_key not in row:
+                msg = f'Key {kind_key} not in dict in config of '
+                print(msg + name_of_cfg + ' ' + litem, file=sys.stderr)
+                sys.exit(1)
+            kind = row[kind_key]
+            assert isinstance(kind, kind_type)
+            template = dict_of_templates[kind]
+            for key, valtype in template.items():
+                if key not in row:
+                    msg = f'Key {key} not in dict in config of '
+                    print(msg + name_of_cfg + ' ' + litem, file=sys.stderr)
+                    sys.exit(1)
+                if not isinstance(row[key], valtype):
+                    msg = f'Value for key {key} = {row[key]} '
+                    msg += f'is not {valtype.__name__}; it is '
+                    msg += type(row[key]).__name__
+                    print(msg + f' in config of {name_of_cfg} ' + litem,
+                          file=sys.stderr)
+                    sys.exit(1)
 
     @staticmethod
     def get_cols_single(rule: Rule[Column] | RuleSplit[Column] |
@@ -556,11 +584,7 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
         {key: {'result type': res_type, 'func': function,
         'args': {arg_name: arg_value}}}.
         """
-        return {'in_type': self.get_converter_dict(FileType),
-                'out_type': self.get_converter_dict(FileType),
-                'in_excel_library': self.get_converter_dict(ExcelLib),
-                'out_excel_library': self.get_converter_dict(ExcelLib),
-                'where': self.get_converter_dict(SplitWhere),
+        return {'where': self.get_converter_dict(SplitWhere),
                 'store_single': self.get_converter_dict(SplitWhere),
                 'kind': self.get_converter_dict(RewriteKind),
                 'case': self.get_converter_dict(CaseSensitivity),
@@ -670,13 +694,3 @@ class ConfigExcelListTransform(Config, Generic[Column]):  # pylint: disable=too-
                             key_optional=False, valtype=str, min_size_list=0)
         self.check_array_keys('s02_merge_rows', self.s02_merge_rows,
                               mandatory_keys=keys, allowed_keys=None)
-
-
-def _old_cfg_reader(self: object) -> ReadOldConfiguration:
-    """Return old-format migration rules."""
-    _ = self
-    return ConfigReadOld()
-
-
-setattr(ConfigExcelListTransform, '_get_read_old_configuration',
-        _old_cfg_reader)

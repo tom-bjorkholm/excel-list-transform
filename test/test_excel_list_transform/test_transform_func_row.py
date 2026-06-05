@@ -12,11 +12,12 @@ from copy import deepcopy
 from tempfile import TemporaryDirectory
 import pytest
 from pytest import CaptureFixture
-from excel_list_transform.config_enums import FileType, ColumnRef
+from test_excel_list_transform.tableio_helpers import \
+    configure_input_csv, configure_input_excel, configure_output_csv, \
+    configure_output_excel, read_excel_num, write_csv_num, write_excel_num
+from excel_list_transform.config_enums import ColumnRef
 from excel_list_transform.commontypes import NumData
 from excel_list_transform.transform_func import transform_named_files
-from excel_list_transform.handle_excel import write_excel_num, read_excel_num
-from excel_list_transform.handle_csv import write_csv_num
 from excel_list_transform.handle_tableio import read_table_num
 from excel_list_transform.config_excel_list_transform import \
     ConfigExcelListTransform
@@ -29,22 +30,23 @@ from excel_list_transform.config_xls_list_transf_name import \
 def write_testdata_file(data: NumData, cfg: ConfigExcelListTransform[Any],
                         filename: str) -> None:
     """Write test data to named file."""
-    if cfg.in_type == FileType.EXCEL:
+    if cfg.input_table.format_name == 'Excel':
         write_excel_num(data=data, filename=filename + '.xlsx')
+        return
     write_csv_num(data=data, filename=filename + '.csv',
-                  dialect=cfg.get_in_csv_dialect(),
-                  encoding=cfg.in_csv_encoding)
+                  encoding=cfg.input_table.character_encoding or 'utf-8')
 
 
 def read_test_file(cfg: ConfigExcelListTransform[Any],
                    filename: str) -> NumData:
     """Read test data from named file."""
-    if cfg.out_type == FileType.EXCEL:
-        return read_excel_num(filename=filename + '.xlsx', max_column_read=20,
+    if cfg.output_table.format_name == 'Excel':
+        return read_excel_num(filename=filename + '.xlsx', max_col_read=20,
                               strip_col_names=False, strip_values=False)
     read_cfg = ConfigXlsListTransfNum()
     read_cfg.input_table.format_name = 'CSV'
-    read_cfg.input_table.character_encoding = cfg.out_csv_encoding
+    read_cfg.input_table.character_encoding = \
+        cfg.output_table.character_encoding
     read_cfg.input_table.csv = deepcopy(cfg.output_table.csv)
     read_cfg.max_column_read = 20
     return read_table_num(filename=filename + '.csv', cfg=read_cfg)
@@ -134,8 +136,8 @@ def make_row_cfg(
 
 @pytest.mark.parametrize('exa', [ex1, ex2, ex3])
 @pytest.mark.parametrize('ref', list(ColumnRef))
-@pytest.mark.parametrize('intyp', list(FileType))
-@pytest.mark.parametrize('outtyp', list(FileType))
+@pytest.mark.parametrize('intyp', ['Excel', 'CSV'])
+@pytest.mark.parametrize('outtyp', ['Excel', 'CSV'])
 @pytest.mark.parametrize('inenc', ['utf-8', 'iso8859-1'])
 @pytest.mark.parametrize('outenc', ['utf-8', 'iso8859-1'])
 # pylint: disable-next=too-many-arguments,too-many-positional-arguments
@@ -144,10 +146,14 @@ def test_tr_nmd_files_row_num(capsys: CaptureFixture[str], exa: Any, ref: Any,
                               outenc: Any) -> None:
     """Test transform_name_files row operations."""
     cfg = make_row_cfg(exa=exa, ref=ref)
-    cfg.in_csv_encoding = deepcopy(inenc)
-    cfg.in_csv_encoding = deepcopy(outenc)
-    cfg.in_type = deepcopy(intyp)
-    cfg.out_type = deepcopy(outtyp)
+    if intyp == 'Excel':
+        configure_input_excel(cfg)
+    else:
+        configure_input_csv(cfg, encoding=deepcopy(inenc))
+    if outtyp == 'Excel':
+        configure_output_excel(cfg)
+    else:
+        configure_output_csv(cfg, encoding=deepcopy(outenc))
     cfg.s03_split_columns = []
     cfg.s05_merge_columns = []
     cfg.s07_rename_columns = []

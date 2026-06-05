@@ -6,13 +6,12 @@
 
 
 import sys
-from typing import Optional, TextIO
+from typing import Optional, TextIO, override
 from config_as_json import ConfigAutoChangeHook, PathOrStr
 from excel_list_transform.config_enums import SplitWhere, ColumnRef
 from excel_list_transform.config_excel_list_transform \
     import ConfigExcelListTransform, RulePlace, RuleRemove, \
     SingleRuleMerge, SingleRuleSplit, SingleRule, ColInfo
-from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
 
 
 def get_column(rule:  SingleRuleSplit[int] | SingleRule[int]) -> int:
@@ -30,16 +29,15 @@ def get_merge_first_column(rule: SingleRuleMerge[int]) -> int:
     return ret
 
 
-class ConfigXlsListTransfNum(ConfigExcelListTransform[int]):  # pylint: disable=too-many-instance-attributes, line-too-long # noqa: E501
+# pylint: disable-next=too-many-instance-attributes,duplicate-code
+class ConfigXlsListTransfNum(ConfigExcelListTransform[int]):
     """Class with configuration for excel list transform."""
 
-    def __init__(self, from_json_text: Optional[str] = None,
+    def __init__(self, from_json_data_text: Optional[str] = None,
                  from_json_filename: Optional[PathOrStr] = None,
-                 auto_ch_hook: ConfigAutoChangeHook =
-                 MigrateCfgWarnHook(),
-                 stderr_file: Optional[TextIO] = None) -> None:
+                 auto_ch_hook: Optional[ConfigAutoChangeHook] = None,
+                 stderr_file: TextIO = sys.stderr) -> None:
         """Construct configuration for excel list transform."""
-        err_file = sys.stderr if stderr_file is None else stderr_file
         self.s04_remove_columns: RuleRemove = [1, 2, 3]
         self.s06_place_columns_first: RulePlace = [7, 3, 6]
         col_to_use = [15, 16, 1, 2, 5, 5, 5, 5, 5, 6]
@@ -54,9 +52,13 @@ class ConfigXlsListTransfNum(ConfigExcelListTransform[int]):  # pylint: disable=
                            'value': 'some text'}],
                          col_to_use, col_to_use_row, 2)
         super().__init__(col_ref=ColumnRef.BY_NUMBER, colinfo=colinfo, tinfo=2,
-                         from_json_text=from_json_text,
+                         from_json_data_text=from_json_data_text,
                          from_json_filename=from_json_filename,
-                         auto_ch_hook=auto_ch_hook, stderr_file=err_file)
+                         auto_ch_hook=auto_ch_hook, stderr_file=stderr_file)
+
+    @override
+    def validate_column_rules(self) -> None:
+        """Validate number-based transform-rule settings."""
         self.check_no_duplicates(self.s04_remove_columns, 's04_remove_columns')
         self._check_increasing_multi(self.s05_merge_columns,
                                      's05_merge_columns', 2)

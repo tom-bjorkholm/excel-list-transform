@@ -8,9 +8,8 @@ from copy import deepcopy
 from tableio import CsvDialect
 from tableio_cfg_json import TioJsonCsvConfig
 from excel_list_transform.file_extension import fix_file_extension
-from excel_list_transform.config_enums import ColumnRef, FileType, \
-    RewriteKind, CaseSensitivity, SplitWhere
-from excel_list_transform.config_factory import config_factory_from_enum
+from excel_list_transform.config_enums import ColumnRef, RewriteKind, \
+    CaseSensitivity, SplitWhere
 from excel_list_transform.generate_txt import generate_syntax_txt
 from excel_list_transform.config_excel_list_transform import \
     Column, SingleRuleRewrite, RuleRewrite
@@ -169,10 +168,18 @@ TXT_SW2R_NAME = SYNTAX_SW2R_COMMON + BY_NAME_COMMON
 TXT_SA2R_NAME = SYNTAX_SA2R_COMMON + BY_NAME_COMMON
 
 
+def config_from_colref(colref: ColumnRef) -> ConfigXlsListTransfName | \
+        ConfigXlsListTransfNum:
+    """Return a default example config for the selected column reference."""
+    if colref == ColumnRef.BY_NAME:
+        return ConfigXlsListTransfName()
+    return ConfigXlsListTransfNum()
+
+
 def set_input_csv(cfg: ConfigXlsListTransfName | ConfigXlsListTransfNum,
                   encoding: str, delimiter: str) -> None:
     """Configure input as CSV."""
-    cfg.in_type = FileType.CSV
+    cfg.input_table.format_name = 'CSV'
     cfg.input_table.character_encoding = encoding
     cfg.input_table.csv = TioJsonCsvConfig(dialect=CsvDialect.EXCEL,
                                            delimiter=delimiter, quotechar='"')
@@ -181,19 +188,22 @@ def set_input_csv(cfg: ConfigXlsListTransfName | ConfigXlsListTransfNum,
 def set_input_excel(cfg: ConfigXlsListTransfName | ConfigXlsListTransfNum
                     ) -> None:
     """Configure input as Excel."""
-    cfg.in_type = FileType.EXCEL
+    cfg.input_table.format_name = 'Excel'
 
 
 def set_output_csv(cfg: ConfigXlsListTransfName | ConfigXlsListTransfNum
                    ) -> None:
     """Configure output as CSV."""
-    cfg.out_type = FileType.CSV
+    cfg.output_table.format_name = 'CSV'
+    cfg.output_table.character_encoding = 'utf-8'
+    cfg.output_table.csv = TioJsonCsvConfig(dialect=CsvDialect.EXCEL,
+                                            delimiter=',', quotechar='"')
 
 
 def set_output_excel(cfg: ConfigXlsListTransfName | ConfigXlsListTransfNum
                      ) -> None:
     """Configure output as Excel."""
-    cfg.out_type = FileType.EXCEL
+    cfg.output_table.format_name = 'Excel'
     cfg.output_table.implementation = None
 
 
@@ -461,7 +471,8 @@ TXT_R2S_NUM = SYNTAX_R2S_COMMON + BY_NUMBER_COMMON
 
 def generate_syntax_example(filename: str, colref: ColumnRef) -> None:
     """Generate config example for example."""
-    cfg = config_factory_from_enum(colref)
+    cfg = config_from_colref(colref)
+    set_input_csv(cfg=cfg, encoding='utf_8_sig', delimiter=',')
     set_output_csv(cfg)
     cfg.input_table.csv = TioJsonCsvConfig(dialect=CsvDialect.UNIX)
     cfg.write(to_json_filename=filename)
@@ -476,7 +487,7 @@ to demonstrates all configuration options, and to be small.
 
 def generate_rowsplitmerge(filename: str, colref: ColumnRef) -> None:
     """Generate config example for row_split_merge."""
-    cfg = config_factory_from_enum(colref)
+    cfg = config_from_colref(colref)
     set_input_excel(cfg)
     set_output_excel(cfg)
     cfg.s03_split_columns = []

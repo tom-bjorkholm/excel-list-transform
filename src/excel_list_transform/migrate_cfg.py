@@ -1,13 +1,12 @@
 #! /usr/local/bin/python3
-"""Check and assert that dicts are equal ignoring some keys."""
+"""Migrate configuration files to the current JSON format."""
 
 # Copyright (c) 2024-2025 Tom Björkholm
 # MIT License
 
 import sys
-from os.path import exists
-from config_as_json import ConfigAutoChangeHook
-from excel_list_transform.config_factory import config_factory_from_json
+from config_as_json import migrate_cfg as config_as_json_migrate_cfg
+from excel_list_transform.config_match import MATCH_CONFIGS
 
 
 def migrate_cfg(infile: str, outfile: str) -> int:
@@ -18,16 +17,6 @@ def migrate_cfg(infile: str, outfile: str) -> int:
     @param infile  Name of input configuation file.
     @param outfile Name of output configuration file.
     """
-    if not exists(infile):
-        print(f'Cannot find input configuration file {infile}',
-              file=sys.stderr)
-        sys.exit(1)
-    if exists(outfile):
-        print(f'Output configuration file {outfile} already exists.\n' +
-              'Cowardly refusing to overwrite existing configuration file.',
-              file=sys.stderr)
-        sys.exit(1)
-    cfg = config_factory_from_json(from_json_filename=infile,
-                                   auto_ch_hook=ConfigAutoChangeHook())
-    cfg.write(to_json_filename=outfile)
-    return 0
+    return config_as_json_migrate_cfg(infile=infile, outfile=outfile,
+                                      config_class=MATCH_CONFIGS,
+                                      stderr_file=sys.stderr)

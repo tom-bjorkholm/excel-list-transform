@@ -15,7 +15,7 @@ from excel_list_transform.config_xls_list_transf_name import \
     ConfigXlsListTransfName
 from excel_list_transform.config_xls_list_transf_num import \
     ConfigXlsListTransfNum
-from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
+from excel_list_transform.migrate_cfg_warn_hook import EltMigrateCfgWarnHook
 from excel_list_transform.transform_func_num import transform_named_files_num
 from excel_list_transform.transform_func_named import \
     transform_named_files_name
@@ -29,7 +29,7 @@ def transform_named_files(infilename: str, outfilename: str,
                                            ext_to_add='.cfg')
     file_must_exist(fixed_cfgfilename)
     cfg = config_factory_from_json(match_configs=MATCH_CONFIGS,
-                                   auto_ch_hook=MigrateCfgWarnHook(),
+                                   auto_ch_hook=EltMigrateCfgWarnHook(),
                                    from_json_filename=fixed_cfgfilename,
                                    stderr_file=sys.stderr)
     assert isinstance(cfg, (ConfigXlsListTransfName, ConfigXlsListTransfNum))

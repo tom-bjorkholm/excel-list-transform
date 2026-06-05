@@ -19,7 +19,7 @@ from excel_list_transform.config_xls_list_transf_name \
     import ConfigXlsListTransfName
 from excel_list_transform.config_enums import SplitWhere
 from excel_list_transform.assert_dict_equal import assert_dict_equal
-from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
+from excel_list_transform.migrate_cfg_warn_hook import EltMigrateCfgWarnHook
 
 
 @pytest.mark.smoke
@@ -68,7 +68,7 @@ def test_xls_rfmt_rd_inc3(capsys: CaptureFixture[str], t: str,
     assert ycfg.s10_column_order == val
     out, err = capsys.readouterr()
     assert out == ''
-    assert err == ''
+    assert EltMigrateCfgWarnHook.migrate_warn_msg() == err
 
 
 @pytest.mark.parametrize('t',
@@ -126,7 +126,7 @@ def test_bak_cmpt_0_7_13_nam(capsys: CaptureFixture[str]) -> None:
     assert cfg.s03_split_columns[0]['right_name'] == 'Family Name'
     assert cfg.s08_insert_columns[1]['column'] == 'Something Else'
     assert '' == out
-    assert MigrateCfgWarnHook.migrate_warn_msg() == err
+    assert EltMigrateCfgWarnHook.migrate_warn_msg() == err
 
 
 @pytest.mark.parametrize('splitr',

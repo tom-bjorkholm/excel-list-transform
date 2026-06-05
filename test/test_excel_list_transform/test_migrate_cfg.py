@@ -16,7 +16,7 @@ from tableio_cfg_json import TioJsonCsvConfig
 from test_excel_list_transform.tableio_helpers import \
     configure_output_csv
 from excel_list_transform.migrate_cfg import migrate_cfg
-from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
+from excel_list_transform.migrate_cfg_warn_hook import EltMigrateCfgWarnHook
 from excel_list_transform.config_match import MATCH_CONFIGS
 from excel_list_transform.config_xls_list_transf_name import \
     ConfigXlsListTransfName
@@ -56,7 +56,7 @@ def assert_new_config_file(filename: str) -> None:
 def read_config(filename: str) -> Config:
     """Read an app config file through the config-as-json factory."""
     return config_factory_from_json(match_configs=MATCH_CONFIGS,
-                                    auto_ch_hook=MigrateCfgWarnHook(),
+                                    auto_ch_hook=EltMigrateCfgWarnHook(),
                                     from_json_filename=filename,
                                     stderr_file=sys.stderr)
 
@@ -74,7 +74,7 @@ def test_migrate_cfg1(capsys: CaptureFixture[str]) -> None:
         outfilename = dirname + '/a.cfg'
         _ = read_config(infilename)
         _, err = capsys.readouterr()
-        assert err == MigrateCfgWarnHook.migrate_warn_msg()
+        assert err == EltMigrateCfgWarnHook.migrate_warn_msg()
         res = migrate_cfg(infile=infilename, outfile=outfilename)
         cfg = read_config(outfilename)
         assert isinstance(cfg, ConfigXlsListTransfName)
@@ -102,7 +102,7 @@ def test_migrate_cfg2(capsys: CaptureFixture[str]) -> None:
         outfilename = dirname + '/a.cfg'
         _ = read_config(infilename)
         _, err = capsys.readouterr()
-        assert err == MigrateCfgWarnHook.migrate_warn_msg()
+        assert err == EltMigrateCfgWarnHook.migrate_warn_msg()
         res = migrate_cfg(infile=infilename, outfile=outfilename)
         cfg = read_config(outfilename)
         assert isinstance(cfg, ConfigXlsListTransfNum)

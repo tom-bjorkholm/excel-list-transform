@@ -5,10 +5,10 @@
 # MIT License
 
 from copy import deepcopy
-from config_as_json import MigrateCfgWarnHook as BaseMigrateCfgWarnHook
+from config_as_json import MigrateCfgWarnHook
 
 
-class MigrateCfgWarnHook(BaseMigrateCfgWarnHook):
+class EltMigrateCfgWarnHook(MigrateCfgWarnHook):
     """Class that warns user to migrate configuration file."""
 
     @classmethod

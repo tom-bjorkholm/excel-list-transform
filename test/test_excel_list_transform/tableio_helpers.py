@@ -5,10 +5,10 @@
 # MIT License
 
 from tableio import CsvDialect, FileAccess, tio_config_create
-from tableio_cfg_json import TioJsonCsvConfig
+from tableio_cfg_json import TioJsonConfig, TioJsonCsvConfig
 from excel_list_transform.commontypes import NameDataMap, NumData, NumDataSeq
 from excel_list_transform.config_excel_list_transform import \
-    ConfigExcelListTransform, OutputTableConfig, output_capabilities
+    ConfigExcelListTransform, output_capabilities, output_table_factory
 from excel_list_transform.config_xls_list_transf_num import \
     ConfigXlsListTransfNum
 from excel_list_transform.handle_tableio import read_table_num
@@ -54,7 +54,7 @@ def configure_output_excel(cfg: ConfigExcelListTransform[int] |
 def write_csv_num(data: NumData, filename: str,
                   encoding: str = 'utf-8') -> None:
     """Write numbered rows to a CSV file through TableIO."""
-    cfg = OutputTableConfig()
+    cfg = output_table_factory()
     cfg.format_name = 'CSV'
     cfg.character_encoding = encoding
     cfg.csv = TioJsonCsvConfig(dialect=CsvDialect.EXCEL, delimiter=',',
@@ -72,7 +72,7 @@ def write_csv_named(data: NameDataMap, filename: str, column_order: list[str],
 
 def write_excel_num(data: NumData | NumDataSeq, filename: str) -> None:
     """Write numbered rows to an Excel file through TableIO."""
-    cfg = OutputTableConfig()
+    cfg = output_table_factory()
     cfg.format_name = 'Excel'
     _write_num(data=list(data), filename=filename, cfg=cfg)
 
@@ -106,7 +106,7 @@ def read_csv_num(filename: str, max_col_read: int,
 
 
 def _write_num(data: NumData | NumDataSeq, filename: str,
-               cfg: OutputTableConfig) -> None:
+               cfg: TioJsonConfig) -> None:
     """Write numbered rows using one TableIO output config."""
     with tio_config_create(config=cfg, file_name=filename,
                            file_access=FileAccess.CREATE,

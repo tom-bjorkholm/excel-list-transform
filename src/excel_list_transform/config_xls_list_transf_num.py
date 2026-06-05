@@ -7,7 +7,8 @@
 
 import sys
 from typing import Optional, TextIO, override
-from config_as_json import ConfigAutoChangeHook, PathOrStr
+from config_as_json import ConfigAutoChangeHook, MemberValidationStep, \
+    PathOrStr
 from excel_list_transform.config_enums import SplitWhere, ColumnRef
 from excel_list_transform.config_excel_list_transform \
     import ConfigExcelListTransform, RulePlace, RuleRemove, \
@@ -57,13 +58,12 @@ class ConfigXlsListTransfNum(ConfigExcelListTransform[int]):
                          auto_ch_hook=auto_ch_hook, stderr_file=stderr_file)
 
     @override
-    def validate_column_rules(self) -> None:
-        """Validate number-based transform-rule settings."""
-        self.check_no_duplicates(self.s04_remove_columns, 's04_remove_columns')
-        self._check_increasing_multi(self.s05_merge_columns,
-                                     's05_merge_columns', 2)
-        self.check_no_duplicates(self.s06_place_columns_first,
-                                 's06_place_columns_first')
+    def get_column_val_steps(self) -> list[MemberValidationStep]:
+        """Return validation steps for number-based rule members."""
+        return [
+            self._list_unique_step('s04_remove_columns', int),
+            self._merge_order_step('s05_merge_columns'),
+            self._list_unique_step('s06_place_columns_first', int)]
 
     def sort_sx_hook(self) -> None:
         """Sort s[0-9]_ as needed as needed (hook)."""

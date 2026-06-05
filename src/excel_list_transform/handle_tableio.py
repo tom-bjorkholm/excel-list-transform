@@ -4,7 +4,9 @@
 # Copyright (c) 2026 Tom Björkholm
 # MIT License
 
-from typing import cast
+from enum import Enum, auto
+from typing import Optional, cast
+from config_as_json import string_to_enum_best_match
 from tableio import FileAccess, tio_config_create
 from excel_list_transform.commontypes import NameData, NameDataMap, \
     NumData, NumDataSeq
@@ -14,11 +16,30 @@ from excel_list_transform.handle_empty_column import handle_empty_column_in_lst
 from excel_list_transform.num_named_conversion import named_cols_from_num_cols
 
 
+class OverwriteAnswer(Enum):
+    """Possible answers to the overwrite question."""
+
+    YES = auto()
+    NO = auto()
+
+
+def _parse_overwrite_answer(answer: str) -> Optional[OverwriteAnswer]:
+    """Parse a user answer to the overwrite question."""
+    stripped = answer.strip()
+    if stripped == '':
+        return OverwriteAnswer.NO
+    try:
+        ow_answer = string_to_enum_best_match(stripped, OverwriteAnswer)
+        return ow_answer
+    except KeyError:
+        return None
+
+
 def _allow_overwrite(filename: str) -> None:
     """Ask the user whether TableIO may overwrite an existing file."""
     print(f'Output file {filename} already exists.')
     answer = input('Overwrite it? [y/N] ')
-    if answer.strip().lower() not in ['y', 'yes']:
+    if _parse_overwrite_answer(answer) != OverwriteAnswer.YES:
         raise FileExistsError(f'Output file already exists: {filename}')
 
 

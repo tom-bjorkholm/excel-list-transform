@@ -13,13 +13,14 @@ from config_as_json import InvalidConfiguration
 from test_excel_list_transform.tableio_helpers import \
     configure_input_csv, configure_output_csv
 from excel_list_transform.config_enums import ColumnRef
+from excel_list_transform.config_read_old import ConfigReadOld
 from excel_list_transform.config_excel_list_transform import \
-    ConfigExcelListTransform, ConfigReadOld, ColInfo
+    ConfigExcelListTransform, ColInfo
 from excel_list_transform.config_xls_list_transf_name import \
     ConfigXlsListTransfName
 from excel_list_transform.config_xls_list_transf_num import \
     ConfigXlsListTransfNum
-from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
+from excel_list_transform.migrate_cfg_warn_hook import EltMigrateCfgWarnHook
 
 
 def _config_args(colref: ColumnRef) -> tuple[ColumnRef, ColInfo[Any], Any]:
@@ -58,12 +59,35 @@ def test_base_config_defaults(capsys: CaptureFixture[str],
 
 
 def test_old_default_values() -> None:
-    """Test defaults inserted before old configuration migration."""
-    data = ConfigReadOld._old_defaults()  # pylint: disable=protected-access
-    assert data['in_type'] == 'EXCEL'
-    assert data['out_type'] == 'EXCEL'
-    assert data['in_csv_encoding'] == 'utf_8_sig'
-    assert data['out_csv_encoding'] == 'utf-8'
+    """Test current-shape defaults inserted after old migration."""
+    data = ConfigReadOld().process_json(json_data={'in_type': 'EXCEL'},
+                                        auto_ch_hook=EltMigrateCfgWarnHook(),
+                                        stderr_file=StringIO())
+    input_table = data['input_table']
+    output_table = data['output_table']
+    assert isinstance(input_table, dict)
+    assert isinstance(output_table, dict)
+    assert input_table['format_name'] == 'Excel'
+    assert output_table['format_name'] == 'Excel'
+    assert input_table['character_encoding'] == 'utf_8_sig'
+    assert output_table['character_encoding'] == 'utf-8'
+    assert not data['s01_split_rows']
+    assert not data['s02_merge_rows']
+
+
+def test_missing_defaults() -> None:
+    """Test safe defaults inserted for missing current-shape values."""
+    data = ConfigReadOld().process_json(json_data={
+        'input_table': {'format_name': 'CSV'}, 'output_table': {}},
+        auto_ch_hook=EltMigrateCfgWarnHook(), stderr_file=StringIO())
+    input_table = data['input_table']
+    output_table = data['output_table']
+    assert isinstance(input_table, dict)
+    assert isinstance(output_table, dict)
+    assert input_table['format_name'] == 'CSV'
+    assert output_table['format_name'] == 'Excel'
+    assert input_table['character_encoding'] == 'utf_8_sig'
+    assert output_table['character_encoding'] == 'utf-8'
     assert not data['s01_split_rows']
     assert not data['s02_merge_rows']
 
@@ -78,7 +102,7 @@ def test_old_config_warns(config_class: type[ConfigXlsListTransfName] |
                           filename: str) -> None:
     """Test old configuration files read into the current shape."""
     err_file = StringIO()
-    hook = MigrateCfgWarnHook()
+    hook = EltMigrateCfgWarnHook()
     cfg = config_class(from_json_filename=filename, auto_ch_hook=hook,
                        stderr_file=err_file)
     assert cfg.input_table.format_name == 'Excel'

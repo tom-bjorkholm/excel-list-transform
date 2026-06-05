@@ -6,23 +6,23 @@
 
 
 import sys
-from collections import Counter
 from copy import deepcopy
 from enum import Enum
-from typing import Optional, Callable, TypeVar, NamedTuple, Generic, \
-    Mapping, Sequence, TypedDict, TextIO, override
+from typing import Optional, TypeVar, NamedTuple, Generic, Mapping, \
+    NoReturn, Sequence, TypedDict, TextIO, override
 from config_as_json import Config, ConfigAutoChangeHook, ConfigNesting, \
-    ConfigNestingKind, NestedConfigs, ParseConverter, PathOrStr, \
-    ReadOldConfiguration, RocfKeyMove, RocfKeyRename, ValidationPlan, \
-    MemberValidationStep, WholeConfigValidationStep, ValueTypeValidator, \
-    CallingWholeConfigValidator
-from tableio import CAP_IGNORABLE, CAP_NEEDED, Capabilities, CsvDialect, \
-    FileAccess, TableBorderStyle
+    ConfigNestingKind, InvalidConfiguration, ListIsOrderedValidator, \
+    NestedConfigs, ParseConverter, PathOrStr, ProjectedMemberValidator, \
+    ReadOldConfiguration, ValidationPlan, MemberValidationStep, \
+    WholeConfigValidationStep, ValueTypeValidator, CallingWholeConfigValidator
+from tableio import CAP_IGNORABLE, CAP_NEEDED, Capabilities, FileAccess, \
+    TableBorderStyle
 from tableio_cfg_json import TioJsonConfig
 from excel_list_transform.config_enums import SplitWhere, RewriteKind, \
     CaseSensitivity, ColumnRef
+from excel_list_transform.config_read_old import ConfigReadOld
 from excel_list_transform.str_to_enum import string_to_enum_best_match
-from excel_list_transform.migrate_cfg_warn_hook import MigrateCfgWarnHook
+from excel_list_transform.migrate_cfg_warn_hook import EltMigrateCfgWarnHook
 
 
 Column = TypeVar('Column', int, str)
@@ -53,14 +53,6 @@ type SingleRuleRewrite[Column] = dict[str,
 type RuleRewrite[Column] = list[SingleRuleRewrite[Column]]
 type SingleRuleMerge[Column] = dict[str, list[Column] | str]
 type RuleMerge[Column] = list[SingleRuleMerge[Column]]
-type DupCheckKeyArg[Column] = \
-    SingleRule[Column] | SingleRuleMerge[Column] | SingleRuleSplit[Column]
-type DupCheckKey[Column] = \
-    Callable[[DupCheckKeyArg[Column]], Column | list[Column]]
-type IncrCheckKey[Column] = \
-    Callable[[SingleRuleMerge[Column]], Column | list[Column]]
-type NoDupKeydType[Column] = \
-    Rule[Column] | RuleMerge[Column] | RuleSplit[Column]
 
 
 def input_capabilities() -> Capabilities:
@@ -75,178 +67,77 @@ def output_capabilities() -> Capabilities:
                         can_write_borders=CAP_IGNORABLE)
 
 
-class InputTableConfig(TioJsonConfig):
-    """JSON-backed TableIO configuration for input files."""
-
-    def __init__(self, from_json_data_text: Optional[str] = None,
-                 from_json_filename: Optional[PathOrStr] = None,
-                 auto_ch_hook: Optional[ConfigAutoChangeHook] = None,
-                 stderr_file: TextIO = sys.stderr) -> None:
-        """Construct input TableIO configuration."""
-        super().__init__(capabilities=input_capabilities(),
+def input_table_factory(from_json_data_text: Optional[str] = None,
+                        from_json_filename: Optional[PathOrStr] = None,
+                        auto_ch_hook: Optional[ConfigAutoChangeHook] = None,
+                        stderr_file: TextIO = sys.stderr) -> TioJsonConfig:
+    """Create JSON-backed TableIO configuration for input files."""
+    return TioJsonConfig(capabilities=input_capabilities(),
                          file_access=FileAccess.READ,
                          from_json_data_text=from_json_data_text,
                          from_json_filename=from_json_filename,
                          auto_ch_hook=auto_ch_hook, stderr_file=stderr_file)
 
 
-class OutputTableConfig(TioJsonConfig):
-    """JSON-backed TableIO configuration for output files."""
-
-    def __init__(self, from_json_data_text: Optional[str] = None,
-                 from_json_filename: Optional[PathOrStr] = None,
-                 auto_ch_hook: Optional[ConfigAutoChangeHook] = None,
-                 stderr_file: TextIO = sys.stderr) -> None:
-        """Construct output TableIO configuration."""
-        super().__init__(capabilities=output_capabilities(),
+def output_table_factory(from_json_data_text: Optional[str] = None,
+                         from_json_filename: Optional[PathOrStr] = None,
+                         auto_ch_hook: Optional[ConfigAutoChangeHook] = None,
+                         stderr_file: TextIO = sys.stderr) -> TioJsonConfig:
+    """Create JSON-backed TableIO configuration for output files."""
+    return TioJsonConfig(capabilities=output_capabilities(),
                          file_access=FileAccess.CREATE,
                          from_json_data_text=from_json_data_text,
                          from_json_filename=from_json_filename,
                          auto_ch_hook=auto_ch_hook, stderr_file=stderr_file)
 
 
-def _old_value_name(value: object) -> str:
-    """Return a normalized old configuration enum/string name."""
-    if isinstance(value, Enum):
-        return value.name
-    assert isinstance(value, str)
-    return value
+def _invalid_projection(member_name: str, message: str,
+                        stderr_file: TextIO) -> NoReturn:
+    """Raise a readable validation error for projected rule validation."""
+    msg = f'Invalid configuration: {member_name} {message}'
+    print(msg, file=stderr_file)
+    raise InvalidConfiguration(msg)
 
 
-def old_file_type_to_format(value: object) -> str:
-    """Convert old input/output file type to a TableIO format name."""
-    name = _old_value_name(value).lower()
-    if name == 'csv':
-        return 'CSV'
-    if name == 'excel':
-        return 'Excel'
-    raise KeyError(f'Unknown old file type: {value}')
+def _project_rule_columns(config: Config, member_name: str,
+                          member_value: object, stderr_file: TextIO) -> object:
+    """Project one-column rule dictionaries to a column list."""
+    _ = config
+    if not isinstance(member_value, list):
+        _invalid_projection(member_name, 'must be a list.', stderr_file)
+    values: list[object] = []
+    for index, item in enumerate(member_value):
+        if not isinstance(item, dict):
+            msg = f'contains a non-object rule at index {index}.'
+            _invalid_projection(member_name, msg, stderr_file)
+        if 'column' not in item:
+            msg = f'misses key column at index {index}.'
+            _invalid_projection(member_name, msg, stderr_file)
+        values.append(item['column'])
+    return values
 
 
-def _old_quoting_to_tableio(value: object) -> Optional[str]:
-    """Convert old csv.QUOTE_* config text to TableIO text."""
-    if value is None:
-        return None
-    assert isinstance(value, str)
-    values = {'csv.quote_all': 'all',
-              'csv.quote_minimal': 'minimal',
-              'csv.quote_none': 'none',
-              'csv.quote_nonnumeric': 'nonnumeric'}
-    lower = value.lower()
-    if lower not in values:
-        raise KeyError(f'Unknown old CSV quoting: {value}')
-    return values[lower]
-
-
-def old_csv_spec_to_tableio(value: object) -> dict[str, object]:
-    """Convert old CSV dialect config to tableio-cfg-json shape."""
-    assert isinstance(value, dict)
-    name_obj = value.get('name')
-    name = '' if name_obj is None else str(name_obj).lower()
-    dialect = CsvDialect.EXCEL.name
-    if name == 'csv.unix_dialect':
-        dialect = CsvDialect.UNIX.name
-    ret: dict[str, object] = {'dialect': dialect}
-    delimiter = value.get('delimiter')
-    if delimiter is None and name == 'csv.excel_tab':
-        delimiter = '\t'
-    if delimiter is not None:
-        ret['delimiter'] = delimiter
-    quoting = _old_quoting_to_tableio(value.get('quoting'))
-    if quoting is not None:
-        ret['quoting'] = quoting
-    for old_key in ['quotechar', 'lineterminator', 'escapechar']:
-        item = value.get(old_key)
-        if item is not None:
-            ret[old_key] = item
-    return ret
-
-
-class ConfigReadOld(ReadOldConfiguration):
-    """Normalize old excel-list-transform configuration files."""
-
-    _OLD_SHAPE_KEYS = ['in_type', 'out_type', 'in_csv_dialect',
-                       'out_csv_dialect', 'in_csv_encoding',
-                       'out_csv_encoding', 'in_excel_library',
-                       'out_excel_library', 's1_split_columns',
-                       's2_remove_columns', 's3_merge_columns',
-                       's4_place_columns_first', 's5_rename_columns',
-                       's6_insert_columns', 's7_rewrite_columns',
-                       's8_column_order']
-
-    def pre_process_json(self, json_data: dict[str, object],
-                         auto_ch_hook: ConfigAutoChangeHook,
-                         stderr_file: TextIO) -> dict[str, object]:
-        """Add old implicit defaults before declarative migration."""
-        _ = stderr_file
-        if not self._is_old_shape(json_data):
-            return json_data
-        for key, value in self._old_defaults().items():
-            if key not in json_data:
-                json_data[key] = deepcopy(value)
-                auto_ch_hook.rocf_missing_value_provided(key)
-        return json_data
-
-    @classmethod
-    def _is_old_shape(cls, json_data: dict[str, object]) -> bool:
-        """Return whether parsed JSON looks like the old flat format."""
-        return any(key in json_data for key in cls._OLD_SHAPE_KEYS)
-
-    @staticmethod
-    def _old_defaults() -> dict[str, object]:
-        """Return defaults needed by older supported config files."""
-        return {'in_type': 'EXCEL',
-                'out_type': 'EXCEL',
-                'in_csv_encoding': 'utf_8_sig',
-                'out_csv_encoding': 'utf-8',
-                'in_excel_col_name_strip': False,
-                'in_excel_values_strip': False,
-                's01_split_rows': [],
-                's02_merge_rows': [],
-                'output_borders': False,
-                'output_filtered_table': False}
-
-    @override
-    def get_keys_to_prune(self) -> list[str]:
-        """Return old keys accepted and discarded during migration."""
-        return ['in_excel_library', 'out_excel_library']
-
-    @override
-    def get_json_key_renames(self) -> list[RocfKeyRename]:
-        """Return old transform rule key renames."""
-        return [
-            RocfKeyRename(old='s1_split_columns', new='s03_split_columns'),
-            RocfKeyRename(old='s2_remove_columns', new='s04_remove_columns'),
-            RocfKeyRename(old='s3_merge_columns', new='s05_merge_columns'),
-            RocfKeyRename(old='s4_place_columns_first',
-                          new='s06_place_columns_first'),
-            RocfKeyRename(old='s5_rename_columns', new='s07_rename_columns'),
-            RocfKeyRename(old='s6_insert_columns', new='s08_insert_columns'),
-            RocfKeyRename(old='s7_rewrite_columns', new='s09_rewrite_columns'),
-            RocfKeyRename(old='s8_column_order', new='s10_column_order')
-        ]
-
-    @override
-    def get_json_key_moves(self) -> list[RocfKeyMove]:
-        """Return old I/O settings moved into TableIO config sections."""
-        return [
-            RocfKeyMove(old_path=('in_type',),
-                        new_path=('input_table', 'format_name'),
-                        transform_value=old_file_type_to_format),
-            RocfKeyMove(old_path=('out_type',),
-                        new_path=('output_table', 'format_name'),
-                        transform_value=old_file_type_to_format),
-            RocfKeyMove(old_path=('in_csv_encoding',),
-                        new_path=('input_table', 'character_encoding')),
-            RocfKeyMove(old_path=('out_csv_encoding',),
-                        new_path=('output_table', 'character_encoding')),
-            RocfKeyMove(old_path=('in_csv_dialect',),
-                        new_path=('input_table', 'csv'),
-                        transform_value=old_csv_spec_to_tableio),
-            RocfKeyMove(old_path=('out_csv_dialect',),
-                        new_path=('output_table', 'csv'),
-                        transform_value=old_csv_spec_to_tableio)
-        ]
+def _project_merge_columns(config: Config, member_name: str,
+                           member_value: object,
+                           stderr_file: TextIO) -> object:
+    """Project merge-rule dictionaries to one flattened column list."""
+    _ = config
+    if not isinstance(member_value, list):
+        _invalid_projection(member_name, 'must be a list.', stderr_file)
+    values: list[object] = []
+    for index, item in enumerate(member_value):
+        if not isinstance(item, dict):
+            msg = f'contains a non-object rule at index {index}.'
+            _invalid_projection(member_name, msg, stderr_file)
+        if 'columns' not in item:
+            msg = f'misses key columns at index {index}.'
+            _invalid_projection(member_name, msg, stderr_file)
+        columns = item['columns']
+        if not isinstance(columns, list):
+            msg = f'has non-list columns at index {index}.'
+            _invalid_projection(member_name, msg, stderr_file)
+        values.extend(columns)
+    return values
 
 
 class ColInfo(NamedTuple, Generic[Column]):
@@ -273,7 +164,7 @@ class ConfigExcelListTransform(Config, Generic[Column]):
                  stderr_file: TextIO = sys.stderr) -> None:
         """Construct configuration for excel list transform."""
         assert isinstance(colinfo.tinfo, type(tinfo))
-        hook = MigrateCfgWarnHook() if auto_ch_hook is None \
+        hook = EltMigrateCfgWarnHook() if auto_ch_hook is None \
             else auto_ch_hook
         self._colinfo: ColInfo[Column] = deepcopy(colinfo)
         self._columntype: type[Column] = type(tinfo)
@@ -281,8 +172,10 @@ class ConfigExcelListTransform(Config, Generic[Column]):
         col2use = deepcopy(colinfo.col_to_use)  # dont destroying caller's arg
         col2userow = deepcopy(colinfo.col_to_use_row)
         self.max_column_read: int = 20
-        self.input_table: InputTableConfig = InputTableConfig()
-        self.output_table: OutputTableConfig = OutputTableConfig()
+        self.input_table: TioJsonConfig = input_table_factory()
+        self.input_table.character_encoding = 'utf_8_sig'
+        self.output_table: TioJsonConfig = output_table_factory()
+        self.output_table.character_encoding = 'utf-8'
         self.in_excel_col_name_strip = True
         self.in_excel_values_strip = False
         self.output_borders: bool = False
@@ -330,12 +223,13 @@ class ConfigExcelListTransform(Config, Generic[Column]):
     @override
     def nested_configs(self) -> NestedConfigs:
         """Return nested TableIO config sections."""
-        return {
-            'input_table': ConfigNesting(kind=ConfigNestingKind.MEMBER,
-                                         config_type=InputTableConfig),
-            'output_table': ConfigNesting(kind=ConfigNestingKind.MEMBER,
-                                          config_type=OutputTableConfig)
-        }
+        input_nesting = ConfigNesting(kind=ConfigNestingKind.MEMBER,
+                                      config_type=TioJsonConfig,
+                                      factory_function=input_table_factory)
+        output_nesting = ConfigNesting(kind=ConfigNestingKind.MEMBER,
+                                       config_type=TioJsonConfig,
+                                       factory_function=output_table_factory)
+        return {'input_table': input_nesting, 'output_table': output_nesting}
 
     def _read_old_config(self) -> ReadOldConfiguration:
         """Return old-format migration rules."""
@@ -349,7 +243,7 @@ class ConfigExcelListTransform(Config, Generic[Column]):
         _ = stderr_file
         bool_names = ['in_excel_col_name_strip', 'in_excel_values_strip',
                       'output_borders', 'output_filtered_table']
-        return [
+        plan = [
             MemberValidationStep(member_names=['max_column_read'],
                                  validator=ValueTypeValidator(
                                      int, not_allowed_type=bool)),
@@ -357,6 +251,49 @@ class ConfigExcelListTransform(Config, Generic[Column]):
                                  validator=ValueTypeValidator(bool)),
             WholeConfigValidationStep(validator=CallingWholeConfigValidator(
                 method_name='validate_transform_rules'))]
+        plan.extend(self._base_rule_val_steps())
+        plan.extend(self.get_column_val_steps())
+        return plan
+
+    def _base_rule_val_steps(self) -> list[MemberValidationStep]:
+        """Return validation steps for shared transform-rule members."""
+        return [
+            self._rule_unique_step('s03_split_columns'),
+            self._rule_unique_step('s07_rename_columns'),
+            self._rule_unique_step('s08_insert_columns')]
+
+    def get_column_val_steps(self) -> list[MemberValidationStep]:
+        """Return validation steps for column-reference-specific members."""
+        return []
+
+    def _rule_unique_step(self, member_name: str) -> MemberValidationStep:
+        """Return uniqueness validation for a one-column rule member."""
+        validator = ProjectedMemberValidator(
+            projector=_project_rule_columns,
+            validators=[
+                ListIsOrderedValidator(self._columntype, is_ordered=False,
+                                       unique_values=True)])
+        return MemberValidationStep(member_names=[member_name],
+                                    validator=validator)
+
+    def _merge_order_step(self, member_name: str) -> MemberValidationStep:
+        """Return increasing and unique validation for merge columns."""
+        validator = ProjectedMemberValidator(
+            projector=_project_merge_columns,
+            validators=[
+                ListIsOrderedValidator(self._columntype, is_ordered=True,
+                                       unique_values=True)])
+        return MemberValidationStep(member_names=[member_name],
+                                    validator=validator)
+
+    @staticmethod
+    def _list_unique_step(member_name: str,
+                          element_type: type[Column]) -> MemberValidationStep:
+        """Return uniqueness validation for a plain list member."""
+        validator = ListIsOrderedValidator(element_type, is_ordered=False,
+                                           unique_values=True)
+        return MemberValidationStep(member_names=[member_name],
+                                    validator=validator)
 
     def validate_transform_rules(self) -> None:
         """Validate transform-rule settings."""
@@ -369,12 +306,6 @@ class ConfigExcelListTransform(Config, Generic[Column]):
         self.check_array_configs(split_last=colinfo.split_last,
                                  insert_last=colinfo.insert_last)
         self.sort_sx_hook()
-        self._check_no_duplicate_single(self.s03_split_columns,
-                                        's03_split_columns', colinfo.tinfo)
-        self._check_no_duplicate_single(self.s07_rename_columns,
-                                        's07_rename_columns', colinfo.tinfo)
-        self._check_no_duplicate_single(self.s08_insert_columns,
-                                        's08_insert_columns', colinfo.tinfo)
         self.check_rewrite_configs(coltype=type(colinfo.tinfo))
         self.check_split_row_cfg()
         self.check_merge_row_cfg()
@@ -390,18 +321,6 @@ class ConfigExcelListTransform(Config, Generic[Column]):
 
     def sort_sx_hook(self) -> None:
         """Sort s[0-9]_ as needed (hook)."""
-
-    @staticmethod
-    def check_no_duplicates(expanded_data: list[str] | list[int],
-                            param_name: str) -> None:
-        """Exit with an error if configuration values are duplicated."""
-        dup = [str(k) for k, v in Counter(expanded_data).items() if v > 1]
-        if not dup:
-            return
-        msg = f'Duplicates not allowed in {param_name}. Duplicate values: '
-        msg += ','.join(dup)
-        print(msg, file=sys.stderr)
-        sys.exit(1)
 
     @staticmethod
     def check_array_keys(name_of_cfg: str,
@@ -535,37 +454,6 @@ class ConfigExcelListTransform(Config, Generic[Column]):
                 assert isinstance(singlecol, type(tinfo))
                 cols.append(singlecol)
         return cols
-
-    @staticmethod
-    def _check_no_duplicate_single(rule: Rule[Column] | RuleSplit[Column],
-                                   param_name: str, tinfo: Column) -> None:
-        """Flag as error if column is refered to multiple times."""
-        cols: list[Column] = ConfigExcelListTransform.get_cols_single(rule,
-                                                                      tinfo)
-        ConfigExcelListTransform.check_no_duplicates(cols, param_name)
-
-    @staticmethod
-    def _check_no_duplicate_multi(rule: RuleMerge[Column], param_name: str,
-                                  tinfo: Column) -> None:
-        """Flag as error if column is refered to multiple times."""
-        cols: list[Column] = ConfigExcelListTransform.get_cols_multi(rule,
-                                                                     tinfo)
-        ConfigExcelListTransform.check_no_duplicates(cols, param_name)
-
-    @staticmethod
-    def _check_increasing_multi(rule: RuleMerge[Column], param_name: str,
-                                tinfo: Column) -> None:
-        """Flag as error if order is not increasing."""
-        cols: list[Column] = ConfigExcelListTransform.get_cols_multi(rule,
-                                                                     tinfo)
-        seen: Optional[Column] = None
-        for col in cols:
-            assert isinstance(col, (int, str))
-            if seen is not None and seen >= col:
-                msg: str = f'Increasing order needed in {param_name}'
-                print(msg, file=sys.stderr)
-                raise KeyError(msg)
-            seen = col
 
     @staticmethod
     def get_converter_dict(enum_type: type[Enum]) -> ParseConverter:

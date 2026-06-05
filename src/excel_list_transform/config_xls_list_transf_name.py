@@ -7,7 +7,8 @@
 
 import sys
 from typing import Optional, TextIO, override
-from config_as_json import ConfigAutoChangeHook, PathOrStr
+from config_as_json import ConfigAutoChangeHook, MemberValidationStep, \
+    PathOrStr
 from excel_list_transform.config_enums import SplitWhere, ColumnRef
 from excel_list_transform.config_excel_list_transform import \
     ConfigExcelListTransform, RuleOrder, ColInfo
@@ -45,6 +46,6 @@ class ConfigXlsListTransfName(ConfigExcelListTransform[str]):
                          auto_ch_hook=auto_ch_hook, stderr_file=stderr_file)
 
     @override
-    def validate_column_rules(self) -> None:
-        """Validate name-based transform-rule settings."""
-        self.check_no_duplicates(self.s10_column_order, 's10_column_order')
+    def get_column_val_steps(self) -> list[MemberValidationStep]:
+        """Return validation steps for name-based rule members."""
+        return [self._list_unique_step('s10_column_order', str)]

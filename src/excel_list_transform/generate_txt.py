@@ -4,6 +4,7 @@
 # Copyright (c) 2024-2025 Tom Björkholm
 # MIT License
 
+from textwrap import dedent
 from tableio import FileAccess
 from tableio_cfg_json import describe_config_members, \
     describe_config_reference, get_config_member_names
@@ -20,6 +21,32 @@ def _unique_items(items: list[str]) -> list[str]:
     return ret
 
 
+def _format_section(text: str) -> str:
+    """Return a generated text section with consistent spacing."""
+    lines: list[str] = []
+    previous_blank = False
+    for line in dedent(text).strip('\n').splitlines():
+        blank_line = not line.strip()
+        if blank_line:
+            if not previous_blank:
+                lines.append('')
+            previous_blank = True
+        else:
+            lines.append(line.rstrip())
+            previous_blank = False
+    return '\n'.join(lines)
+
+
+def _join_sections(sections: list[str]) -> str:
+    """Return generated text sections joined by one blank line."""
+    formatted: list[str] = []
+    for section in sections:
+        text = _format_section(section)
+        if text:
+            formatted.append(text)
+    return '\n\n'.join(formatted)
+
+
 def _tableio_syntax_txt() -> str:
     """Return TableIO configuration syntax text for input and output."""
     in_names = get_config_member_names(capabilities=input_capabilities(),
@@ -27,36 +54,37 @@ def _tableio_syntax_txt() -> str:
     out_names = get_config_member_names(capabilities=output_capabilities(),
                                         file_access=FileAccess.CREATE)
     names = _unique_items(list(in_names) + list(out_names))
-    txt = '''
+    return _join_sections(['''
     TableIO input_table
     ===================
 
     The "input_table" section configures the table file reader.
-    '''
-    txt += describe_config_members(capabilities=input_capabilities(),
-                                   file_access=FileAccess.READ)
-    txt += '''
+    ''',
+                           describe_config_members(
+                               capabilities=input_capabilities(),
+                               file_access=FileAccess.READ),
+                           '''
 
     TableIO output_table
     ====================
 
     The "output_table" section configures the table file writer.
-    '''
-    txt += describe_config_members(capabilities=output_capabilities(),
-                                   file_access=FileAccess.CREATE)
-    txt += '''
+    ''',
+                           describe_config_members(
+                               capabilities=output_capabilities(),
+                               file_access=FileAccess.CREATE),
+                           '''
 
     TableIO parameter reference
     ===========================
-    '''
-    txt += describe_config_reference(member_names=names)
-    return txt
+    ''',
+                           describe_config_reference(member_names=names)])
 
 
 def generate_syntax_txt(filename: str, example_description: str,
                         cfgfilename: str) -> None:
     """Generate a text file with configuration syntax description."""
-    msg = '''
+    msg = _join_sections(['''
     Description of how to write/change the configuration file.
     ==========================================================
 
@@ -126,7 +154,9 @@ def generate_syntax_txt(filename: str, example_description: str,
     implementation that can provide them, but the transform can still
     write the output if the selected file format cannot represent them.
 
-    ''' + _tableio_syntax_txt() + '''
+    ''',
+                          _tableio_syntax_txt(),
+                          '''
 
     Extra spaces in excel input files
     =================================
@@ -375,10 +405,10 @@ def generate_syntax_txt(filename: str, example_description: str,
     Columns not mentioned in "s10_column_order" will not be output,
     and will thus be removed.
     (For "BY_NUMBER" see "s04_remove_columns" and "s06_place_columns_first".)
-    '''
+    '''])
+    txt = _join_sections([f'Explanation for example configuration file '
+                          f'{cfgfilename}',
+                          example_description,
+                          msg])
     with open(file=filename, mode='w', encoding='utf-8') as file:
-        print(f'Explanation for example configuration file {cfgfilename}',
-              file=file)
-        print(example_description, file=file)
-        print('\n\n\n', file=file)
-        print(msg, file=file)
+        file.write(txt + '\n')

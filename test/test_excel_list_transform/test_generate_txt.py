@@ -13,6 +13,13 @@ from pytest import CaptureFixture
 from excel_list_transform.generate_txt import generate_syntax_txt
 
 
+def _assert_txt_layout(content: str) -> None:
+    """Assert generated syntax text has consistent indentation."""
+    assert '\n\n\n' not in content
+    for line in content.splitlines():
+        assert not line.startswith('    ')
+
+
 @pytest.mark.parametrize('txt_file, edescr, cfg_file',
                          [('a.txt',
                            'abc is not xyz', 'a.cfg'),
@@ -35,5 +42,6 @@ def test_generate_syntax_txt(capsys: CaptureFixture[str], txt_file: str,
     assert 'Explanation for example configuration file' in content
     assert cfg_file in content
     assert 's10_column_order' in content
+    _assert_txt_layout(content)
     assert '' == out
     assert '' == err

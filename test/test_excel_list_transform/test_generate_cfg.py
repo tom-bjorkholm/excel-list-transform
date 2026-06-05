@@ -17,7 +17,8 @@ from tableio import CsvDialect
 from tableio_cfg_json import TioJsonCsvConfig
 from test_excel_list_transform.tableio_helpers import read_excel_num, \
     write_excel_num
-from excel_list_transform.generate_cfg import generate_examplecfg
+from excel_list_transform.generate_cfg import generate_examplecfg, \
+    get_example_names
 from excel_list_transform.config_enums import ColumnRef
 from excel_list_transform.config_xls_list_transf_num import \
     ConfigXlsListTransfNum
@@ -213,6 +214,13 @@ class ExampleData:  # pylint: disable=too-many-instance-attributes
 FileNames = namedtuple('FileNames', ['indata', 'cfg', 'out'])
 
 
+def _assert_txt_layout(content: str) -> None:
+    """Assert generated syntax text has consistent indentation."""
+    assert '\n\n\n' not in content
+    for line in content.splitlines():
+        assert not line.startswith('    ')
+
+
 def openpyxl_reader(filename: str, max_column_read: int = 40) -> NumData:
     """Read Excel output through the app TableIO reader."""
     return read_excel_num(filename=filename, max_col_read=max_column_read,
@@ -352,6 +360,22 @@ def test_gen_example(capsys: CaptureFixture[str], refcol: ColumnRef) -> None:
         with open(file=txt, mode='r', encoding='utf-8') as file:
             txttxt = file.read()
             assert 's07_rename_columns' in txttxt
+    out, err = capsys.readouterr()
+    assert f'Wrote files {cfg} and {txt}' in out
+    assert '' == err
+
+
+@pytest.mark.parametrize('cfgtype', get_example_names())
+@pytest.mark.parametrize('refcol', [ColumnRef.BY_NAME, ColumnRef.BY_NUMBER])
+def test_example_txt_layout(capsys: CaptureFixture[str], cfgtype: str,
+                            refcol: ColumnRef) -> None:
+    """Test generated example syntax text layout."""
+    with TemporaryDirectory() as dname:
+        cfg = dname + '/a.cfg'
+        txt = dname + '/a.txt'
+        generate_examplecfg(cfgtype=cfgtype, filename=cfg, colref=refcol)
+        with open(file=txt, mode='r', encoding='utf-8') as file:
+            _assert_txt_layout(file.read())
     out, err = capsys.readouterr()
     assert f'Wrote files {cfg} and {txt}' in out
     assert '' == err

@@ -79,7 +79,7 @@ After running doBuild.zsh you can do manual test of the built and installed appl
 
 ## Test summary
 
-- Test result: 1347 passed in 63s (0:01:03)
+- Test result: 1337 passed in 63s (0:01:03)
 - No flake8 warnings.
 - No mypy errors found.
 - No python layout warnings.

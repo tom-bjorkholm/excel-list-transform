@@ -11,7 +11,7 @@ from copy import deepcopy
 import sys
 import pytest
 from pytest import CaptureFixture
-from config_as_json import InvalidConfiguration
+from config_as_json import InvalidConfiguration, assert_dict_equal
 from tableio import CsvDialect
 from tableio_cfg_json import TioJsonCsvConfig
 from test_excel_list_transform.tableio_helpers import \
@@ -22,7 +22,6 @@ from excel_list_transform.config_enums import SplitWhere, RewriteKind, \
     CaseSensitivity
 from excel_list_transform.config_excel_list_transform import RuleMerge, \
     RuleRowSplit
-from excel_list_transform.assert_dict_equal import assert_dict_equal
 from excel_list_transform.migrate_cfg_warn_hook import EltMigrateCfgWarnHook
 
 

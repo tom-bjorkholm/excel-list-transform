@@ -10,7 +10,7 @@ from tempfile import TemporaryDirectory
 import pytest
 from pytest import MonkeyPatch
 from pytest import CaptureFixture
-from config_as_json import Config, config_factory_from_json
+from config_as_json import Config, assert_dict_equal, config_factory_from_json
 from tableio import CsvDialect
 from tableio_cfg_json import TioJsonCsvConfig
 from test_excel_list_transform.tableio_helpers import \
@@ -22,7 +22,6 @@ from excel_list_transform.config_xls_list_transf_name import \
     ConfigXlsListTransfName
 from excel_list_transform.config_xls_list_transf_num import \
     ConfigXlsListTransfNum
-from excel_list_transform.assert_dict_equal import assert_dict_equal
 from excel_list_transform.transform_cmd import transform_cmd
 
 

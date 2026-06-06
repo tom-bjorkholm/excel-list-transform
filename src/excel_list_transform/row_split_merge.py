@@ -404,6 +404,8 @@ def merge_rows_cfg(indata: Data[Row],
                    cfg: ConfigXlsListTransfName | ConfigXlsListTransfNum,
                    tinfo: Column) -> Data[Row]:
     """Merge rows based on configuration."""
+    if not cfg.s02_merge_rows:
+        return indata  # No merge rules, so no merging to do.
     assert (isinstance(tinfo, int) and
             isinstance(cfg, ConfigXlsListTransfNum)) or \
         (isinstance(tinfo, str) and isinstance(cfg, ConfigXlsListTransfName))

@@ -120,16 +120,9 @@ With an input file consisting of 20 columns producing an output file of 11 colum
 |----------------|-----------------------|-----------------------|
 |            100 | less than 0.2 seconds | less than 0.2 seconds |
 |            500 |                       | less than 2 seconds   |
-|           1000 | less than 8 seconds   | less than 8 seconds   |
-|           2000 |                       | approx. 30 seconds    |
-|           3000 |                       | approx. 70 seconds    |
 
-Performance of version 0.7 on MacBook Air M1:
-
-* 1 000 rows processed in less than 0.5 seconds
-* 10 000 rows processed in less than 4 seconds
-* 80 000 rows processed in less than 30 seconds
-* 120 000 rows processed in 40 seconds
+(A performance related fix in a library this application depends on is
+ expected soon.)
 
 Naturally your performance will be different based on computer hardware, operating system and Python version. Generally it should be reasonably fast for less than...
 

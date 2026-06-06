@@ -58,7 +58,7 @@ def print_results(data: dict[int, dict[ColumnRef, float]],
     print('Processing results in 11 output columns per row.\n', file=file)
     print('Num rows\tSeconds by_name\t  Seconds by_number', file=file)
     for size, result in data.items():
-        print(f'{size: 8, }\t{result[ColumnRef.BY_NAME]: 15.2f}' +
+        print(f'{size:8,}\t{result[ColumnRef.BY_NAME]: 15.2f}' +
               f'\t  {result[ColumnRef.BY_NUMBER]: 17.2f}',
               file=file)
 

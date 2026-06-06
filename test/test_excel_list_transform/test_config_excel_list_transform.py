@@ -5,7 +5,6 @@
 # MIT License
 
 from io import StringIO
-from typing import Any
 import sys
 import pytest
 from pytest import CaptureFixture
@@ -23,28 +22,29 @@ from excel_list_transform.config_xls_list_transf_num import \
 from excel_list_transform.migrate_cfg_warn_hook import EltMigrateCfgWarnHook
 
 
-def _config_args(colref: ColumnRef) -> tuple[ColumnRef, ColInfo[Any], Any]:
-    """Return constructor arguments for a base transform config."""
-    colinfo: ColInfo[Any]
+def _make_base_config(colref: ColumnRef) -> ConfigExcelListTransform[int] | \
+        ConfigExcelListTransform[str]:
+    """Return a base transform config for the requested column reference."""
     if colref == ColumnRef.BY_NUMBER:
-        colinfo = ColInfo('right_name', None, [], [], [2, 3, 0, 1, 4, 4,
-                                                       4, 4, 4, 1],
-                          [7, 1, 2], 2)
-        return colref, colinfo, 2
-    colinfo = ColInfo('right_name', None, [], [],
-                      ['street', 'street number', 'name', 'last name',
-                       'Phone', 'Phone', 'Phone', 'Phone', 'Phone',
-                       'Last Name'],
-                      ['Club Name', 'name', 'last name'], 'a')
-    return colref, colinfo, 'a'
+        num_colinfo = ColInfo[int]('right_name', None, [], [],
+                                   [2, 3, 0, 1, 4, 4, 4, 4, 4, 1], [7, 1, 2],
+                                   2)
+        return ConfigExcelListTransform[int](col_ref=colref,
+                                             colinfo=num_colinfo, tinfo=2)
+    name_colinfo = ColInfo[str](
+        'right_name', None, [], [],
+        ['street', 'street number', 'name', 'last name',
+         'Phone', 'Phone', 'Phone', 'Phone', 'Phone', 'Last Name'],
+        ['Club Name', 'name', 'last name'], 'a')
+    return ConfigExcelListTransform[str](col_ref=colref, colinfo=name_colinfo,
+                                         tinfo='a')
 
 
 @pytest.mark.parametrize('colref', [ColumnRef.BY_NAME, ColumnRef.BY_NUMBER])
 def test_base_config_defaults(capsys: CaptureFixture[str],
                               colref: ColumnRef) -> None:
     """Test default current configuration values."""
-    ref, colinfo, tinfo = _config_args(colref)
-    cfg = ConfigExcelListTransform(col_ref=ref, colinfo=colinfo, tinfo=tinfo)
+    cfg = _make_base_config(colref)
     assert cfg.column_ref == colref
     assert cfg.input_table.format_name == 'Excel'
     assert cfg.output_table.format_name == 'Excel'

@@ -6,7 +6,7 @@
 
 # pylint: disable=duplicate-code
 
-from typing import Any, cast
+from typing import Optional, cast
 import pytest
 from pytest import CaptureFixture
 from excel_list_transform.config_enums import CaseSensitivity, RewriteKind
@@ -43,8 +43,9 @@ from excel_list_transform.config_excel_list_transform import \
                           ('abc', 'b', CaseSensitivity.MATCH_CASE, 'abc'),
                           ('abc', 'B', CaseSensitivity.IGNORE_CASE, 'abc'),
                           ('abc', 'B', CaseSensitivity.MATCH_CASE, 'abc')])
-def test_strip_value(capsys: CaptureFixture[str], ind: Any, chars: Any,
-                     caseh: Any, outd: Any) -> None:
+def test_strip_value(capsys: CaptureFixture[str], ind: str,
+                     chars: Optional[str], caseh: CaseSensitivity,
+                     outd: str) -> None:
     """Test strip of value."""
     ret = strip_value(value=ind, chars=chars, casehandle=caseh)
     out, err = capsys.readouterr()
@@ -74,8 +75,9 @@ def test_strip_value(capsys: CaptureFixture[str], ind: Any, chars: Any,
                            CaseSensitivity.IGNORE_CASE, 'bb'),
                           ('abcabc', ['A', 'C'],
                            CaseSensitivity.MATCH_CASE, 'abcabc')])
-def test_remove_from_value(capsys: CaptureFixture[str], ind: Any, chars: Any,
-                           caseh: Any, outd: Any) -> None:
+def test_remove_from_value(capsys: CaptureFixture[str], ind: str,
+                           chars: list[str], caseh: CaseSensitivity,
+                           outd: str) -> None:
     """Test remove chars from value."""
     ret = remove_from_value(value=ind, chars=chars, casehandle=caseh)
     out, err = capsys.readouterr()
@@ -112,8 +114,8 @@ def test_remove_from_value(capsys: CaptureFixture[str], ind: Any, chars: Any,
                           ('tahaha', 'aha', 'a',
                            CaseSensitivity.MATCH_CASE, 'taha')])
 # pylint: disable-next=too-many-arguments,too-many-positional-arguments
-def test_str_replace_value(capsys: CaptureFixture[str], ind: Any, fro: Any,
-                           to: Any, caseh: Any, outd: Any) -> None:
+def test_str_replace_value(capsys: CaptureFixture[str], ind: str, fro: str,
+                           to: str, caseh: CaseSensitivity, outd: str) -> None:
     """Test replace substring in value."""
     ret = str_replace_value(value=ind, fro=fro, to=to, casehandle=caseh)
     out, err = capsys.readouterr()
@@ -132,8 +134,8 @@ def test_str_replace_value(capsys: CaptureFixture[str], ind: Any, fro: Any,
                           ('ahahah', '^AH', 'b',
                            CaseSensitivity.MATCH_CASE, 'ahahah')])
 # pylint: disable-next=too-many-arguments,too-many-positional-arguments
-def test_reg_replace_value(capsys: CaptureFixture[str], ind: Any, fro: Any,
-                           to: Any, caseh: Any, outd: Any) -> None:
+def test_reg_replace_value(capsys: CaptureFixture[str], ind: str, fro: str,
+                           to: str, caseh: CaseSensitivity, outd: str) -> None:
     """Test replace regex in value for OK cases."""
     ret = regex_replace_value(value=ind, fro=fro, to=to, casehandle=caseh)
     out, err = capsys.readouterr()
@@ -174,8 +176,9 @@ def test_regex_repl_val_nok(capsys: CaptureFixture[str]) -> None:
                                   'from': '^a', 'to': 'bx',
                                   'case': CaseSensitivity.IGNORE_CASE},
                            None)])
-def test_rewrite_value_ok(capsys: CaptureFixture[str], ind: Any, spec: Any,
-                          outd: Any) -> None:
+def test_rewrite_value_ok(capsys: CaptureFixture[str], ind: Optional[str],
+                          spec: SingleRuleRewrite[int],
+                          outd: Optional[str]) -> None:
     """Test rewrite_value for OK cases."""
     ret = rewrite_value(value=ind, spec=spec, tinfo=2)
     out, err = capsys.readouterr()

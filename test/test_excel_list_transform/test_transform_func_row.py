@@ -7,7 +7,7 @@
 # pylint: disable=duplicate-code
 
 
-from typing import Any
+from typing import TypedDict
 from copy import deepcopy
 from tempfile import TemporaryDirectory
 import pytest
@@ -20,14 +20,25 @@ from excel_list_transform.commontypes import NumData
 from excel_list_transform.transform_func import transform_named_files
 from excel_list_transform.handle_tableio import read_table_num
 from excel_list_transform.config_excel_list_transform import \
-    ConfigExcelListTransform
+    ConfigExcelListTransform, RuleMerge, RuleRowSplit
 from excel_list_transform.config_xls_list_transf_num import \
     ConfigXlsListTransfNum
 from excel_list_transform.config_xls_list_transf_name import \
     ConfigXlsListTransfName
 
 
-def write_testdata_file(data: NumData, cfg: ConfigExcelListTransform[Any],
+RowExample = TypedDict('RowExample',
+                       {'in': NumData,
+                        'out': NumData,
+                        'snum': RuleRowSplit[int],
+                        'sname': RuleRowSplit[str],
+                        'mnum': RuleMerge[int],
+                        'mname': RuleMerge[str],
+                        'order': list[str]})
+
+
+def write_testdata_file(data: NumData, cfg: ConfigExcelListTransform[int] |
+                        ConfigExcelListTransform[str],
                         filename: str) -> None:
     """Write test data to named file."""
     if cfg.input_table.format_name == 'Excel':
@@ -37,7 +48,8 @@ def write_testdata_file(data: NumData, cfg: ConfigExcelListTransform[Any],
                   encoding=cfg.input_table.character_encoding or 'utf-8')
 
 
-def read_test_file(cfg: ConfigExcelListTransform[Any],
+def read_test_file(cfg: ConfigExcelListTransform[int] |
+                   ConfigExcelListTransform[str],
                    filename: str) -> NumData:
     """Read test data from named file."""
     if cfg.output_table.format_name == 'Excel':
@@ -52,7 +64,7 @@ def read_test_file(cfg: ConfigExcelListTransform[Any],
     return read_table_num(filename=filename + '.csv', cfg=read_cfg)
 
 
-def chk_eq_ign_str_int(lhs: Any, rhs: Any) -> None:
+def chk_eq_ign_str_int(lhs: object, rhs: object) -> None:
     """Check that lhs and rhs are equal considering str(int) same as int."""
     if isinstance(lhs, list):
         assert isinstance(rhs, list)
@@ -116,9 +128,8 @@ ex3 = {'in': [['a', 'b', 'c', 'd'],
        'order': ['a', 'b', 'c', 'd']}
 
 
-def make_row_cfg(
-        exa: Any,
-        ref: ColumnRef) -> ConfigXlsListTransfName | ConfigXlsListTransfNum:
+def make_row_cfg(exa: RowExample, ref: ColumnRef) -> \
+        ConfigXlsListTransfName | ConfigXlsListTransfNum:
     """Make row split and merge configuration."""
     if ref == ColumnRef.BY_NAME:
         cfg = ConfigXlsListTransfName()
@@ -141,9 +152,9 @@ def make_row_cfg(
 @pytest.mark.parametrize('inenc', ['utf-8', 'iso8859-1'])
 @pytest.mark.parametrize('outenc', ['utf-8', 'iso8859-1'])
 # pylint: disable-next=too-many-arguments,too-many-positional-arguments
-def test_tr_nmd_files_row_num(capsys: CaptureFixture[str], exa: Any, ref: Any,
-                              intyp: Any, outtyp: Any, inenc: Any,
-                              outenc: Any) -> None:
+def test_tr_nmd_files_row_num(capsys: CaptureFixture[str], exa: RowExample,
+                              ref: ColumnRef, intyp: str, outtyp: str,
+                              inenc: str, outenc: str) -> None:
     """Test transform_name_files row operations."""
     cfg = make_row_cfg(exa=exa, ref=ref)
     if intyp == 'Excel':

@@ -7,13 +7,85 @@
 # pylint: disable=duplicate-code
 
 
-from typing import Any
+from typing import cast
 from copy import deepcopy
 import pytest
 from pytest import CaptureFixture
+from excel_list_transform.config_excel_list_transform import Rule, RuleMerge
+from excel_list_transform.commontypes import NameRow, NumRow, Value
 from excel_list_transform.transform_func_common import col_must_exist, \
     cols_must_exist_lst, cols_must_exist_dict, cols_must_exist_multi, \
     pop_from_row, insert_into_row
+
+
+type TestColumn = int | str
+type TestRow = NumRow | NameRow
+type TestRule = Rule[int] | Rule[str]
+type TestRuleMulti = RuleMerge[int] | RuleMerge[str]
+
+
+def _col_must_exist(col: TestColumn, row: TestRow, param: str) -> None:
+    """Call col_must_exist with narrowed matching column and row types."""
+    if isinstance(col, int):
+        assert isinstance(row, list)
+        col_must_exist(col=col, row=row, param=param)
+        return
+    assert isinstance(row, dict)
+    col_must_exist(col=col, row=row, param=param)
+
+
+def _cols_must_exist_lst(cols: list[int] | list[str], row: TestRow, param: str,
+                         tinfo: TestColumn) -> None:
+    """Call cols_must_exist_lst with a narrowed column-list type."""
+    if isinstance(tinfo, int):
+        assert isinstance(row, list)
+        cols_must_exist_lst(cols=cast(list[int], cols), row=row, param=param,
+                            tinfo=tinfo)
+        return
+    assert isinstance(row, dict)
+    cols_must_exist_lst(cols=cast(list[str], cols), row=row, param=param,
+                        tinfo=tinfo)
+
+
+def _cols_must_exist_dict(rule: TestRule, row: TestRow, param: str,
+                          tinfo: TestColumn) -> None:
+    """Call cols_must_exist_dict with a narrowed rule type."""
+    if isinstance(tinfo, int):
+        assert isinstance(row, list)
+        cols_must_exist_dict(rule=cast(Rule[int], rule), row=row, param=param,
+                             tinfo=tinfo)
+        return
+    assert isinstance(row, dict)
+    cols_must_exist_dict(rule=cast(Rule[str], rule), row=row, param=param,
+                         tinfo=tinfo)
+
+
+def _cols_must_exist_multi(rule: TestRuleMulti, row: TestRow, param: str,
+                           tinfo: TestColumn) -> None:
+    """Call cols_must_exist_multi with a narrowed merge-rule type."""
+    if isinstance(tinfo, int):
+        assert isinstance(row, list)
+        cols_must_exist_multi(rule=cast(RuleMerge[int], rule), row=row,
+                              param=param, tinfo=tinfo)
+        return
+    assert isinstance(row, dict)
+    cols_must_exist_multi(rule=cast(RuleMerge[str], rule), row=row,
+                          param=param, tinfo=tinfo)
+
+
+def _pop_from_row(row: TestRow, colref: TestColumn) -> Value:
+    """Call pop_from_row with a narrowed column-reference type."""
+    if isinstance(colref, int):
+        return pop_from_row(row=row, colref=colref)
+    return pop_from_row(row=row, colref=colref)
+
+
+def _insert_into_row(row: TestRow, colref: TestColumn, val: Value) -> None:
+    """Call insert_into_row with a narrowed column-reference type."""
+    if isinstance(colref, int):
+        insert_into_row(row=row, colref=colref, val=val)
+        return
+    insert_into_row(row=row, colref=colref, val=val)
 
 
 @pytest.mark.parametrize('col, row, par',
@@ -23,10 +95,10 @@ from excel_list_transform.transform_func_common import col_must_exist, \
                           ('x', {'x': 'a', 'y': 'b', 'z': 'c'}, 'test4'),
                           ('y', {'x': 'a', 'y': 'b', 'z': 'c'}, 'test5'),
                           ('z', {'x': 'a', 'y': 'b', 'z': 'c'}, 'test6')])
-def test_col_must_exist_ok(capsys: CaptureFixture[str], col: Any, row: Any,
-                           par: Any) -> None:
+def test_col_must_exist_ok(capsys: CaptureFixture[str], col: TestColumn,
+                           row: TestRow, par: str) -> None:
     """Test OK cases of col_must_exist."""
-    col_must_exist(col=col, row=row, param=par)
+    _col_must_exist(col=col, row=row, param=par)
     out, err = capsys.readouterr()
     assert '' == out
     assert '' == err
@@ -45,11 +117,11 @@ def test_col_must_exist_ok(capsys: CaptureFixture[str], col: Any, row: Any,
                            'test5: no column named "a" in data row'),
                           ('c', {'x': 'a', 'y': 'b', 'z': 'c'}, 'test6',
                            'test6: no column named "c" in data row')])
-def test_col_must_exist_nok(capsys: CaptureFixture[str], col: Any, row: Any,
-                            par: Any, msg: Any) -> None:
+def test_col_must_exist_nok(capsys: CaptureFixture[str], col: TestColumn,
+                            row: TestRow, par: str, msg: str) -> None:
     """Test not OK cases of col_must_exist."""
     with pytest.raises(SystemExit):
-        col_must_exist(col=col, row=row, param=par)
+        _col_must_exist(col=col, row=row, param=par)
     out, err = capsys.readouterr()
     assert '' == out
     assert msg in err
@@ -60,10 +132,11 @@ def test_col_must_exist_nok(capsys: CaptureFixture[str], col: Any, row: Any,
                           (['z', 'x', 'y'],
                            {'x': 'a', 'y': 'b', 'z': 'c', 'q': 'd'},
                            'test2', 'a')])
-def test_cols_must_exist_ok(capsys: CaptureFixture[str], collst: Any, row: Any,
-                            par: Any, tinf: Any) -> None:
+def test_cols_must_exist_ok(capsys: CaptureFixture[str],
+                            collst: list[int] | list[str], row: TestRow,
+                            par: str, tinf: TestColumn) -> None:
     """Test OK cases of cols_must_exist_lst."""
-    cols_must_exist_lst(cols=collst, row=row, param=par, tinfo=tinf)
+    _cols_must_exist_lst(cols=collst, row=row, param=par, tinfo=tinf)
     out, err = capsys.readouterr()
     assert '' == out
     assert '' == err
@@ -77,11 +150,12 @@ def test_cols_must_exist_ok(capsys: CaptureFixture[str], collst: Any, row: Any,
                            'test2', 'a',
                            'test2: no column named "aa" in data row')])
 # pylint: disable-next=too-many-arguments,too-many-positional-arguments
-def test_cols_must_exist_nok(capsys: CaptureFixture[str], collst: Any,
-                             row: Any, par: Any, tinf: Any, msg: Any) -> None:
+def test_cols_must_exist_nok(capsys: CaptureFixture[str],
+                             collst: list[int] | list[str], row: TestRow,
+                             par: str, tinf: TestColumn, msg: str) -> None:
     """Test OK cases of cols_must_exist_lst."""
     with pytest.raises(SystemExit):
-        cols_must_exist_lst(cols=collst, row=row, param=par, tinfo=tinf)
+        _cols_must_exist_lst(cols=collst, row=row, param=par, tinfo=tinf)
     out, err = capsys.readouterr()
     assert '' == out
     assert msg in err
@@ -97,10 +171,11 @@ def test_cols_must_exist_nok(capsys: CaptureFixture[str], collst: Any,
                             {'column': 'y', 'name': 'abc'}],
                            {'x': 'a', 'y': 'b', 'z': 'c', 'q': 'd'},
                            'test2', 'a')])
-def test_cols_must_exst_dct_o(capsys: CaptureFixture[str], rule: Any, row: Any,
-                              par: Any, tinf: Any) -> None:
+def test_cols_must_exst_dct_o(capsys: CaptureFixture[str], rule: TestRule,
+                              row: TestRow, par: str,
+                              tinf: TestColumn) -> None:
     """Test OK cases of cols_must_exist_dict."""
-    cols_must_exist_dict(rule=rule, row=row, param=par, tinfo=tinf)
+    _cols_must_exist_dict(rule=rule, row=row, param=par, tinfo=tinf)
     out, err = capsys.readouterr()
     assert '' == out
     assert '' == err
@@ -119,11 +194,12 @@ def test_cols_must_exst_dct_o(capsys: CaptureFixture[str], rule: Any, row: Any,
                            'test2', 'a',
                            'test2: no column named "xx" in data row')])
 # pylint: disable-next=too-many-arguments,too-many-positional-arguments
-def test_cols_must_exst_dct_n(capsys: CaptureFixture[str], rule: Any, row: Any,
-                              par: Any, tinf: Any, msg: Any) -> None:
+def test_cols_must_exst_dct_n(capsys: CaptureFixture[str], rule: TestRule,
+                              row: TestRow, par: str, tinf: TestColumn,
+                              msg: str) -> None:
     """Test not OK cases of cols_must_exist_dict."""
     with pytest.raises(SystemExit):
-        cols_must_exist_dict(rule=rule, row=row, param=par, tinfo=tinf)
+        _cols_must_exist_dict(rule=rule, row=row, param=par, tinfo=tinf)
     out, err = capsys.readouterr()
     assert '' == out
     assert msg in err
@@ -137,10 +213,10 @@ def test_cols_must_exst_dct_n(capsys: CaptureFixture[str], rule: Any, row: Any,
                             {'columns': ['z', 'q'], 'separator': ' '}],
                            {'x': 'a', 'y': 'b', 'z': 'c', 'q': 'd'},
                            'test2', 'a')])
-def test_cols_must_exst_dlst(capsys: CaptureFixture[str], rule: Any, row: Any,
-                             par: Any, tinf: Any) -> None:
+def test_cols_must_exst_dlst(capsys: CaptureFixture[str], rule: TestRuleMulti,
+                             row: TestRow, par: str, tinf: TestColumn) -> None:
     """Test OK cases of cols_must_exist_multi."""
-    cols_must_exist_multi(rule=rule, row=row, param=par, tinfo=tinf)
+    _cols_must_exist_multi(rule=rule, row=row, param=par, tinfo=tinf)
     out, err = capsys.readouterr()
     assert '' == out
     assert '' == err
@@ -157,11 +233,12 @@ def test_cols_must_exst_dlst(capsys: CaptureFixture[str], rule: Any, row: Any,
                            'test2', 'a',
                            'test2: no column named "aa" in data row')])
 # pylint: disable-next=too-many-arguments,too-many-positional-arguments
-def test_cols_must_exst_dls_2(capsys: CaptureFixture[str], rule: Any, row: Any,
-                              par: Any, tinf: Any, msg: Any) -> None:
+def test_cols_must_exst_dls_2(capsys: CaptureFixture[str], rule: TestRuleMulti,
+                              row: TestRow, par: str, tinf: TestColumn,
+                              msg: str) -> None:
     """Test not OK cases of cols_must_exist_multi."""
     with pytest.raises(SystemExit):
-        cols_must_exist_multi(rule=rule, row=row, param=par, tinfo=tinf)
+        _cols_must_exist_multi(rule=rule, row=row, param=par, tinfo=tinf)
     out, err = capsys.readouterr()
     assert '' == out
     assert msg in err
@@ -173,11 +250,12 @@ def test_cols_must_exst_dls_2(capsys: CaptureFixture[str], rule: Any, row: Any,
                           (['a', 'b', 'c'], 2, 'c', ['a', 'b']),
                           ({'x': 'a', 'y': 'b', 'z': 'c'},
                            'y', 'b', {'x': 'a', 'z': 'c'})])
-def test_pop_from_row_ok(capsys: CaptureFixture[str], inrow: Any, idx: Any,
-                         resval: Any, resrow: Any) -> None:
+def test_pop_from_row_ok(capsys: CaptureFixture[str], inrow: TestRow,
+                         idx: TestColumn, resval: Value,
+                         resrow: TestRow) -> None:
     """Test OK cases for pop_from_row."""
     row = deepcopy(inrow)
-    ret = pop_from_row(row=row, colref=idx)
+    ret = _pop_from_row(row=row, colref=idx)
     out, err = capsys.readouterr()
     assert ret == resval
     assert row == resrow
@@ -190,12 +268,12 @@ def test_pop_from_row_ok(capsys: CaptureFixture[str], inrow: Any, idx: Any,
                           (['a', 'b', 'c'], 4, IndexError),
                           ({'x': 'a', 'y': 'b', 'z': 'c'},
                            1, AssertionError)])
-def test_pop_from_row_nok(capsys: CaptureFixture[str], inrow: Any, idx: Any,
-                          exc: Any) -> None:
+def test_pop_from_row_nok(capsys: CaptureFixture[str], inrow: TestRow,
+                          idx: TestColumn, exc: type[BaseException]) -> None:
     """Test not OK cases for pop_from_row."""
     row = deepcopy(inrow)
     with pytest.raises(exc):
-        _ = pop_from_row(row=row, colref=idx)
+        _ = _pop_from_row(row=row, colref=idx)
     out, err = capsys.readouterr()
     assert '' == out
     assert '' == err
@@ -211,11 +289,12 @@ def test_pop_from_row_nok(capsys: CaptureFixture[str], inrow: Any, idx: Any,
                           ({'x': 'a', 'y': 'b', 'z': 'c'},
                            'q', 'p',
                            {'x': 'a', 'y': 'b', 'z': 'c', 'q': 'p'})])
-def test_insert_into_row_ok(capsys: CaptureFixture[str], inrow: Any, idx: Any,
-                            val: Any, resrow: Any) -> None:
+def test_insert_into_row_ok(capsys: CaptureFixture[str], inrow: TestRow,
+                            idx: TestColumn, val: Value,
+                            resrow: TestRow) -> None:
     """Test OK cases for pop_from_row."""
     row = deepcopy(inrow)
-    insert_into_row(row=row, colref=idx, val=val)
+    _insert_into_row(row=row, colref=idx, val=val)
     out, err = capsys.readouterr()
     assert row == resrow
     assert '' == out
@@ -226,12 +305,13 @@ def test_insert_into_row_ok(capsys: CaptureFixture[str], inrow: Any, idx: Any,
                          [(['a', 'b', 'c'], 'a', 'd', AssertionError),
                           ({'x': 'a', 'y': 'b', 'z': 'c'},
                            1, 'd', AssertionError)])
-def test_insert_into_row_nok(capsys: CaptureFixture[str], inrow: Any, idx: Any,
-                             val: Any, exc: Any) -> None:
+def test_insert_into_row_nok(capsys: CaptureFixture[str], inrow: TestRow,
+                             idx: TestColumn, val: Value,
+                             exc: type[BaseException]) -> None:
     """Test not OK cases for pop_from_row."""
     row = deepcopy(inrow)
     with pytest.raises(exc):
-        insert_into_row(row=row, colref=idx, val=val)
+        _insert_into_row(row=row, colref=idx, val=val)
     out, err = capsys.readouterr()
     assert '' == out
     assert '' == err

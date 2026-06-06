@@ -5,8 +5,7 @@
 # MIT License
 
 
-from typing import Optional, cast, Sequence, Mapping, TypeVar, \
-    Any
+from typing import Optional, cast, Sequence, Mapping, TypeVar
 from datetime import datetime
 # imports needed by mypy, but not by python:
 # pylint: disable-next=unused-import,ungrouped-imports
@@ -54,7 +53,7 @@ def str_list_to_num_row(row: list[str]) -> NumRow:
 T = TypeVar('T')
 
 
-def get_checked_type(value: Optional[Any], istype: type[T]) -> T:
+def get_checked_type(value: object, istype: type[T]) -> T:
     """Get value narrowed to be of type istype."""
     assert value is not None
     assert isinstance(value, istype)

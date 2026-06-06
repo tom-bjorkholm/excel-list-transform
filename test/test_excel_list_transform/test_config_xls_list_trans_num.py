@@ -6,7 +6,7 @@
 
 # pylint: disable=duplicate-code
 
-from typing import Any
+from typing import cast
 from copy import deepcopy
 import sys
 import pytest
@@ -20,6 +20,8 @@ from excel_list_transform.config_xls_list_transf_num \
     import ConfigXlsListTransfNum
 from excel_list_transform.config_enums import SplitWhere, RewriteKind, \
     CaseSensitivity
+from excel_list_transform.config_excel_list_transform import RuleMerge, \
+    RuleRowSplit
 from excel_list_transform.assert_dict_equal import assert_dict_equal
 from excel_list_transform.migrate_cfg_warn_hook import EltMigrateCfgWarnHook
 
@@ -144,8 +146,9 @@ def test_bak_cmpt_0_7_13_num(capsys: CaptureFixture[str]) -> None:
                           [{'columns': [1, 2], 'separator': ' '}],
                           [{'columns': [3, 4], 'separator': ' '},
                            {'columns': [5, 6], 'separator': ';'}]])
-def test_row_spl_mrg_nu_ok(capsys: CaptureFixture[str], splitr: Any,
-                           merger: Any) -> None:
+def test_row_spl_mrg_nu_ok(capsys: CaptureFixture[str],
+                           splitr: RuleRowSplit[int],
+                           merger: RuleMerge[int]) -> None:
     """Test OK cases of row split and merge config."""
     cfg1 = ConfigXlsListTransfNum()
     cfg1.s01_split_rows = deepcopy(splitr)
@@ -181,11 +184,11 @@ def test_row_spl_mrg_nu_ok(capsys: CaptureFixture[str], splitr: Any,
                            ['s01_split_rows[0]',
                             "not-separator '*'",
                             'does not affect any separator'])])
-def test_row_split_cfg_nu_nok(capsys: CaptureFixture[str], splitr: Any,
+def test_row_split_cfg_nu_nok(capsys: CaptureFixture[str], splitr: object,
                               msgs: list[str]) -> None:
     """Test OK cases of row split and merge config."""
     cfg1 = ConfigXlsListTransfNum()
-    cfg1.s01_split_rows = deepcopy(splitr)
+    cfg1.s01_split_rows = cast(RuleRowSplit[int], deepcopy(splitr))
     with pytest.raises(InvalidConfiguration):
         _ = cfg1.as_json_string(stderr_file=sys.stderr)
     out, err = capsys.readouterr()
@@ -214,11 +217,11 @@ def test_row_split_cfg_nu_nok(capsys: CaptureFixture[str], splitr: Any,
                           ([{'columns': 9, 'separator': ' '}],
                            ['s02_merge_rows[0][columns]',
                             'is not a list'])])
-def test_row_merge_cfg_na_nok(capsys: CaptureFixture[str], merger: Any,
+def test_row_merge_cfg_na_nok(capsys: CaptureFixture[str], merger: object,
                               msgs: list[str]) -> None:
     """Test OK cases of row split and merge config."""
     cfg1 = ConfigXlsListTransfNum()
-    cfg1.s02_merge_rows = deepcopy(merger)
+    cfg1.s02_merge_rows = cast(RuleMerge[int], deepcopy(merger))
     with pytest.raises(InvalidConfiguration):
         _ = cfg1.as_json_string(stderr_file=sys.stderr)
     out, err = capsys.readouterr()
@@ -269,7 +272,7 @@ def test_row_merge_cfg_na_nok(capsys: CaptureFixture[str], merger: Any,
                            ['s09_rewrite_columns[0][column]',
                             'must not be of type bool'])])
 def test_num_bool_col_nok(capsys: CaptureFixture[str], member_name: str,
-                          value: Any, msgs: list[str]) -> None:
+                          value: object, msgs: list[str]) -> None:
     """Test that bools are rejected as number-based column references."""
     cfg = ConfigXlsListTransfNum()
     setattr(cfg, member_name, deepcopy(value))

@@ -7,7 +7,7 @@
 # pylint: disable=duplicate-code
 
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from collections import namedtuple
 from tempfile import TemporaryDirectory
 from copy import deepcopy
@@ -25,8 +25,15 @@ from excel_list_transform.config_xls_list_transf_num import \
 from excel_list_transform.handle_tableio import read_table_num
 from excel_list_transform.transform_func import transform_named_files
 from excel_list_transform.transform_cmd import transform_cmd
-from excel_list_transform.commontypes import NumData, NumRow, Value, \
-    str_list_to_num_row
+from excel_list_transform.commontypes import NumData, NumRow, Value
+
+
+def string_row(values: Iterable[str]) -> NumRow:
+    """Return a numbered test-data row from strings."""
+    row: NumRow = []
+    for value in values:
+        row.append(value)
+    return row
 
 
 class ExampleData:  # pylint: disable=too-many-instance-attributes
@@ -93,7 +100,7 @@ class ExampleData:  # pylint: disable=too-many-instance-attributes
         ret: NumData = []
         nats = ['USA', 'SWE', 'NOR']
         natindex = 0
-        ret.append(str_list_to_num_row(list(self.form_columns)))
+        ret.append(string_row(self.form_columns))
         for i, phone in enumerate(self.phone_numbers_in):
             row: NumRow = []
             for j, col in enumerate(self.form_columns):
@@ -119,7 +126,7 @@ class ExampleData:  # pylint: disable=too-many-instance-attributes
         """Get for lines one by one for large file speed test."""
         nats = ['USA', 'SWE', 'NOR', 'ESP']
         ret: NumData = []
-        ret.append(str_list_to_num_row(list(self.form_columns)))
+        ret.append(string_row(self.form_columns))
         for num in range(size):
             row: NumRow = []
             for j, col in enumerate(self.form_columns):
@@ -149,7 +156,7 @@ class ExampleData:  # pylint: disable=too-many-instance-attributes
     def rrs_data(self) -> NumData:
         """Get data as imorted in rrs and exported from rrs."""
         ret: NumData = []
-        ret.append(str_list_to_num_row(list(self.rrs_col_order)))
+        ret.append(string_row(self.rrs_col_order))
         fdata = self.form_data()
         for row_num, frow in enumerate(fdata[1:]):
             row: NumRow = []
@@ -185,7 +192,7 @@ class ExampleData:  # pylint: disable=too-many-instance-attributes
     def sw_data(self) -> NumData:
         """Get data as imorted in sail wave."""
         ret: NumData = []
-        ret.append(str_list_to_num_row(list(self.sw_col_order)))
+        ret.append(string_row(self.sw_col_order))
         rdata = self.rrs_data()
         for rrow in rdata[1:]:
             row: NumRow = []
@@ -205,7 +212,7 @@ class ExampleData:  # pylint: disable=too-many-instance-attributes
     def sw_data_extacted(self) -> NumData:
         """Get data as extracted from sail wave export."""
         ret = deepcopy(self.sw_data())
-        ret[0] = str_list_to_num_row(
+        ret[0] = string_row(
             ['Class', 'Division', 'Nationality', 'Sail Number', 'Boat Name',
              'Name', 'Club Name', 'Email', 'Phone'])
         return ret

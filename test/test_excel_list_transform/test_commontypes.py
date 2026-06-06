@@ -4,13 +4,9 @@
 # Copyright (c) 2024-2025 Tom Björkholm
 # MIT License
 
-# pylint: disable=duplicate-code
-
-from copy import deepcopy
 import pytest
 from pytest import CaptureFixture
-from excel_list_transform.commontypes import num_row_to_str_list, \
-    str_list_to_num_row, NumRow
+from excel_list_transform.commontypes import num_row_to_str_list, NumRow
 
 
 @pytest.mark.parametrize('ind, outd',
@@ -35,16 +31,5 @@ def test_num_row_to_str_nok(capsys: CaptureFixture[str]) -> None:
         _ = num_row_to_str_list(ind)
     out, err = capsys.readouterr()
     assert 'Found None when expecting str' in str(exc)
-    assert '' == out
-    assert '' == err
-
-
-def test_str_list_to_num_row(capsys: CaptureFixture[str]) -> None:
-    """Test str_list_to_num_row."""
-    data = ['a', 'x', 'some text']
-    res = deepcopy(data)
-    ret = str_list_to_num_row(data)
-    out, err = capsys.readouterr()
-    assert res == ret
     assert '' == out
     assert '' == err

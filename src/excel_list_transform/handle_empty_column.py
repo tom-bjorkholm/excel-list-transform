@@ -5,8 +5,7 @@
 # MIT License
 
 
-from excel_list_transform.commontypes import NameData, NameRow, \
-    NumData, NumRow, NumDataSeq, NameDataMap
+from excel_list_transform.commontypes import NumData, NumRow, NumDataSeq
 
 
 def handle_empty_column_in_lst(input_data: NumData | NumDataSeq) -> NumData:
@@ -14,15 +13,5 @@ def handle_empty_column_in_lst(input_data: NumData | NumDataSeq) -> NumData:
     ret: NumData = []
     for row in input_data:
         nrow: NumRow = [i if i != '' else None for i in row]
-        ret.append(nrow)
-    return ret
-
-
-def handle_empty_column_in_dict_lst(input_data: NameData | NameDataMap) \
-       -> NameData:
-    """Handle empty column in list of lists of input data."""
-    ret = []
-    for row in input_data:
-        nrow: NameRow = {k: (v if v != '' else None) for (k, v) in row.items()}
         ret.append(nrow)
     return ret

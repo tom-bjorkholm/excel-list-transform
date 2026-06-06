@@ -7,8 +7,7 @@
 
 import sys
 from excel_list_transform.commontypes import NameData, NumData, \
-    NumDataSeq, NumRow, NameDataMap, \
-    num_row_to_str_list, str_list_to_num_row
+    NumDataSeq, NumRow, num_row_to_str_list
 
 
 def named_cols_from_num_cols(data: NumData | NumDataSeq,
@@ -35,26 +34,4 @@ def named_cols_from_num_cols(data: NumData | NumDataSeq,
         while len(nrow) < num_cols:
             nrow.append(None)
         ret.append(dict(zip(names, nrow)))
-    return ret
-
-
-def num_cols_from_named_cols(data: NameData | NameDataMap,
-                             column_order: list[str]) -> NumData:
-    """Convert data with named columns to data with numbered columns.
-
-    Silently ignore data with keys not in column_order.
-    If key is missing flag it as error.
-    """
-    ret: NumData = []
-    ret.append(str_list_to_num_row(column_order))
-    for rownum, row in enumerate(data):
-        outrow: NumRow = []
-        for key in column_order:
-            if key in row:
-                outrow.append(row[key])
-            else:
-                msg = f'Data row {rownum} is missing data for column {key}'
-                print(msg, file=sys.stderr)
-                sys.exit(1)
-        ret.append(outrow)
     return ret

@@ -12,7 +12,6 @@ from excel_list_transform.config_excel_list_transform import \
 from excel_list_transform.config_xls_list_transf_num import \
     ConfigXlsListTransfNum
 from excel_list_transform.handle_tableio import read_table_num
-from excel_list_transform.num_named_conversion import num_cols_from_named_cols
 
 
 # python-layout disable-next=more-fits
@@ -65,9 +64,13 @@ def write_csv_num(data: NumData, filename: str,
 def write_csv_named(data: NameDataMap, filename: str, column_order: list[str],
                     encoding: str = 'utf-8') -> None:
     """Write named rows to a CSV file through TableIO."""
-    write_csv_num(data=num_cols_from_named_cols(data=data,
-                                                column_order=column_order),
-                  filename=filename, encoding=encoding)
+    cfg = output_table_factory()
+    cfg.format_name = 'CSV'
+    cfg.character_encoding = encoding
+    cfg.csv = TioJsonCsvConfig(dialect=CsvDialect.EXCEL, delimiter=',',
+                               quotechar='"')
+    _write_named(data=data, filename=filename, column_order=column_order,
+                 cfg=cfg)
 
 
 def write_excel_num(data: NumData | NumDataSeq, filename: str) -> None:
@@ -80,9 +83,10 @@ def write_excel_num(data: NumData | NumDataSeq, filename: str) -> None:
 def write_excel_named(data: NameDataMap, filename: str,
                       column_order: list[str]) -> None:
     """Write named rows to an Excel file through TableIO."""
-    write_excel_num(data=num_cols_from_named_cols(data=data,
-                                                  column_order=column_order),
-                    filename=filename)
+    cfg = output_table_factory()
+    cfg.format_name = 'Excel'
+    _write_named(data=data, filename=filename, column_order=column_order,
+                 cfg=cfg)
 
 
 def read_excel_num(filename: str, max_col_read: int, strip_col_names: bool,
@@ -96,15 +100,6 @@ def read_excel_num(filename: str, max_col_read: int, strip_col_names: bool,
     return read_table_num(filename=filename, cfg=cfg)
 
 
-def read_csv_num(filename: str, max_col_read: int,
-                 encoding: str = 'utf-8') -> NumData:
-    """Read numbered rows from a CSV file through the app reader."""
-    cfg = ConfigXlsListTransfNum()
-    configure_input_csv(cfg, encoding=encoding)
-    cfg.max_column_read = max_col_read
-    return read_table_num(filename=filename, cfg=cfg)
-
-
 def _write_num(data: NumData | NumDataSeq, filename: str,
                cfg: TioJsonConfig) -> None:
     """Write numbered rows using one TableIO output config."""
@@ -113,6 +108,17 @@ def _write_num(data: NumData | NumDataSeq, filename: str,
                            capabilities=output_capabilities(),
                            file_exists_callback=_allow_overwrite) as writer:
         writer.write_table_listdata(data=data)
+
+
+def _write_named(data: NameDataMap, filename: str, column_order: list[str],
+                 cfg: TioJsonConfig) -> None:
+    """Write named rows using one TableIO output config."""
+    with tio_config_create(config=cfg, file_name=filename,
+                           file_access=FileAccess.CREATE,
+                           capabilities=output_capabilities(),
+                           file_exists_callback=_allow_overwrite) as writer:
+        writer.write_table_dictdata(data=data, column_order=column_order,
+                                    extra_ok=True)
 
 
 def _allow_overwrite(filename: str) -> None:

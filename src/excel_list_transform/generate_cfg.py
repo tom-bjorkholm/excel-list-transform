@@ -323,7 +323,7 @@ from office forms or google forms and transforming it for importing into
 SailWave regatta scoring program ( https://www.sailwave.com ).
 '''
 
-SYNTAX_O2S_COMMON: str = SYNTAX_ONLY_O2R_COMMON + SYNYAX_O2X_COMMON
+SYNTAX_O2S_COMMON: str = SYNTAX_ONLY_O2S_COMMON + SYNYAX_O2X_COMMON
 
 
 def generate_syntax_o2s_name(filename: str, colref: ColumnRef) -> None:

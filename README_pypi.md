@@ -63,6 +63,7 @@ pip install --upgrade excel-list-transform
 | 0.8.3   | 23 Jul 2025 | 3.13 or newer   | Add split-row and merge-row         |
 | 0.8.4   | 23 Nov 2025 | 3.12.x          | Backport 0.8.5 to Python 3.12       |
 | 0.8.5   | 23 Nov 2025 | 3.13 or newer   | Adapted to Python 3.14              |
+| 0.9     | 06 Jun 2026 | 3.13 or newer   | Many new input/output formats       |
 
 ## Running the application
 
@@ -454,22 +455,21 @@ Columns not mentioned in **"s10_column_order"** will not be output,
 and will thus be removed.
 (For *"BY_NUMBER"* see **"s04_remove_columns"** and **"s06_place_columns_first"**.)
 
-## Backward compatibility of configuration keywords
+## Utility for recoding text files
 
-Old keywords according to the table below are automatically renamed to the new keywords, when reading the configuration file.
+When working with text based files like comma separated values (CSV)
+the file may have an incorrect character encoding, and even worse
+you may not know what character encoding was used to create the file.
+As a small tool for these situations the excel-list-transform includes
+a small recode utility. Using this you can by trial and error recode
+from different encodings until you find which encoding works. (This
+may be the way to figure out which character encoding to write into
+a configuration file.)
 
-| Version 0.7.13 and lower | Version 0.8 and higher  |
-|--------------------------|-------------------------|
-|  -                       | s01_split_rows          |
-|  -                       | s02_merge_rows          |
-| s1_split_columns         | s03_split_columns       |
-| s2_remove_columns        | s04_remove_columns      |
-| s3_merge_columns         | s05_merge_columns       |
-| s4_place_columns_first   | s06_place_columns_first |
-| s5_rename_columns        | s07_rename_columns      |
-| s6_insert_columns        | s08_insert_columns      |
-| s7_rewrite_columns       | s09_rewrite_columns     |
-| s8_column_order          | s10_column_order        |
+```python
+python3 -m excel_list_transform.recode --help
+python3 -m excel_list_transform.recode -i a.txt -o b.txt --from cp1250 --to utf-8
+```
 
 ## Source code
 
@@ -477,7 +477,7 @@ Source code and tests are available at [https://bitbucket.org/tom-bjorkholm/exce
 
 ## Test summary
 
-- Test result: 1337 passed in 63s (0:01:03)
+- Test result: 998 passed in 63s (0:01:03)
 - No flake8 warnings.
 - No mypy errors found.
 - No python layout warnings.

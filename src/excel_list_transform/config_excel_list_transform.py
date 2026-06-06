@@ -48,7 +48,6 @@ type RuleRowSplit[Column] = list[SingleRuleRowSplit[Column]]
 type RuleOrder = list[str]
 type RulePlace = list[int]
 type RuleRemove = RulePlace
-type RulePlaceOrOrder = RulePlace | RuleOrder
 type SingleRuleRewrite[Column] = dict[str,
                                       Optional[Column | str |
                                                list[str] |

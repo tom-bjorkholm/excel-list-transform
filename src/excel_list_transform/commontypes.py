@@ -5,11 +5,8 @@
 # MIT License
 
 
-from typing import Optional, cast, Sequence, Mapping, TypeVar
+from typing import Optional, Sequence, Mapping, TypeVar
 from datetime import datetime
-# imports needed by mypy, but not by python:
-# pylint: disable-next=unused-import,ungrouped-imports
-from typing import Union, List, Dict
 
 
 # types used to describe input and output data
@@ -24,10 +21,6 @@ type NumDataSeq = list[NumRowSeq]
 type NameData = list[NameRow]
 type NameDataMap = Sequence[NameRowMap]
 type Data[Row] = list[Row]
-DataCov = TypeVar('DataCov', NumDataSeq, NameDataMap)
-
-type JsonType = \
-    'Union[None, int, str, bool, List[JsonType], Dict[str, JsonType]]'
 
 # helper functions
 
@@ -43,11 +36,6 @@ def num_row_to_str_list(row: NumRowSeq) -> list[str]:
         else:
             ret.append(str(i))
     return ret
-
-
-def str_list_to_num_row(row: list[str]) -> NumRow:
-    """Convert list of str to NumRow."""
-    return cast(NumRow, row)
 
 
 T = TypeVar('T')

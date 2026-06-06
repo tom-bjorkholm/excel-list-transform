@@ -1,7 +1,7 @@
 #! /usr/local/bin/python3
 """Test the excel_list_transform common functions functionality."""
 
-# Copyright (c) 2024-2025 Tom Björkholm
+# Copyright (c) 2024 - 2026 Tom Björkholm
 # MIT License
 
 # pylint: disable=duplicate-code

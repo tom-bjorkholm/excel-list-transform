@@ -2,7 +2,7 @@
 # PYTHON_ARGCOMPLETE_OK
 """Command to transform list data in table files."""
 
-# Copyright (c) 2024-2025 Tom Björkholm
+# Copyright (c) 2024 - 2026 Tom Björkholm
 # MIT License
 
 

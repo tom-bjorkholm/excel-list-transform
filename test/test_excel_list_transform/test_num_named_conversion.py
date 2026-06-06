@@ -1,7 +1,7 @@
 #! /usr/local/bin/python3
 """Test data conversion between numbered columns and named columns."""
 
-# Copyright (c) 2024-2025 Tom Björkholm
+# Copyright (c) 2024 - 2026 Tom Björkholm
 # MIT License
 
 import pytest

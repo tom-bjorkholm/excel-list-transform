@@ -1,7 +1,7 @@
 #! /usr/local/bin/python3
 """Test application version reporting configuration and output."""
 
-# Copyright (c) 2024-2026 Tom Björkholm
+# Copyright (c) 2024 - 2026 Tom Björkholm
 # MIT License
 
 

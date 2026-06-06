@@ -1,7 +1,7 @@
 #! /usr/local/bin/python3
 """Test the excel_list_transform functions for row merge/split."""
 
-# Copyright (c) 2024-2025 Tom Björkholm
+# Copyright (c) 2024 - 2026 Tom Björkholm
 # MIT License
 
 # pylint: disable=duplicate-code

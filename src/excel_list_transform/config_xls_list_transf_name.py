@@ -1,7 +1,7 @@
 #! /usr/local/bin/python3
 """Read and write configuration with named column references."""
 
-# Copyright (c) 2024-2025 Tom Björkholm
+# Copyright (c) 2024 - 2026 Tom Björkholm
 # MIT License
 
 

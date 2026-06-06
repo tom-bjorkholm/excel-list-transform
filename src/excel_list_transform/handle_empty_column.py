@@ -1,7 +1,7 @@
 #! /usr/local/bin/python3
 """Handle empty column in input."""
 
-# Copyright (c) 2024-2025 Tom Björkholm
+# Copyright (c) 2024 - 2026 Tom Björkholm
 # MIT License
 
 

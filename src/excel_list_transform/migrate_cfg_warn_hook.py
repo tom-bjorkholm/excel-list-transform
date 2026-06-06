@@ -1,7 +1,7 @@
 #! /usr/local/bin/python3
 """Class that warns user to migrate configuration file."""
 
-# Copyright (c) 2024-2025 Tom Björkholm
+# Copyright (c) 2024 - 2026 Tom Björkholm
 # MIT License
 
 from copy import deepcopy

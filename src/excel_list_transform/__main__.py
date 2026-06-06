@@ -2,7 +2,7 @@
 # PYTHON_ARGCOMPLETE_OK
 """Transform table files by splitting, merging and rewriting columns."""
 
-# Copyright (c) 2024-2025 Tom Björkholm
+# Copyright (c) 2024 - 2026 Tom Björkholm
 # MIT License
 
 

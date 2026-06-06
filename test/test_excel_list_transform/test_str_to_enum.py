@@ -1,7 +1,7 @@
 #! /usr/local/bin/python3
 """The test cases string_to_enum_best_match function."""
 
-# Copyright (c) 2024-2025 Tom Björkholm
+# Copyright (c) 2024 - 2026 Tom Björkholm
 # MIT License
 
 # pylint: disable=duplicate-code

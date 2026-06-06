@@ -27,3 +27,14 @@ def test_file_must_exist_nok1(fnam: str) -> None:
     with pytest.raises(SystemExit) as exc:
         file_must_exist(fnam)
     assert exc.value.code == 1
+
+
+def test_file_missing_content(capsys: CaptureFixture[str]) -> None:
+    """Test file_must_exit with description of expected file content."""
+    with pytest.raises(SystemExit) as exc:
+        file_must_exist('/bin/nosuchfile.nonexistent',
+                        with_content_txt='configuration data')
+    out, err = capsys.readouterr()
+    assert exc.value.code == 1
+    assert out == ''
+    assert 'with configuration data does not exist' in err

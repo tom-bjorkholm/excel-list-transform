@@ -9,8 +9,10 @@ import sys
 import pytest
 from pytest import CaptureFixture
 from config_as_json import InvalidConfiguration
+from tableio import TableBorderStyle
 from test_excel_list_transform.tableio_helpers import \
     configure_input_csv, configure_output_csv
+import excel_list_transform.config_excel_list_transform as config_mod
 from excel_list_transform.config_enums import ColumnRef
 from excel_list_transform.config_read_old import ConfigReadOld
 from excel_list_transform.config_excel_list_transform import \
@@ -20,6 +22,8 @@ from excel_list_transform.config_xls_list_transf_name import \
 from excel_list_transform.config_xls_list_transf_num import \
     ConfigXlsListTransfNum
 from excel_list_transform.migrate_cfg_warn_hook import EltMigrateCfgWarnHook
+
+OUTER_FIRST_STYLE = TableBorderStyle.OUTER_FIRST_ROW_THICK_INNER_THIN
 
 
 def _make_base_config(colref: ColumnRef) -> ConfigExcelListTransform[int] | \
@@ -131,3 +135,78 @@ def test_bad_table_encoding() -> None:
     configure_input_csv(cfg, encoding='not-a-real-encoding')
     with pytest.raises(InvalidConfiguration):
         cfg.as_json_string(stderr_file=sys.stderr)
+
+
+@pytest.mark.parametrize('output_borders, border_style',
+                         [(True, OUTER_FIRST_STYLE),
+                          (False, TableBorderStyle.NONE)])
+def test_table_border_style(output_borders: bool,
+                            border_style: TableBorderStyle) -> None:
+    """Test mapping from output border flag to TableIO border style."""
+    cfg = ConfigXlsListTransfName()
+    cfg.output_borders = output_borders
+    assert cfg.table_border_style() == border_style
+
+
+def _project_rule_columns(member_value: object,
+                          stderr_file: StringIO) -> object:
+    """Project single-column rules through the private implementation."""
+    cfg = ConfigXlsListTransfName()
+    # pylint: disable-next=protected-access
+    return config_mod._project_rule_columns(cfg, 's03_split_columns',
+                                            member_value, stderr_file)
+
+
+def _project_merge_columns(member_value: object,
+                           stderr_file: StringIO) -> object:
+    """Project merge-column rules through the private implementation."""
+    cfg = ConfigXlsListTransfName()
+    # pylint: disable-next=protected-access
+    return config_mod._project_merge_columns(cfg, 's05_merge_columns',
+                                             member_value, stderr_file)
+
+
+@pytest.mark.parametrize('member_value, msg',
+                         [('bad', 'must be a list.'),
+                          ([2], 'non-object rule at index 0'),
+                          ([{'name': 'First'}],
+                           'misses key column at index 0')])
+def test_proj_rule_cols_bad(member_value: object, msg: str) -> None:
+    """Test invalid single-column projection values."""
+    stderr_file = StringIO()
+    with pytest.raises(InvalidConfiguration) as exc_info:
+        _project_rule_columns(member_value, stderr_file)
+    assert msg in str(exc_info.value)
+    assert msg in stderr_file.getvalue()
+
+
+@pytest.mark.parametrize('member_value, msg',
+                         [('bad', 'must be a list.'),
+                          ([2], 'non-object rule at index 0'),
+                          ([{'column': 'Name'}],
+                           'misses key columns at index 0'),
+                          ([{'columns': 'Name'}],
+                           'has non-list columns at index 0')])
+def test_proj_merge_cols_bad(member_value: object, msg: str) -> None:
+    """Test invalid merge-column projection values."""
+    stderr_file = StringIO()
+    with pytest.raises(InvalidConfiguration) as exc_info:
+        _project_merge_columns(member_value, stderr_file)
+    assert msg in str(exc_info.value)
+    assert msg in stderr_file.getvalue()
+
+
+@pytest.mark.parametrize('member_value, msg',
+                         [(['bad'], 'must be a dict.'),
+                          ({'separators': '+', 'not_separators': []},
+                           'must contain separator lists.')])
+def test_split_row_val_bad(member_value: object, msg: str) -> None:
+    """Test split-row separator validation for prevalidated bad shapes."""
+    cfg = ConfigXlsListTransfName()
+    stderr_file = StringIO()
+    validator = config_mod.SplitRowSepValidator()
+    with pytest.raises(InvalidConfiguration) as exc_info:
+        validator.validate_member(cfg, 's01_split_rows[0]', member_value,
+                                  stderr_file)
+    assert msg in str(exc_info.value)
+    assert msg in stderr_file.getvalue()

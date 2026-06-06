@@ -6,12 +6,14 @@
 
 # pylint: disable=duplicate-code
 
-from typing import Optional
 from copy import deepcopy
 from datetime import date
-from tempfile import TemporaryDirectory
 from importlib.metadata import version as metadata_version
+from io import StringIO
+from tempfile import TemporaryDirectory
+from typing import Optional
 import sys
+from config_as_json import InvalidConfiguration
 from packaging.version import Version
 import pytest
 from pytest import MonkeyPatch
@@ -112,6 +114,36 @@ def test_xls_lst_rfm_cmd_smk2(capsys: CaptureFixture[str],
     assert calls['refor'] == 1
     assert '' == out
     assert '' == err
+
+
+@pytest.mark.parametrize('config_error, expected',
+                         [(KeyError('Missing column'), 'Missing column'),
+                          (InvalidConfiguration('Bad config'),
+                           'Bad config')])
+def test_transform_cfg_error(config_error: Exception, expected: str,
+                             monkeypatch: MonkeyPatch,
+                             capsys: CaptureFixture[str]) -> None:
+    """Test transform command reports readable configuration errors."""
+    def fail_transform(infilename: str, outfilename: str,
+                       cfgfilename: str) -> int:
+        """Mock transform function that reports a configuration error."""
+        assert infilename == 'ifile'
+        assert outfilename == 'ofile'
+        assert cfgfilename == 'conf'
+        raise config_error
+    mod = 'excel_list_transform.transform_cmd.transform_named_files'
+    monkeypatch.setattr(mod, fail_transform)
+    err_file = StringIO()
+    monkeypatch.setattr('excel_list_transform.transform_cmd.sys_stderr',
+                        err_file)
+    with pytest.raises(SystemExit) as exc_info:
+        transform_cmd(['transform', '-o', 'ofile', '-i', 'ifile',
+                       '-c', 'conf'])
+    out, err = capsys.readouterr()
+    assert exc_info.value.code == 1
+    assert out == ''
+    assert err == ''
+    assert err_file.getvalue() == expected + '\n'
 
 
 @pytest.mark.parametrize('args, errs',

@@ -7,10 +7,11 @@
 
 
 from copy import deepcopy
-from sys import argv as sys_argv
+from sys import argv as sys_argv, stderr as sys_stderr
 from typing import Optional
 import argparse
 import argcomplete
+from config_as_json import InvalidConfiguration
 from excel_list_transform.transform_func import transform_named_files
 from excel_list_transform.generate_cfg import generate_examplecfg
 from excel_list_transform.generate_cfg import get_example_names
@@ -89,6 +90,13 @@ See also help text for main command without sub-commands.
 '''
 
 type SubParseAct = 'argparse._SubParsersAction[argparse.ArgumentParser]'
+
+
+def _config_error_message(error: Exception) -> str:
+    """Return a human-readable message for a configuration error."""
+    if isinstance(error, KeyError) and error.args:
+        return str(error.args[0])
+    return str(error)
 
 
 def gen_cfg_args_named(subparsers: SubParseAct, sub_pars_name: str) -> None:
@@ -208,7 +216,11 @@ def transform_cmd(arguments: Optional[list[str]] = None) -> None:
     migrate_args(subparsers)
     argcomplete.autocomplete(parser)
     args = parser.parse_args(args=fixed_args)
-    _ = args.func(args)
+    try:
+        _ = args.func(args)
+    except (InvalidConfiguration, KeyError) as exc:
+        print(_config_error_message(exc), file=sys_stderr)
+        raise SystemExit(1) from None
 
 
 if __name__ == "__main__":  # pragma: no cover

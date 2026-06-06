@@ -11,6 +11,7 @@ from copy import deepcopy
 import sys
 import pytest
 from pytest import CaptureFixture
+from config_as_json import InvalidConfiguration
 from tableio import CsvDialect
 from tableio_cfg_json import TioJsonCsvConfig
 from test_excel_list_transform.tableio_helpers import \
@@ -161,74 +162,66 @@ def test_row_spl_mrg_na_ok(capsys: CaptureFixture[str], splitr: Any,
 @pytest.mark.parametrize('splitr, msgs',
                          [([{'column': 'foo', 'separators': [],
                             'not_separators': []}],
-                           ['Error in parameter s01_split_rows.',
-                            'List for key separators shall be ' +
-                            'minimum 1 elements',
-                            'But it is 0 elements']),
+                           ['s01_split_rows[0][separators]',
+                            'less than minimum 1']),
                           ([{'column': 'foo', 'separators': [],
                             'not_separators': [], 'start': 2}],
-                           ['Found non-allowed key "start" in ',
-                            ' config of s01_split_rows']),
+                           ["Unknown key 'start' in s01_split_rows[0]"]),
                           ([{'column': 2, 'separators': [';'],
                             'not_separators': [';;']}],
-                           ['Error in parameter s01_split_rows.',
-                            'Value for key column expected to be of ' +
-                            'type str but is of type int']),
+                           ['s01_split_rows[0][column]',
+                            'not of type str']),
                           ([{'separators': ['+'],
                              'not_separators': [' + ']}],
-                           ['Error in parameter s01_split_rows.',
-                            'Expected key column not in dict in list']),
+                           ["Mandatory key 'column' is missing",
+                            's01_split_rows[0]']),
                           ([{'column': 'bar', 'separators': ['+', '-'],
                              'not_separators': [' + ', '--', '*']}],
-                           ['Error in s01_split_rows:',
-                            'Not separator "*" does not affect ' +
-                            'any separator.'])])
+                           ['s01_split_rows[0]',
+                            "not-separator '*'",
+                            'does not affect any separator'])])
 def test_row_split_cfg_na_nok(capsys: CaptureFixture[str], splitr: Any,
                               msgs: list[str]) -> None:
     """Test OK cases of row split and merge config."""
     cfg1 = ConfigXlsListTransfName()
     cfg1.s01_split_rows = deepcopy(splitr)
-    with pytest.raises(SystemExit):
+    with pytest.raises(InvalidConfiguration):
         _ = cfg1.as_json_string(stderr_file=sys.stderr)
     out, err = capsys.readouterr()
     assert '' == out
+    assert 'Invalid configuration' in err
     for msg in msgs:
         assert msg in err
 
 
 @pytest.mark.parametrize('merger,msgs',
                          [([{'columns': [], 'separator': ' '}],
-                           ['Error in parameter s02_merge_rows.',
-                            'List for key columns shall be minimum 1 eleme',
-                            'But it is 0 elements only.']),
+                           ['s02_merge_rows[0][columns]',
+                            'less than minimum 1']),
                           ([{'columns': ['foo', 'bar'], 'separator': [' ']}],
-                           ['Error in parameter s02_merge_rows.',
-                            'Value for key separator expected to ' +
-                            'be of type str but is of type list']),
+                           ['s02_merge_rows[0][separator]',
+                            'not of type str']),
                           ([{'columns': ['foo', 'bar'], 'separator': ' ',
                              'split': 2}],
-                           ['Found non-allowed key "split" ',
-                            'in config of s02_merge_rows']),
+                           ["Unknown key 'split' in s02_merge_rows[0]"]),
                           ([{'columns': [1, 2], 'separator': ' '}],
-                           ['Error in parameter s02_merge_rows.',
-                            'Value for key columns expected to be list of str',
-                            'But element in list is int']),
+                           ['s02_merge_rows[0][columns][0]',
+                            'not of type str']),
                           ([{'columns': ['foo', 'bar'], 'separator': 3}],
-                           ['Error in parameter s02_merge_rows.',
-                            'Value for key separator expected to be ' +
-                            'of type str but is of type int']),
+                           ['s02_merge_rows[0][separator]',
+                            'not of type str']),
                           ([{'columns': 'foo', 'separator': ' '}],
-                           ['Error in parameter s02_merge_rows.',
-                            'Value for key columns expected to be ' +
-                            'of type list but is of type str'])])
+                           ['s02_merge_rows[0][columns]',
+                            'is not a list'])])
 def test_row_merge_cfg_na_nok(capsys: CaptureFixture[str], merger: Any,
                               msgs: list[str]) -> None:
     """Test OK cases of row split and merge config."""
     cfg1 = ConfigXlsListTransfName()
     cfg1.s02_merge_rows = deepcopy(merger)
-    with pytest.raises(SystemExit):
+    with pytest.raises(InvalidConfiguration):
         _ = cfg1.as_json_string(stderr_file=sys.stderr)
     out, err = capsys.readouterr()
     assert '' == out
+    assert 'Invalid configuration' in err
     for msg in msgs:
         assert msg in err

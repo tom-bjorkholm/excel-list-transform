@@ -58,6 +58,13 @@ class ConfigXlsListTransfNum(ConfigExcelListTransform[int]):
                          auto_ch_hook=auto_ch_hook, stderr_file=stderr_file)
 
     @override
+    def column_shape_steps(self) -> list[MemberValidationStep]:
+        """Return pre-normalization validation for number-based members."""
+        return [
+            self._plain_column_list_step('s04_remove_columns'),
+            self._plain_column_list_step('s06_place_columns_first')]
+
+    @override
     def get_column_val_steps(self) -> list[MemberValidationStep]:
         """Return validation steps for number-based rule members."""
         return [

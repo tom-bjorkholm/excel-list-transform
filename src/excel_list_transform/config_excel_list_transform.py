@@ -8,13 +8,17 @@
 import sys
 from copy import deepcopy
 from enum import Enum
-from typing import Optional, TypeVar, NamedTuple, Generic, Mapping, \
-    NoReturn, Sequence, TypedDict, TextIO, override
+from typing import Generic, Mapping, NamedTuple, NoReturn, Optional, TextIO, \
+    TypeVar, TypedDict, override
 from config_as_json import Config, ConfigAutoChangeHook, ConfigNesting, \
     ConfigNestingKind, InvalidConfiguration, ListIsOrderedValidator, \
     NestedConfigs, ParseConverter, PathOrStr, ProjectedMemberValidator, \
     ReadOldConfiguration, ValidationPlan, MemberValidationStep, \
-    WholeConfigValidationStep, ValueTypeValidator, CallingWholeConfigValidator
+    WholeConfigValidationStep, ValueTypeValidator, \
+    CallingWholeConfigValidator, MemberValidator, DictKeysValidator, \
+    DictRule, DictForEachValidator, DictVariant, \
+    DiscriminatedDictValidator, ListForEachValidator, \
+    ListSizeValidator, ListValueTypeValidator
 from tableio import CAP_IGNORABLE, CAP_NEEDED, Capabilities, FileAccess, \
     TableBorderStyle
 from tableio_cfg_json import TioJsonConfig
@@ -140,6 +144,44 @@ def _project_merge_columns(config: Config, member_name: str,
     return values
 
 
+def _invalid_rule(member_name: str, message: str,
+                  stderr_file: TextIO) -> NoReturn:
+    """Raise a readable validation error for one transform rule."""
+    msg = f'Invalid configuration: {member_name} {message}'
+    print(msg, file=stderr_file)
+    raise InvalidConfiguration(msg)
+
+
+# pylint: disable-next=too-few-public-methods
+class SplitRowSepValidator(MemberValidator):
+    """Validate separator and not-separator relationships in one rule."""
+
+    def validate_member(self, config: Config, member_name: str,
+                        member_value: object,
+                        stderr_file: TextIO = sys.stderr) -> Optional[object]:
+        """Validate that every not-separator affects a real separator."""
+        _ = config
+        if not isinstance(member_value, dict):
+            _invalid_rule(member_name, 'must be a dict.', stderr_file)
+        separators = member_value.get('separators')
+        not_separators = member_value.get('not_separators')
+        if not isinstance(separators, list) or \
+                not isinstance(not_separators, list):
+            _invalid_rule(member_name, 'must contain separator lists.',
+                          stderr_file)
+        for not_sep in not_separators:
+            assert isinstance(not_sep, str)
+            if not_sep in separators:
+                msg = 'must not use the same string as a separator and '
+                msg += f'not-separator: {not_sep!r}.'
+                _invalid_rule(member_name, msg, stderr_file)
+            if not any(sep in not_sep for sep in separators):
+                msg = f'has not-separator {not_sep!r} that does not '
+                msg += 'affect any separator.'
+                _invalid_rule(member_name, msg, stderr_file)
+        return member_value
+
+
 class ColInfo(NamedTuple, Generic[Column]):
     """Information about columns to pass to ConfigExcelListTransform init."""
 
@@ -243,17 +285,35 @@ class ConfigExcelListTransform(Config, Generic[Column]):
         _ = stderr_file
         bool_names = ['in_excel_col_name_strip', 'in_excel_values_strip',
                       'output_borders', 'output_filtered_table']
-        plan = [
+        plan: ValidationPlan = [
             MemberValidationStep(member_names=['max_column_read'],
                                  validator=ValueTypeValidator(
                                      int, not_allowed_type=bool)),
             MemberValidationStep(member_names=bool_names,
-                                 validator=ValueTypeValidator(bool)),
+                                 validator=ValueTypeValidator(bool))]
+        plan.extend(self._base_rule_shape_steps())
+        plan.extend(self.column_shape_steps())
+        plan.append(
             WholeConfigValidationStep(validator=CallingWholeConfigValidator(
-                method_name='validate_transform_rules'))]
+                method_name='sort_sx_hook')))
         plan.extend(self._base_rule_val_steps())
         plan.extend(self.get_column_val_steps())
         return plan
+
+    def _base_rule_shape_steps(self) -> list[MemberValidationStep]:
+        """Return structural validation steps for shared transform rules."""
+        return [
+            self._split_rows_step(),
+            self._merge_rules_step('s02_merge_rows'),
+            self._split_columns_step(),
+            self._merge_rules_step('s05_merge_columns'),
+            self._rename_columns_step(),
+            self._insert_columns_step(),
+            self._rewrite_columns_step()]
+
+    def column_shape_steps(self) -> list[MemberValidationStep]:
+        """Return pre-normalization validation for column-specific members."""
+        return []
 
     def _base_rule_val_steps(self) -> list[MemberValidationStep]:
         """Return validation steps for shared transform-rule members."""
@@ -265,6 +325,149 @@ class ConfigExcelListTransform(Config, Generic[Column]):
     def get_column_val_steps(self) -> list[MemberValidationStep]:
         """Return validation steps for column-reference-specific members."""
         return []
+
+    def _column_validator(self) -> MemberValidator:
+        """Return validator for one configured column reference."""
+        if self._columntype is int:
+            return ValueTypeValidator(int, not_allowed_type=bool)
+        return ValueTypeValidator(str)
+
+    def _column_list_validator(self) -> ListForEachValidator:
+        """Return validator for a list of configured column references."""
+        return ListForEachValidator(
+            element_validators=[self._column_validator()])
+
+    def _plain_column_list_step(self, member_name: str) \
+            -> MemberValidationStep:
+        """Return validation step for a plain list of column references."""
+        return MemberValidationStep(member_names=[member_name],
+                                    validator=self._column_list_validator())
+
+    def _split_rows_step(self) -> MemberValidationStep:
+        """Return validation step for split-row rules."""
+        values_validator = DictForEachValidator(rules=[
+            DictRule(keys=['column'], validators=[self._column_validator()]),
+            DictRule(keys=['separators'],
+                     validators=[ListSizeValidator(1, sys.maxsize),
+                                 ListValueTypeValidator(str)]),
+            DictRule(keys=['not_separators'],
+                     validators=[ListValueTypeValidator(str)])])
+        validator = ListForEachValidator(
+            element_validators=[
+                DictKeysValidator(
+                    mandatory_keys=['column', 'separators',
+                                    'not_separators']),
+                values_validator,
+                SplitRowSepValidator()],
+            element_type=dict)
+        return MemberValidationStep(member_names=['s01_split_rows'],
+                                    validator=validator)
+
+    def _merge_rules_step(self, member_name: str) -> MemberValidationStep:
+        """Return validation step for merge-row or merge-column rules."""
+        values_validator = DictForEachValidator(rules=[
+            DictRule(keys=['columns'],
+                     validators=[ListSizeValidator(1, sys.maxsize),
+                                 self._column_list_validator()]),
+            DictRule(keys=['separator'],
+                     validators=[ValueTypeValidator(str)])])
+        validator = ListForEachValidator(
+            element_validators=[
+                DictKeysValidator(mandatory_keys=['columns', 'separator']),
+                values_validator],
+            element_type=dict)
+        return MemberValidationStep(member_names=[member_name],
+                                    validator=validator)
+
+    def _split_columns_step(self) -> MemberValidationStep:
+        """Return validation step for split-column rules."""
+        keys = ['column', 'separator', 'where', self._colinfo.split_last]
+        values_validator = DictForEachValidator(rules=[
+            DictRule(keys=['column'], validators=[self._column_validator()]),
+            DictRule(keys=['separator'], validators=[ValueTypeValidator(str)]),
+            DictRule(keys=['where'],
+                     validators=[ValueTypeValidator(SplitWhere)]),
+            self._split_last_rule()])
+        validator = ListForEachValidator(
+            element_validators=[
+                DictKeysValidator(mandatory_keys=keys),
+                values_validator],
+            element_type=dict)
+        return MemberValidationStep(member_names=['s03_split_columns'],
+                                    validator=validator)
+
+    def _split_last_rule(self) -> DictRule:
+        """Return value validation for the reference-specific split key."""
+        if self._columntype is int:
+            value_validator = ValueTypeValidator(SplitWhere)
+        else:
+            value_validator = ValueTypeValidator(str)
+        return DictRule(keys=[self._colinfo.split_last],
+                        validators=[value_validator])
+
+    def _rename_columns_step(self) -> MemberValidationStep:
+        """Return validation step for rename-column rules."""
+        values_validator = DictForEachValidator(rules=[
+            DictRule(keys=['column'], validators=[self._column_validator()]),
+            DictRule(keys=['name'], validators=[ValueTypeValidator(str)])])
+        validator = ListForEachValidator(
+            element_validators=[
+                DictKeysValidator(mandatory_keys=['column', 'name']),
+                values_validator],
+            element_type=dict)
+        return MemberValidationStep(member_names=['s07_rename_columns'],
+                                    validator=validator)
+
+    def _insert_columns_step(self) -> MemberValidationStep:
+        """Return validation step for insert-column rules."""
+        keys = ['column', 'value']
+        rules = [
+            DictRule(keys=['column'], validators=[self._column_validator()])]
+        if self._colinfo.insert_last is not None:
+            insert_last = self._colinfo.insert_last
+            keys.append(insert_last)
+            rules.append(DictRule(keys=[insert_last],
+                                  validators=[ValueTypeValidator(str)]))
+        validator = ListForEachValidator(
+            element_validators=[
+                DictKeysValidator(mandatory_keys=keys),
+                DictForEachValidator(rules=rules)],
+            element_type=dict)
+        return MemberValidationStep(member_names=['s08_insert_columns'],
+                                    validator=validator)
+
+    def _rewrite_columns_step(self) -> MemberValidationStep:
+        """Return validation step for rewrite-column rules."""
+        column_rule = DictRule(keys=['column'],
+                               validators=[self._column_validator()])
+        case_rule = DictRule(keys=['case'],
+                             validators=[ValueTypeValidator(CaseSensitivity)])
+        chars_str_rule = DictRule(keys=['chars'],
+                                  validators=[ValueTypeValidator(str)])
+        chars_list_rule = DictRule(keys=['chars'],
+                                   validators=[ListValueTypeValidator(str)])
+        str_rule = DictRule(keys=['from', 'to'],
+                            validators=[ValueTypeValidator(str)])
+        variants: Mapping[object, DictVariant] = {
+            RewriteKind.STRIP: DictVariant(
+                mandatory_keys=['column', 'case', 'chars'],
+                rules=[column_rule, case_rule, chars_str_rule]),
+            RewriteKind.REMOVECHARS: DictVariant(
+                mandatory_keys=['column', 'case', 'chars'],
+                rules=[column_rule, case_rule, chars_list_rule]),
+            RewriteKind.REGEX_SUBSTITUTE: DictVariant(
+                mandatory_keys=['column', 'case', 'from', 'to'],
+                rules=[column_rule, case_rule, str_rule]),
+            RewriteKind.STR_SUBSTITUTE: DictVariant(
+                mandatory_keys=['column', 'case', 'from', 'to'],
+                rules=[column_rule, case_rule, str_rule])}
+        one_rule_validator = DiscriminatedDictValidator(
+            discriminator_key='kind', variants=variants,
+            discriminator_validator=ValueTypeValidator(RewriteKind))
+        validator = ListForEachValidator(
+            element_validators=[one_rule_validator], element_type=dict)
+        return MemberValidationStep(member_names=['s09_rewrite_columns'],
+                                    validator=validator)
 
     def _rule_unique_step(self, member_name: str) -> MemberValidationStep:
         """Return uniqueness validation for a one-column rule member."""
@@ -295,24 +498,6 @@ class ConfigExcelListTransform(Config, Generic[Column]):
         return MemberValidationStep(member_names=[member_name],
                                     validator=validator)
 
-    def validate_transform_rules(self) -> None:
-        """Validate transform-rule settings."""
-        self.validate_base_rules()
-        self.validate_column_rules()
-
-    def validate_base_rules(self) -> None:
-        """Validate common transform-rule settings."""
-        colinfo = self._colinfo
-        self.check_array_configs(split_last=colinfo.split_last,
-                                 insert_last=colinfo.insert_last)
-        self.sort_sx_hook()
-        self.check_rewrite_configs(coltype=type(colinfo.tinfo))
-        self.check_split_row_cfg()
-        self.check_merge_row_cfg()
-
-    def validate_column_rules(self) -> None:
-        """Validate column-reference-specific transform-rule settings."""
-
     def table_border_style(self) -> TableBorderStyle:
         """Return the TableIO border style requested by the config."""
         if self.output_borders:
@@ -321,116 +506,6 @@ class ConfigExcelListTransform(Config, Generic[Column]):
 
     def sort_sx_hook(self) -> None:
         """Sort s[0-9]_ as needed (hook)."""
-
-    @staticmethod
-    def check_array_keys(name_of_cfg: str,
-                         array: Sequence[Mapping[str, object]],
-                         mandatory_keys: list[str],
-                         allowed_keys: Optional[list[str]] = None) -> None:
-        """Check allowed and mandatory keys in a list of dictionaries."""
-        to_allow = deepcopy(mandatory_keys)
-        if allowed_keys is not None:
-            to_allow += deepcopy(allowed_keys)
-        for row in array:
-            for used_key in row:
-                if used_key not in to_allow:
-                    msg = f'Found non-allowed key "{used_key}"'
-                    print(msg + f' in config of {name_of_cfg}',
-                          file=sys.stderr)
-                    sys.exit(1)
-            for key in mandatory_keys:
-                if key not in row:
-                    msg = f'Missing key "{key}"'
-                    print(msg + f' in config of {name_of_cfg}',
-                          file=sys.stderr)
-                    sys.exit(1)
-
-    @staticmethod
-    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
-    def check_lst_dict(paramname: str, inp: Sequence[Mapping[str, object]],
-                       key: str, key_optional: bool, valtype: type,
-                       min_size_list: int) -> None:
-        """Check a list of dictionaries with one typed value per row."""
-        errtxt = f'Error in parameter {paramname}. '
-        if len(inp) < min_size_list:
-            msg = f'Minimum {min_size_list} elements needed in list but '
-            msg += f'only {len(inp)} found.'
-            print(errtxt + msg, file=sys.stderr)
-            sys.exit(1)
-        for elem in inp:
-            if key not in elem:
-                if key_optional:
-                    continue
-                print(errtxt + f'Expected key {key} not in dict in list',
-                      file=sys.stderr)
-                sys.exit(1)
-            val = elem[key]
-            if not isinstance(val, valtype):
-                msg = f'Value for key {key} expected to be of type '
-                msg += f'{valtype.__name__} but is of type '
-                msg += type(val).__name__
-                print(errtxt + msg, file=sys.stderr)
-                sys.exit(1)
-
-    @staticmethod
-    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
-    def check_lst_dict_lst(paramname: str, inp: Sequence[Mapping[str, object]],
-                           key: str, key_optional: bool, valtype: type,
-                           min_size_outer_list: int,
-                           min_size_inner_list: int) -> None:
-        """Check a list of dictionaries with one typed list per row."""
-        ConfigExcelListTransform.check_lst_dict(
-            paramname=paramname, inp=inp, key=key, key_optional=key_optional,
-            valtype=list, min_size_list=min_size_outer_list)
-        errtxt = f'Error in parameter {paramname}. '
-        for elem in inp:
-            if key not in elem and key_optional:
-                continue
-            val = elem[key]
-            assert isinstance(val, list)
-            if len(val) < min_size_inner_list:
-                msg = f'List for key {key} shall be minimum '
-                msg += f'{min_size_inner_list} elements. '
-                msg += f'But it is {len(val)} elements only.'
-                print(errtxt + msg, file=sys.stderr)
-                sys.exit(1)
-            for item in val:
-                if not isinstance(item, valtype):
-                    msg = f'Value for key {key} expected to be list of '
-                    msg += f'{valtype.__name__}. But element in list is '
-                    msg += type(item).__name__
-                    print(errtxt + msg, file=sys.stderr)
-                    sys.exit(1)
-
-    @staticmethod
-    def check_array_dicts(name_of_cfg: str, array: Sequence[Mapping[str,
-                                                                    object]],
-                          kind_key: str, kind_type: type[RewriteKind],
-                          dict_of_templates: Mapping[RewriteKind,
-                                                     Mapping[str, type]]
-                          ) -> None:
-        """Check list-of-dicts entries selected by an enum kind key."""
-        for index, row in enumerate(array):
-            litem = f'(list index {index})'
-            if kind_key not in row:
-                msg = f'Key {kind_key} not in dict in config of '
-                print(msg + name_of_cfg + ' ' + litem, file=sys.stderr)
-                sys.exit(1)
-            kind = row[kind_key]
-            assert isinstance(kind, kind_type)
-            template = dict_of_templates[kind]
-            for key, valtype in template.items():
-                if key not in row:
-                    msg = f'Key {key} not in dict in config of '
-                    print(msg + name_of_cfg + ' ' + litem, file=sys.stderr)
-                    sys.exit(1)
-                if not isinstance(row[key], valtype):
-                    msg = f'Value for key {key} = {row[key]} '
-                    msg += f'is not {valtype.__name__}; it is '
-                    msg += type(row[key]).__name__
-                    print(msg + f' in config of {name_of_cfg} ' + litem,
-                          file=sys.stderr)
-                    sys.exit(1)
 
     @staticmethod
     def get_cols_single(rule: Rule[Column] | RuleSplit[Column] |
@@ -477,108 +552,3 @@ class ConfigExcelListTransform(Config, Generic[Column]):
                 'kind': self.get_converter_dict(RewriteKind),
                 'case': self.get_converter_dict(CaseSensitivity),
                 'column_ref': self.get_converter_dict(ColumnRef)}
-
-    def check_array_configs(self, split_last: str,
-                            insert_last: Optional[str]) -> None:
-        """Check that keywords in configuration arrays are OK."""
-        split_col_keys = ['column', 'separator', 'where', split_last]
-        self.check_array_keys('s03_split_columns', self.s03_split_columns,
-                              split_col_keys)
-        merge_col_keys = ['columns', 'separator']
-        self.check_array_keys('s05_merge_columns', self.s05_merge_columns,
-                              merge_col_keys)
-        rename_col_keys = ['column', 'name']
-        self.check_array_keys('s07_rename_columns', self.s07_rename_columns,
-                              rename_col_keys)
-        insert_col_keys = ['column', 'value']
-        if insert_last is not None:
-            assert insert_last is not None  # keep mypy happy
-            insert_col_keys.append(insert_last)
-        self.check_array_keys('s08_insert_columns', self.s08_insert_columns,
-                              insert_col_keys)
-
-    def check_rewrite_configs(self, coltype: type) -> None:
-        """Check the rewrite column configuration."""
-        rewrite_col_mand_keys: list[str] = ['column', 'kind', 'case']
-        rewrite_col_opt_keys: list[str] = ['chars', 'from', 'to']
-        self.check_array_keys('s09_rewrite_columns', self.s09_rewrite_columns,
-                              mandatory_keys=rewrite_col_mand_keys,
-                              allowed_keys=rewrite_col_opt_keys)
-        template = {RewriteKind.STRIP: {'column': coltype,
-                                        'kind': RewriteKind,
-                                        'chars': str,
-                                        'case': CaseSensitivity},
-                    RewriteKind.REMOVECHARS: {'column': coltype,
-                                              'kind': RewriteKind,
-                                              'chars': list,
-                                              'case': CaseSensitivity},
-                    RewriteKind.REGEX_SUBSTITUTE: {'column': coltype,
-                                                   'kind': RewriteKind,
-                                                   'from': str, 'to': str,
-                                                   'case': CaseSensitivity},
-                    RewriteKind.STR_SUBSTITUTE: {'column': coltype,
-                                                 'kind': RewriteKind,
-                                                 'from': str, 'to': str,
-                                                 'case': CaseSensitivity}}
-        self.check_array_dicts(name_of_cfg='s09_rewrite_columns',
-                               array=self.s09_rewrite_columns, kind_key='kind',
-                               kind_type=RewriteKind,
-                               dict_of_templates=template)
-
-    @staticmethod
-    def check_sep_not_sep(separators: list[str],
-                          not_separators: list[str]) -> None:
-        """Check relationship between separators and not separators."""
-        for notsep in not_separators:
-            if notsep in separators:
-                print('Error in s01_split_rows:\n' +
-                      'Cannot have same string as both separator and ' +
-                      f'not separator: {notsep}', file=sys.stderr)
-                sys.exit(1)
-            found: bool = False
-            for sep in separators:
-                if sep in notsep:
-                    found = True
-                    break
-            if not found:
-                print('Error in s01_split_rows:\n' +
-                      f'Not separator "{notsep}" does not affect ' +
-                      'any separator.', file=sys.stderr)
-                sys.exit(1)
-
-    def check_split_row_cfg(self) -> None:
-        """Check the split row configuration."""
-        keys = ['column', 'separators', 'not_separators']
-        self.check_lst_dict(paramname='s01_split_rows',
-                            inp=self.s01_split_rows, key='column',
-                            key_optional=False, valtype=self._columntype,
-                            min_size_list=0)
-        self.check_array_keys('s01_split_rows', self.s01_split_rows,
-                              mandatory_keys=keys, allowed_keys=None)
-        self.check_lst_dict_lst(paramname='s01_split_rows',
-                                inp=self.s01_split_rows, key='separators',
-                                key_optional=False, valtype=str,
-                                min_size_outer_list=0, min_size_inner_list=1)
-        self.check_lst_dict_lst(paramname='s01_split_rows',
-                                inp=self.s01_split_rows, key='not_separators',
-                                key_optional=False, valtype=str,
-                                min_size_outer_list=0, min_size_inner_list=0)
-        for elem in self.s01_split_rows:
-            sep = elem['separators']
-            assert isinstance(sep, list)
-            nosep = elem['not_separators']
-            assert isinstance(nosep, list)
-            self.check_sep_not_sep(separators=sep, not_separators=nosep)
-
-    def check_merge_row_cfg(self) -> None:
-        """Check the merge rows configuration."""
-        keys = ['columns', 'separator']
-        self.check_lst_dict_lst(paramname='s02_merge_rows',
-                                inp=self.s02_merge_rows, key='columns',
-                                key_optional=False, valtype=self._columntype,
-                                min_size_outer_list=0, min_size_inner_list=1)
-        self.check_lst_dict(paramname='s02_merge_rows',
-                            inp=self.s02_merge_rows, key='separator',
-                            key_optional=False, valtype=str, min_size_list=0)
-        self.check_array_keys('s02_merge_rows', self.s02_merge_rows,
-                              mandatory_keys=keys, allowed_keys=None)

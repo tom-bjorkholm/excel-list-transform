@@ -11,13 +11,15 @@ from copy import deepcopy
 import sys
 import pytest
 from pytest import CaptureFixture
+from config_as_json import InvalidConfiguration
 from tableio import CsvDialect
 from tableio_cfg_json import TioJsonCsvConfig
 from test_excel_list_transform.tableio_helpers import \
     configure_output_csv
 from excel_list_transform.config_xls_list_transf_num \
     import ConfigXlsListTransfNum
-from excel_list_transform.config_enums import SplitWhere
+from excel_list_transform.config_enums import SplitWhere, RewriteKind, \
+    CaseSensitivity
 from excel_list_transform.assert_dict_equal import assert_dict_equal
 from excel_list_transform.migrate_cfg_warn_hook import EltMigrateCfgWarnHook
 
@@ -159,74 +161,120 @@ def test_row_spl_mrg_nu_ok(capsys: CaptureFixture[str], splitr: Any,
 @pytest.mark.parametrize('splitr, msgs',
                          [([{'column': 2, 'separators': [],
                             'not_separators': []}],
-                           ['Error in parameter s01_split_rows.',
-                            'List for key separators shall be ' +
-                            'minimum 1 elements',
-                            'But it is 0 elements']),
+                           ['s01_split_rows[0][separators]',
+                            'less than minimum 1']),
                           ([{'column': 3, 'separators': [],
                             'not_separators': [], 'start': 2}],
-                           ['Found non-allowed key "start" in ',
-                            ' config of s01_split_rows']),
+                           ["Unknown key 'start' in s01_split_rows[0]"]),
                           ([{'column': 'foo', 'separators': [';'],
-                            'not_separators': [';;']}],
-                           ['Error in parameter s01_split_rows.',
-                            'Value for key column expected to be of ' +
-                            'type int but is of type str']),
+                           'not_separators': [';;']}],
+                           ['s01_split_rows[0][column]',
+                            'not of type int']),
                           ([{'separators': ['+'],
                              'not_separators': [' + ']}],
-                           ['Error in parameter s01_split_rows.',
-                            'Expected key column not in dict in list']),
+                           ["Mandatory key 'column' is missing",
+                            's01_split_rows[0]']),
                           ([{'column': 4, 'separators': ['+', '-'],
                              'not_separators': [' + ', '--', '*']}],
-                           ['Error in s01_split_rows:',
-                            'Not separator "*" does not affect ' +
-                            'any separator.'])])
+                           ['s01_split_rows[0]',
+                            "not-separator '*'",
+                            'does not affect any separator'])])
 def test_row_split_cfg_nu_nok(capsys: CaptureFixture[str], splitr: Any,
                               msgs: list[str]) -> None:
     """Test OK cases of row split and merge config."""
     cfg1 = ConfigXlsListTransfNum()
     cfg1.s01_split_rows = deepcopy(splitr)
-    with pytest.raises(SystemExit):
+    with pytest.raises(InvalidConfiguration):
         _ = cfg1.as_json_string(stderr_file=sys.stderr)
     out, err = capsys.readouterr()
     assert '' == out
+    assert 'Invalid configuration' in err
     for msg in msgs:
         assert msg in err
 
 
 @pytest.mark.parametrize('merger,msgs',
                          [([{'columns': [], 'separator': ' '}],
-                           ['Error in parameter s02_merge_rows.',
-                            'List for key columns shall be minimum 1 eleme',
-                            'But it is 0 elements only.']),
+                           ['s02_merge_rows[0][columns]',
+                            'less than minimum 1']),
                           ([{'columns': [3, 4], 'separator': [' ']}],
-                           ['Error in parameter s02_merge_rows.',
-                            'Value for key separator expected to ' +
-                            'be of type str but is of type list']),
+                           ['s02_merge_rows[0][separator]',
+                            'not of type str']),
                           ([{'columns': [5, 6], 'separator': ' ',
                              'split': 2}],
-                           ['Found non-allowed key "split" ',
-                            'in config of s02_merge_rows']),
+                           ["Unknown key 'split' in s02_merge_rows[0]"]),
                           ([{'columns': ['foo', 'bar'], 'separator': ' '}],
-                           ['Error in parameter s02_merge_rows.',
-                            'Value for key columns expected to be list of int',
-                            'But element in list is str']),
+                           ['s02_merge_rows[0][columns][0]',
+                            'not of type int']),
                           ([{'columns': [7, 8], 'separator': 3}],
-                           ['Error in parameter s02_merge_rows.',
-                            'Value for key separator expected to be ' +
-                            'of type str but is of type int']),
+                           ['s02_merge_rows[0][separator]',
+                            'not of type str']),
                           ([{'columns': 9, 'separator': ' '}],
-                           ['Error in parameter s02_merge_rows.',
-                            'Value for key columns expected to be ' +
-                            'of type list but is of type int'])])
+                           ['s02_merge_rows[0][columns]',
+                            'is not a list'])])
 def test_row_merge_cfg_na_nok(capsys: CaptureFixture[str], merger: Any,
                               msgs: list[str]) -> None:
     """Test OK cases of row split and merge config."""
     cfg1 = ConfigXlsListTransfNum()
     cfg1.s02_merge_rows = deepcopy(merger)
-    with pytest.raises(SystemExit):
+    with pytest.raises(InvalidConfiguration):
         _ = cfg1.as_json_string(stderr_file=sys.stderr)
     out, err = capsys.readouterr()
     assert '' == out
+    assert 'Invalid configuration' in err
+    for msg in msgs:
+        assert msg in err
+
+
+@pytest.mark.parametrize('member_name,value,msgs',
+                         [('s01_split_rows',
+                           [{'column': True, 'separators': [';'],
+                             'not_separators': []}],
+                           ['s01_split_rows[0][column]',
+                            'must not be of type bool']),
+                          ('s02_merge_rows',
+                           [{'columns': [True], 'separator': ' '}],
+                           ['s02_merge_rows[0][columns][0]',
+                            'must not be of type bool']),
+                          ('s03_split_columns',
+                           [{'column': True, 'separator': ' ',
+                             'where': SplitWhere.RIGHTMOST,
+                             'store_single': SplitWhere.LEFTMOST}],
+                           ['s03_split_columns[0][column]',
+                            'must not be of type bool']),
+                          ('s04_remove_columns', [True],
+                           ['s04_remove_columns[0]',
+                            'must not be of type bool']),
+                          ('s05_merge_columns',
+                           [{'columns': [True], 'separator': ' '}],
+                           ['s05_merge_columns[0][columns][0]',
+                            'must not be of type bool']),
+                          ('s06_place_columns_first', [True],
+                           ['s06_place_columns_first[0]',
+                            'must not be of type bool']),
+                          ('s07_rename_columns',
+                           [{'column': True, 'name': 'X'}],
+                           ['s07_rename_columns[0][column]',
+                            'must not be of type bool']),
+                          ('s08_insert_columns',
+                           [{'column': True, 'name': 'X', 'value': None}],
+                           ['s08_insert_columns[0][column]',
+                            'must not be of type bool']),
+                          ('s09_rewrite_columns',
+                           [{'kind': RewriteKind.STRIP, 'column': True,
+                             'case': CaseSensitivity.MATCH_CASE,
+                             'chars': ' '}],
+                           ['s09_rewrite_columns[0][column]',
+                            'must not be of type bool'])])
+def test_num_bool_col_nok(capsys: CaptureFixture[str], member_name: str,
+                          value: Any, msgs: list[str]) -> None:
+    """Test that bools are rejected as number-based column references."""
+    cfg = ConfigXlsListTransfNum()
+    setattr(cfg, member_name, deepcopy(value))
+    with pytest.raises(InvalidConfiguration):
+        _ = cfg.as_json_string(stderr_file=sys.stderr)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert 'Invalid configuration' in err
     for msg in msgs:
         assert msg in err

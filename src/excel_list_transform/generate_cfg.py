@@ -30,14 +30,19 @@ phone numbers. For other countries s09_rewrite_columns need to be
 adjusted.
 '''
 
+RRS_COLUMNS: tuple[str, ...] = (
+    'Class', 'Division', 'Nationality', 'MNA No.', 'Sail Number',
+    'Boat Name', 'First Name', 'Last Name', 'Club Name', 'Email', 'Phone',
+    'Whats App Number')
+
 SYNYAX_O2X_COMMON: str = '''
 
 Column names are changed from another language (Swedish) and sometimes from
 a more instuctive naming to the names understood by RRS.
 
-The events does not use divisions, boat names and WhatsApp. Thus the
-form did not ask for these. They are inserted as empty columns to please
-RRS.
+The events does not use divisions, MNA numbers, boat names or Whats App
+numbers. Thus the form did not ask for these. They are inserted as empty
+columns to please RRS.
 
 ''' + SYNTAX_PHONE_FIX
 
@@ -72,11 +77,12 @@ In this example the input data is exported as JSON or XML from SailWave
 https://www.sailwave.com . The data as a list in excel format is then
 extracted using extract-list https://pypi.org/project/extract-list. As
 SailWave only has a name field and not first name and last name fields, and as
-SailWave has not field for WhatsApp, this processing of the data is needed
-before it can be imported into RRS https://www.racingrulesofsailing.org/
+SailWave has no fields for MNA No. and Whats App Number, this processing of
+the data is needed before it can be imported into RRS
+https://www.racingrulesofsailing.org/
 
 The Name column is split into First Name and Last Name columns.
-The column WhatsApp is added with no data.
+The columns MNA No. and Whats App Number are added with no data.
 
 ''' + SYNTAX_PHONE_FIX
 
@@ -86,7 +92,8 @@ In this example the input data is exported from SailArena to RRS.
 This input format is a comma separated values text file, with the
 old character encoding scheme cp1252.
 
-The only fixes needed are to read CSV in cp1252 encoding, fix the
+SailArena still exports the WhatsApp column with its old name. The only
+other fixes needed are to read CSV in cp1252 encoding, add MNA No., fix the
 format of the phone number and save to excel.
 ''' + SYNTAX_PHONE_FIX
 
@@ -131,13 +138,11 @@ def generate_syntax_sa2r_name(filename: str, colref: ColumnRef) -> None:
     cfg.s02_merge_rows = []
     cfg.s03_split_columns = []
     cfg.s05_merge_columns = []
-    cfg.s07_rename_columns = []
-    cfg.s08_insert_columns = []
+    cfg.s07_rename_columns = [{'column': 'WhatsApp',
+                               'name': 'Whats App Number'}]
+    cfg.s08_insert_columns = [{'column': 'MNA No.', 'value': None}]
     rewrite_phone_46_cfg(cfg=cfg, column='Phone', append=False)
-    cfg.s10_column_order = ['Class', 'Division', 'Nationality',
-                            'Sail Number', 'Boat Name', 'First Name',
-                            'Last Name', 'Club Name', 'Email', 'Phone',
-                            'WhatsApp']
+    cfg.s10_column_order = list(RRS_COLUMNS)
     cfg.write(to_json_filename=filename)
 
 
@@ -155,12 +160,10 @@ def generate_syntax_sw2r_name(filename: str, colref: ColumnRef) -> None:
                               'right_name': 'Last Name'}]
     cfg.s05_merge_columns = []
     cfg.s07_rename_columns = [{'column': 'Name', 'name': 'First Name'}]
-    cfg.s08_insert_columns = [{'column': 'WhatsApp', 'value': None}]
+    cfg.s08_insert_columns = [{'column': 'MNA No.', 'value': None},
+                              {'column': 'Whats App Number', 'value': None}]
     rewrite_phone_46_cfg(cfg=cfg, column='Phone', append=False)
-    cfg.s10_column_order = ['Class', 'Division', 'Nationality',
-                            'Sail Number', 'Boat Name', 'First Name',
-                            'Last Name', 'Club Name', 'Email', 'Phone',
-                            'WhatsApp']
+    cfg.s10_column_order = list(RRS_COLUMNS)
     cfg.write(to_json_filename=filename)
 
 
@@ -219,9 +222,9 @@ def generate_syntax_sa2r_num(filename: str, colref: ColumnRef) -> None:
     cfg.s04_remove_columns = []
     cfg.s05_merge_columns = []
     cfg.s06_place_columns_first = []
-    cfg.s07_rename_columns = []
-    cfg.s08_insert_columns = []
-    rewrite_phone_46_cfg(cfg=cfg, column=9, append=False)
+    cfg.s07_rename_columns = [{'column': 10, 'name': 'Whats App Number'}]
+    cfg.s08_insert_columns = [{'column': 3, 'name': 'MNA No.', 'value': None}]
+    rewrite_phone_46_cfg(cfg=cfg, column=10, append=False)
     cfg.write(to_json_filename=filename)
 
 
@@ -242,9 +245,10 @@ def generate_syntax_sw2r_num(filename: str, colref: ColumnRef) -> None:
     cfg.s07_rename_columns = \
         [{'column': 5, 'name': 'First Name'},
          {'column': 6, 'name': 'Last Name'}]
-    cfg.s08_insert_columns = [{'column': 10, 'name': 'WhatsApp',
+    cfg.s08_insert_columns = [{'column': 3, 'name': 'MNA No.', 'value': None},
+                              {'column': 11, 'name': 'Whats App Number',
                               'value': None}]
-    rewrite_phone_46_cfg(cfg=cfg, column=9, append=False)
+    rewrite_phone_46_cfg(cfg=cfg, column=10, append=False)
     cfg.write(to_json_filename=filename)
 
 
@@ -272,14 +276,12 @@ def generate_syntax_o2r_name(filename: str, colref: ColumnRef) -> None:
         {'column': 'Epostadress', 'name': 'Email'},
         {'column': 'Mobiltelefonnummer', 'name': 'Phone'}]
     cfg.s08_insert_columns = [
+        {'column': 'MNA No.', 'value': None},
         {'column': 'Division', 'value': None},
         {'column': 'Boat Name', 'value': None},
-        {'column': 'WhatsApp', 'value': None}]
+        {'column': 'Whats App Number', 'value': None}]
     rewrite_phone_46_cfg(cfg=cfg, column='Phone', append=False)
-    cfg.s10_column_order = ['Class', 'Division', 'Nationality',
-                            'Sail Number', 'Boat Name', 'First Name',
-                            'Last Name', 'Club Name', 'Email', 'Phone',
-                            'WhatsApp']
+    cfg.s10_column_order = list(RRS_COLUMNS)
     cfg.write(to_json_filename=filename)
 
 
@@ -309,9 +311,10 @@ def generate_syntax_o2r_num(filename: str, colref: ColumnRef) -> None:
         {'column': 7, 'name': 'Phone'}]
     cfg.s08_insert_columns = [
         {'column': 1, 'name': 'Division', 'value': None},
-        {'column': 4, 'name': 'Boat Name', 'value': None},
-        {'column': 10, 'name': 'WhatsApp', 'value': None}]
-    rewrite_phone_46_cfg(cfg=cfg, column=9, append=False)
+        {'column': 3, 'name': 'MNA No.', 'value': None},
+        {'column': 5, 'name': 'Boat Name', 'value': None},
+        {'column': 11, 'name': 'Whats App Number', 'value': None}]
+    rewrite_phone_46_cfg(cfg=cfg, column=10, append=False)
     cfg.write(to_json_filename=filename)
 
 
@@ -397,6 +400,8 @@ The names of the columns are changed from RRS names to SailWave
 names. The phone number exported from RRS is in international
 format, except that the '+' is missing.
 
+The MNA No. and Whats App Number columns from RRS are not used by SailWave.
+
 '''
 
 
@@ -442,7 +447,7 @@ def generate_syntax_r2s_num(filename: str, colref: ColumnRef) -> None:
     cfg.s01_split_rows = []
     cfg.s02_merge_rows = []
     cfg.s03_split_columns = []
-    cfg.s04_remove_columns = [10]  # remove WhatsApp
+    cfg.s04_remove_columns = [3, 11]
     cfg.s05_merge_columns = [{'columns': [5, 6], 'separator': ' '}]
     cfg.s06_place_columns_first = []
     cfg.s07_rename_columns = [

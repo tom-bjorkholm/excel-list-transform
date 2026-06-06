@@ -65,13 +65,14 @@ class ExampleData:  # pylint: disable=too-many-instance-attributes
         assert len(self.phone_numbers_in) == len(self.phone_numbers_out)
         #  self.rows = len(self.phone_numbers_in)
         self.rrs_col_order = ['Class', 'Division', 'Nationality',
-                              'Sail Number', 'Boat Name', 'First Name',
-                              'Last Name', 'Club Name', 'Email', 'Phone',
-                              'WhatsApp']
+                              'MNA No.', 'Sail Number', 'Boat Name',
+                              'First Name', 'Last Name', 'Club Name',
+                              'Email', 'Phone', 'Whats App Number']
         self.rrs_col_map = {
             'Class': 'Klass',
             'Division': None,
             'Nationality': 'Nationalitetsbokstäver i seglet',
+            'MNA No.': None,
             'Sail Number': self.sail_num_col_name,
             'Boat Name': None,
             'First Name': self.first_name_col_name,
@@ -79,7 +80,7 @@ class ExampleData:  # pylint: disable=too-many-instance-attributes
             'Club Name': 'Klubb',
             'Email': self.email_col_name,
             'Phone': self.phone_col_name,
-            'WhatsApp': None
+            'Whats App Number': None
         }
         self.sw_col_order = ['Class', 'Division', 'Nat', 'SailNo', 'Boat',
                              'HelmName', 'Club', 'HelmEmail', 'HelmPhone']
@@ -173,11 +174,12 @@ class ExampleData:  # pylint: disable=too-many-instance-attributes
     def rrs_data_out(self) -> NumData:
         """Get data as exported from rrs."""
         ret = deepcopy(self.rrs_data())
-        ret[0][9] = 'Mobile Phone'
+        phone_col = self.rrs_col_order.index('Phone')
+        ret[0][phone_col] = 'Mobile Phone'
         for row in ret[1:]:
-            phone = str(row[9])
+            phone = str(row[phone_col])
             if phone[0] != '+':
-                row[9] = '+' + phone
+                row[phone_col] = '+' + phone
         return ret
 
     def rrs_col_for_sw_data_col(self, sw_data_col: int) -> list[int]:

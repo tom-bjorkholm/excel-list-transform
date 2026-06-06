@@ -37,9 +37,9 @@ class ConfigXlsListTransfName(ConfigExcelListTransform[str]):
                                col_to_use=col_to_use,
                                col_to_use_row=col_to_use_row, tinfo='a')
         self.s10_column_order: RuleOrder = \
-            ['Class', 'Division', 'Nationality', 'Sail Number', 'Boat Name',
-             'First Name', 'Last Name', 'Club Name', 'Email', 'Phone',
-             'WhatsApp']
+            ['Class', 'Division', 'Nationality', 'MNA No.', 'Sail Number',
+             'Boat Name', 'First Name', 'Last Name', 'Club Name', 'Email',
+             'Phone', 'Whats App Number']
         super().__init__(col_ref=ColumnRef.BY_NAME, colinfo=colinfo, tinfo='a',
                          from_json_data_text=from_json_data_text,
                          from_json_filename=from_json_filename,

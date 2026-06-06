@@ -24,6 +24,10 @@ from excel_list_transform.config_xls_list_transf_num import \
     ConfigXlsListTransfNum
 from excel_list_transform.transform_cmd import transform_cmd
 
+LEGACY_RRS_ORDER = ['Class', 'Division', 'Nationality', 'Sail Number',
+                    'Boat Name', 'First Name', 'Last Name', 'Club Name',
+                    'Email', 'Phone', 'WhatsApp']
+
 
 def configure_old_io(cfg: ConfigXlsListTransfName |
                      ConfigXlsListTransfNum) -> None:
@@ -68,6 +72,7 @@ def test_migrate_cfg1(capsys: CaptureFixture[str]) -> None:
     refcfg.s02_merge_rows = []
     refcfg.s03_split_columns[0]['right_name'] = 'Family Name'
     refcfg.s08_insert_columns[1]['column'] = 'Something Else'
+    refcfg.s10_column_order = LEGACY_RRS_ORDER.copy()
     refcfg.output_borders = False
     refcfg.output_filtered_table = False
     infilename = 'test/test_excel_list_transform/bak_compat_0_7_13_name.cfg'
@@ -160,6 +165,7 @@ def test_migrate_cmd1(capsys: CaptureFixture[str], ipar: str,
     refcfg.s02_merge_rows = []
     refcfg.s03_split_columns[0]['right_name'] = 'Family Name'
     refcfg.s08_insert_columns[1]['column'] = 'Something Else'
+    refcfg.s10_column_order = LEGACY_RRS_ORDER.copy()
     refcfg.output_borders = False
     refcfg.output_filtered_table = False
     infilename = 'test/test_excel_list_transform/bak_compat_0_7_13_name.cfg'

@@ -23,6 +23,10 @@ from excel_list_transform.config_excel_list_transform import RuleMerge, \
     RuleRowSplit
 from excel_list_transform.migrate_cfg_warn_hook import EltMigrateCfgWarnHook
 
+LEGACY_RRS_ORDER = ['Class', 'Division', 'Nationality', 'Sail Number',
+                    'Boat Name', 'First Name', 'Last Name', 'Club Name',
+                    'Email', 'Phone', 'WhatsApp']
+
 
 @pytest.mark.smoke
 def test_cfg_xls_lst_rfmt_def(capsys: CaptureFixture[str]) -> None:
@@ -35,9 +39,9 @@ def test_cfg_xls_lst_rfmt_def(capsys: CaptureFixture[str]) -> None:
     assert 'columns' in cfg.s05_merge_columns[0]
     assert cfg.s05_merge_columns[0]['columns'] == ['street', 'street number']
     assert cfg.s10_column_order == ['Class', 'Division', 'Nationality',
-                                    'Sail Number', 'Boat Name', 'First Name',
-                                    'Last Name', 'Club Name', 'Email',
-                                    'Phone', 'WhatsApp']
+                                    'MNA No.', 'Sail Number', 'Boat Name',
+                                    'First Name', 'Last Name', 'Club Name',
+                                    'Email', 'Phone', 'Whats App Number']
     assert len(cfg.s03_split_columns) > 0
     assert 'column' in cfg.s03_split_columns[0]
     assert cfg.s03_split_columns[0]['where'] == SplitWhere.RIGHTMOST
@@ -122,6 +126,7 @@ def test_bak_cmpt_0_7_13_nam(capsys: CaptureFixture[str]) -> None:
     refcfg.s02_merge_rows = []
     refcfg.s03_split_columns[0]['right_name'] = 'Family Name'
     refcfg.s08_insert_columns[1]['column'] = 'Something Else'
+    refcfg.s10_column_order = deepcopy(LEGACY_RRS_ORDER)
     filename = 'test/test_excel_list_transform/bak_compat_0_7_13_name.cfg'
     cfg = ConfigXlsListTransfName(from_json_filename=filename,
                                   stderr_file=sys.stderr)

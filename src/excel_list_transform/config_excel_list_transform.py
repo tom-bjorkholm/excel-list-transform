@@ -36,7 +36,7 @@ type SingleRuleSplit[Column] = dict[str, Optional[Column | str | SplitWhere]]
 
 
 class SingleRuleRowSplit[Column](TypedDict):
-    """Sinle rule for splitting a column."""
+    """Single rule for splitting a column."""
 
     column: Column
     separators: list[str]

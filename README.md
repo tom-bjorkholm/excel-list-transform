@@ -6,7 +6,8 @@ This python application was born out of an experience at sail racing events. At 
 
 ## Using it
 
-If you want to use it install it using pip from [https://pypi.org/project/excel-list-transform](https://pypi.org/project/excel-list-transform). There is no need download anything from Bitbucket to use the application.
+If you want to use it install it using pip from [https://pypi.org/project/excel-list-transform](https://pypi.org/project/excel-list-transform).
+There is no need to download anything from Bitbucket to use the application.
 
 ### Installing on mac and Linux
 
@@ -28,11 +29,11 @@ Please see [https://pypi.org/project/excel-list-transform](https://pypi.org/proj
 
 This small python application:
 
-- reads data (that is a list with columns) from an excel file, ODS file, 
-  or from a comma separate values (CSV) file.
+- reads data (that is a list with columns) from an excel file, an ODS file,
+  or from a comma separated values (CSV) file.
 - splits columns in the list (like creating "first name" and "last name"
   columns from "name" column)
-- merges columns in the list (like creating "name" column from "first name" 
+- merges columns in the list (like creating "name" column from "first name"
   and "last name" columns)
 - removes columns in the list
 - reorders columns in the list
@@ -40,11 +41,11 @@ This small python application:
 - inserts columns in the list
 - rewrites columns in the list (like transforming telephone numbers from
   local/national format to international format)
-- writes the resulting data (that is a list with columns) to an excel
-  file or to a comma separate values (CSV) file.
+- writes the resulting data (that is a list with columns) to an excel file,
+  an ODS spreadsheet file, a comma separated values (CSV) file, or
+  any of a number of other file formats.
 
 How this is done is governed by a configuration file. The application can create a number of example configuration files with accompanying description text files.
-
 
 ## Cloning
 
@@ -52,7 +53,7 @@ This repository uses submodules. Clone it with:
 
 ```sh
 git clone --recurse-submodules \
-  git@bitbucket.org:tom-bjorkholm/extract-list.git
+  git@bitbucket.org:tom-bjorkholm/excel-list-transform.git
 ```
 
 If you already cloned without submodules, initialize them with:
@@ -107,9 +108,9 @@ the built and installed application in the virtual environment `./venv`.
 
 ## Test summary
 
-- Test result: 1368 passed in 64s (0:01:04)
+- Test result: 1368 passed in 65s (0:01:05)
 - No flake8 warnings.
 - No mypy errors found.
 - No python layout warnings.
-- Built version(s): 0.8.6
+- Built version(s): 0.9
 - Build and test using Python 3.14.5

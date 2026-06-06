@@ -1,5 +1,5 @@
 #! /usr/local/bin/python3
-"""Read and write configuration of CSV splitting."""
+"""Read and write configuration with numbered column references."""
 
 # Copyright (c) 2024-2025 Tom Björkholm
 # MIT License

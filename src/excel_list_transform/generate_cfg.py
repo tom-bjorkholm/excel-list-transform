@@ -38,7 +38,7 @@ RRS_COLUMNS: tuple[str, ...] = (
 SYNYAX_O2X_COMMON: str = '''
 
 Column names are changed from another language (Swedish) and sometimes from
-a more instuctive naming to the names understood by RRS.
+a more instructive naming to the names understood by RRS.
 
 The events does not use divisions, MNA numbers, boat names or Whats App
 numbers. Thus the form did not ask for these. They are inserted as empty
@@ -47,7 +47,7 @@ columns to please RRS.
 ''' + SYNTAX_PHONE_FIX
 
 SYNTAX_ONLY_O2R_COMMON: str = '''
-This an example of taking a registration list from the excel file received
+This is an example of taking a registration list from the table file received
 from office forms or google forms and transforming it for importing into
 RRS ( https://www.racingrulesofsailing.org ).
 '''
@@ -321,7 +321,7 @@ def generate_syntax_o2r_num(filename: str, colref: ColumnRef) -> None:
 TXT_O2R_NUM = SYNTAX_O2R_COMMON + BY_NUMBER_COMMON
 
 SYNTAX_ONLY_O2S_COMMON: str = '''
-This an example of taking a registration list from the excel file received
+This is an example of taking a registration list from the table file received
 from office forms or google forms and transforming it for importing into
 SailWave regatta scoring program ( https://www.sailwave.com ).
 '''
@@ -391,7 +391,7 @@ TXT_O2S_NUM = SYNTAX_O2S_COMMON + BY_NUMBER_COMMON
 
 
 SYNTAX_R2S_COMMON: str = '''
-This an example of taking a registration list from the excel file
+This is an example of taking a registration list from the table file
 exported from RRS ( https://www.racingrulesofsailing.org ) and
 transforming it for importing into SailWave regatta scoring
 program ( https://www.sailwave.com ).
@@ -486,7 +486,7 @@ def generate_syntax_example(filename: str, colref: ColumnRef) -> None:
 TXT_SYNTAX_EXAMPLE = '''
 This example configuration file does not match any known use case.
 It is written as an example configuration with 2 objectives:
-to demonstrates all configuration options, and to be small.
+to demonstrate all configuration options, and to be small.
 '''
 
 
@@ -526,7 +526,7 @@ for customers in the following format:
 | Brewery     | Beer   | Smith + Bush  |
 | Dairy       | Milk   | Jones         |
 
-But for distrubuting it to customers you would like to have the
+But for distributing it to customers you would like to have the
 list in the following format:
 
 | To        | What          | From               |
@@ -536,7 +536,7 @@ list in the following format:
 | Bush      | Beer          | Brewery            |
 
 To do this transformation we use the "s01_split_rows" to split
-rows base on the "To" column using " + " as separator.
+rows based on the "To" column using " + " as separator.
 Then we use "s02_merge_rows" to merge the rows that have
 identical values in the "To" column.
 Finally we specify the new column order.

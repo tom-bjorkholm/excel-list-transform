@@ -14,7 +14,7 @@ def migrate_cfg(infile: str, outfile: str) -> int:
 
     Read in input configuration file using backward compatibility.
     Write out configuration using newest format.
-    @param infile  Name of input configuation file.
+    @param infile  Name of input configuration file.
     @param outfile Name of output configuration file.
     """
     return config_as_json_migrate_cfg(infile=infile, outfile=outfile,

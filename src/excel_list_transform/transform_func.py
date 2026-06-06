@@ -1,5 +1,5 @@
 #! /usr/local/bin/python3
-"""Function for doing transform of lists excel files."""
+"""Functions for transforming list data in table files."""
 
 # Copyright (c) 2024-2025 Tom Björkholm
 # MIT License
@@ -24,7 +24,7 @@ from excel_list_transform.file_must_exist import file_must_exist
 
 def transform_named_files(infilename: str, outfilename: str,
                           cfgfilename: str) -> int:
-    """Transform list in the named excel file to named file."""
+    """Transform list data from the named input file to output file."""
     fixed_cfgfilename = fix_file_extension(filename=cfgfilename,
                                            ext_to_add='.cfg')
     file_must_exist(fixed_cfgfilename)

@@ -5,8 +5,8 @@ from setuptools import setup
 
 setup(
   name='excel-list-transform',
-  version='0.8.6',
-  description='Transform a list in excel, ODS or CSV.',
+  version='0.9',
+  description='Transform table data with configurable row and column changes.',
   author='Tom Björkholm',
   author_email='klausuler_linnet0q@icloud.com',
   python_requires='>=3.13',
@@ -18,18 +18,10 @@ setup(
     'tableio >= 0.9',
     'config-as-json >= 1.1',
     'versionreporter >= 0.2',
-    'openpyxl >= 3.1.5',
-    'types-openpyxl >= 3.1.5.20250919',
-    'pylightxl >= 1.61',
-    'XlsxWriter >= 3.2.9',
     'argcomplete >= 3.6.3',
-    'pypi-simple >= 1.8.0',
-    'requests >= 2.32.5',
-    'types-requests >= 2.32.4.20250913',
-    'packaging >= 25.0',
-    'pip >= 25.3',
-    'setuptools >= 80.9.0',
-    'build >= 1.3.0',
-    'wheel>=0.45.1'
+    'pip >= 26.1',
+    'setuptools >= 82.0.1',
+    'build >= 1.5.0',
+    'wheel>=0.47.0'
   ]
 )

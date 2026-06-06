@@ -95,7 +95,7 @@ def generate_syntax_txt(filename: str, example_description: str,
     Indentation and line breaks have no significance.
 
     The encoding for the configuration file must be UTF-8.
-    (US-ACII is a subset of UTF-8.)
+    (US-ASCII is a subset of UTF-8.)
 
     It is recommended that you let the command generate a configuration
     file and then edit that file to match your needs. It is NOT recommended
@@ -107,13 +107,13 @@ def generate_syntax_txt(filename: str, example_description: str,
     The keyword column_ref is used to tell if the configuration
     references columns by name (value "BY_NAME") or by number
     (value "BY_NUMBER"). The syntax of parts of the configuration file
-    is slightly different depending on the how columns are referenced.
+    is slightly different depending on how columns are referenced.
     Thus, you first have to decide how you want to reference columns.
 
     Generally it is easier to write a correct configuration using "BY_NAME",
     so "BY_NAME" is recommended when possible.
     "BY_NAME" imposes a few restrictions:
-     - each column need to have a unique text at the first line to use
+     - each column needs to have a unique text at the first line to use
        as column name.
      - the column names need to be stable and known.
 
@@ -162,8 +162,8 @@ def generate_syntax_txt(filename: str, example_description: str,
     =================================
 
     When viewing an excel file in excel it is very hard to notice if
-    some string value in a cell has trailing white space. These trailing
-    trailing spaces can make the further processing of a file difficult
+    some string value in a cell has trailing whitespace. These trailing
+    spaces can make the further processing of a file difficult
     as the strings in the file are not what you thought they are.
     (This especially is a problem if you have trailing spaces in a
     cell on the first line, and refer to columns by their names.)
@@ -173,7 +173,7 @@ def generate_syntax_txt(filename: str, example_description: str,
     values read from the first line of the excel input file.
     The configuration "in_excel_values_strip" can be set to true,
     to strip off leading and trailing whitespace from all columns
-    values read from from the other lines (not the first line) of
+    values read from the other lines (not the first line) of
     the excel input file. (In version 0.6.2 and earlier these are
     missing. To be compatible with version 0.6.2 and earlier
     "in_excel_col_name_strip" and "in_excel_values_strip"
@@ -182,7 +182,7 @@ def generate_syntax_txt(filename: str, example_description: str,
 
     Column manipulation
     ====================
-    A number or records starting with "s" and a number describe
+    A number of records starting with "s" and a number describe
     column manipulation to be done. These manipulations are done
     in order of the number: s01_(something) before s02_(something),
     before s03_(something). As the "s" number records might add, remove
@@ -199,12 +199,12 @@ def generate_syntax_txt(filename: str, example_description: str,
 
     The first operation is to split rows based on column values.
     This operation is configured using the "s01_split_rows" record,
-    that have an array of splits to be done. Each row split has the
+    that has an array of splits to be done. Each row split has the
     following keys: "column", "separators" and "not_separators".
 
     The "column" keyword is used to identify the column that is
     split into several rows. This is a column number in the case of
-    "BY_NUMBER", and a column name/title in the sace of "BY_NAME".
+    "BY_NUMBER", and a column name/title in the case of "BY_NAME".
 
     New rows will be created so that the parts of the identified
     column will be put in that column only one part per row.
@@ -216,7 +216,7 @@ def generate_syntax_txt(filename: str, example_description: str,
     as the separator between the parts of the column value that go
     into different rows.
 
-    "not_separators" take as arguement a list of strings. These strings
+    "not_separators" take as argument a list of strings. These strings
     are not regarded as separators even if they include the strings
     of one or more separator. (For instance ";" could be a separator,
     but using "not_separators" the string "\\;" could be seen as not
@@ -228,14 +228,14 @@ def generate_syntax_txt(filename: str, example_description: str,
 
     The next operation is to merge rows based on column values.
     This is the opposite operation to the splitting of rows.
-    Row mergins is configured using the "s02_merge_rows" record,
-    that have an array of merges to be done. Each row merge have
+    Row merging is configured using the "s02_merge_rows" record,
+    that has an array of merges to be done. Each row merge has
     the following keys: "columns" and "separator".
 
     The "columns" keyword is used to identify the columns that need
     to have identical values to merge two or more rows. The "columns"
-    keyword take a list of columns. These are column numbers in the case of
-    "BY_NUMBER", and a column names/titles in the sace of "BY_NAME".
+    keyword takes a list of columns. These are column numbers in the case of
+    "BY_NUMBER", and column names/titles in the case of "BY_NAME".
 
     For each column that has the same value for all rows merged, that
     value will be in the merged row. When rows being merged have different
@@ -250,20 +250,20 @@ def generate_syntax_txt(filename: str, example_description: str,
     "s03_split_columns"
     ==================
     The first column operation that is done is splitting of columns.
-    The key "s03_split_columns" have an array of splits to be
+    The key "s03_split_columns" has an array of splits to be
     done. (When the list of splits has more than one split,
     the least confusion is to split columns to the right before
     columns to the left. Named references also helps to avoid
     confusion.)
 
     Each split has the following keys: "column", "separator" and
-    "where". In the case of number column references the there is
+    "where". In the case of number column references there is
     also the key "store_single". In the case of named column references
     there is instead the key "right_name".
 
-    "column" take as argument the column to be split. This is a
+    "column" takes as argument the column to be split. This is a
     column number in the case of "BY_NUMBER", and a column name/title
-    in the sace of "BY_NAME".
+    in the case of "BY_NAME".
 
     "separator" is a string of characters that indicate the position
     where the column shall be split. (For instance a single space
@@ -272,7 +272,7 @@ def generate_syntax_txt(filename: str, example_description: str,
     "where" can either have the value "RIGHTMOST" or the value
     "LEFTMOST". This is used if the separator string is present
     more than once in the column value to split. The split is then
-    done at the leftmost or rightmost occurence according to the
+    done at the leftmost or rightmost occurrence according to the
     value of "where".
 
     "right_name" is only used if column references are "BY_NAME".
@@ -294,12 +294,12 @@ def generate_syntax_txt(filename: str, example_description: str,
     "s04_remove_columns" is only used with column references "BY_NUMBER".
     The value of "s04_remove_columns" is a list of column numbers to
     remove.
-    (For columns references "BY_NAME" see "s10_column_order".)
+    (For column references "BY_NAME" see "s10_column_order".)
 
 
     "s05_merge_columns"
     ==================
-    The key "s05_merge_columns" have an array of merges to be done.
+    The key "s05_merge_columns" has an array of merges to be done.
     Each merge have the keys "columns" and "separator"
 
     "columns" have a list of column references. If "BY_NAME" the
@@ -316,7 +316,7 @@ def generate_syntax_txt(filename: str, example_description: str,
     The key "s06_place_columns_first" has a value that is a list of the
     column numbers to be placed first in order. This step re-orders the
     columns.
-    (For columns references "BY_NAME" see "s10_column_order".)
+    (For column references "BY_NAME" see "s10_column_order".)
 
 
     "s07_rename_columns"
@@ -324,9 +324,9 @@ def generate_syntax_txt(filename: str, example_description: str,
     The key "s07_rename_columns" has a value that is a list of column rename
     operations. Each column rename operation has the keys "column" and "name"
 
-    "column" is the number/name of the column before renameing. This is a
+    "column" is the number/name of the column before renaming. This is a
     column number in the case of "BY_NUMBER", and a column name/title
-    in the sace of "BY_NAME".
+    in the case of "BY_NAME".
 
     "name" is the new name/title of the column identified by "column".
 
@@ -363,7 +363,7 @@ def generate_syntax_txt(filename: str, example_description: str,
     "kind" value "STRIP" shall have the keys: "kind", "case", "chars"
     and "column". This case means that the characters in "chars" shall
     be stripped off the beginning and end of the column value. If key
-    "chars" is empty string, then white space is stripped off.
+    "chars" is empty string, then whitespace is stripped off.
 
     "kind" value "REMOVECHARS" shall have the keys: "kind", "case",
     "chars" and "column". This case means that the characters in "chars"
@@ -381,7 +381,7 @@ def generate_syntax_txt(filename: str, example_description: str,
     replaced with the value of key "to".
 
     "column" identifies the column to rewrite. This is a column number in the
-    case of "BY_NUMBER", and a column name/title in the sace of "BY_NAME".
+    case of "BY_NUMBER", and a column name/title in the case of "BY_NAME".
 
     "chars" is a list of characters written as a string. These characters
     are removed or stripped off the beginning/end depending on the "kind"
@@ -391,8 +391,8 @@ def generate_syntax_txt(filename: str, example_description: str,
     value of "from" shall be case sensitive or not. Possible values are
     "MATCH_CASE" and "IGNORE_CASE".
 
-    "from" specifies what the part to substitute shall match. The from part
-    in the substitute from something to something.
+    "from" specifies what part of the column value shall be substituted
+    when matching.
 
     "to" specifies the string that substitution will replace "from" with.
 

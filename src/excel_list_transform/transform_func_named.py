@@ -1,5 +1,5 @@
 #! /usr/local/bin/python3
-"""Functions for doing transform of lists excel files."""
+"""Functions for transforming list data with named columns."""
 
 # Copyright (c) 2024-2025 Tom Björkholm
 # MIT License
@@ -101,7 +101,7 @@ def check_indata_name(indata: NameData) -> None:
 
 def transform_data_name(indata: NameData,
                         cfg: ConfigXlsListTransfName) -> NameData:
-    """Transform list in the data with column number refs."""
+    """Transform list in the data with column name refs."""
     check_indata_name(indata=indata)
     ret = split_rows_cfg(indata=indata, cfg=cfg, tinfo='a')
     ret = merge_rows_cfg(indata=ret, cfg=cfg, tinfo='a')
@@ -115,7 +115,7 @@ def transform_data_name(indata: NameData,
 
 def transform_named_files_name(infilename: str, outfilename: str,
                                cfg: Config) -> None:
-    """Transform list in the named excel file to named file."""
+    """Transform list data from the named input file to output file."""
     cfgn: ConfigXlsListTransfName = \
         get_checked_type(value=cfg, istype=ConfigXlsListTransfName)
     indata = read_table_named(infilename, cfgn)

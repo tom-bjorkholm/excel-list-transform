@@ -189,7 +189,7 @@ def test_xls_lst_rfm_cmd_help(capsys: CaptureFixture[str],
     assert 'version' in out
     assert 'Print versions of excel_list_transform' in out
     assert 'Generate example configuration file (example .cfg' in out
-    assert 'Transform list in excel or CSV file. How data is' in out
+    assert 'Transform list data in a table file. How data is' in out
     assert 'More detailed help is available for each sub-command.' \
         in out.replace('\n', ' ')
     assert '' == err
@@ -226,7 +226,7 @@ def test_xlsr_cmd_rfmt_help(capsys: CaptureFixture[str],
     assert ' -i, --input INPUT' in out
     assert ' -o, --output OUTPUT' in out
     assert 'example' in out
-    assert 'list in excel or CSV file' in out
+    assert 'list data in a table file' in out
     assert '' == err
 
 

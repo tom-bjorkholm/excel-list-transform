@@ -1,5 +1,5 @@
 #! /usr/local/bin/python3
-"""Functions for doing transform of lists excel files."""
+"""Functions for transforming list data."""
 
 # Copyright (c) 2024-2025 Tom Björkholm
 # MIT License
@@ -90,7 +90,7 @@ def store_col_split_num(row: NumRow, colref: int, val: list[str],
 
 def store_col_split_name(row: NameRow, colref: str, val: list[str],
                          singlerule: SingleRuleSplit[str]) -> None:
-    """Store result of column split for number refs."""
+    """Store result of column split for name refs."""
     rightname = singlerule['right_name']
     assert isinstance(rightname, str)
     row[rightname] = None
@@ -170,7 +170,7 @@ def insert_into_row(row: NumRow | NameRow, colref: Column, val: Value) -> None:
 
 def merge_columns(indata: Data[Row], cfg: ConfigExcelListTransform[Column],
                   tinfo: Column) -> Data[Row]:
-    """Merge columns in the list in indata with column number refs."""
+    """Merge columns in the list in indata."""
     if len(cfg.s05_merge_columns) == 0:
         return indata
     ret = deepcopy(indata)
@@ -226,7 +226,7 @@ def set_row_element(row: Row, idx: Column, tinfo: Column, val: Value) -> None:
 
 def rewrite_columns(indata: Data[Row], cfg: ConfigExcelListTransform[Column],
                     tinfo: Column) -> Data[Row]:
-    """Rewrite columns in the list in indata with column number refs."""
+    """Rewrite columns in the list in indata."""
     if len(cfg.s09_rewrite_columns) == 0:
         return indata
     ret = deepcopy(indata)

@@ -1,5 +1,5 @@
 #! /usr/local/bin/python3
-"""Functions for doing transform of lists excel files."""
+"""Functions for transforming list data with numbered columns."""
 
 # Copyright (c) 2024-2025 Tom Björkholm
 # MIT License
@@ -141,7 +141,7 @@ def transform_data_num(indata: NumData,
 
 def transform_named_files_num(infilename: str, outfilename: str,
                               cfg: Config) -> None:
-    """Transform list in the named excel file to named file."""
+    """Transform list data from the named input file to output file."""
     cfgn: ConfigXlsListTransfNum = \
         get_checked_type(value=cfg, istype=ConfigXlsListTransfNum)
     indata = read_table_num(infilename, cfgn)

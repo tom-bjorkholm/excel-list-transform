@@ -1,6 +1,6 @@
 #! /usr/local/bin/python3
 # PYTHON_ARGCOMPLETE_OK
-"""Command to transform list in excel or CSV file."""
+"""Command to transform list data in table files."""
 
 # Copyright (c) 2024-2025 Tom Björkholm
 # MIT License
@@ -31,7 +31,7 @@ def gen_cfg_cmd(args: argparse.Namespace) -> int:
 
 
 def rfmt_cmd(args: argparse.Namespace) -> int:
-    """Transform excel/csv file."""
+    """Transform a table file."""
     outfilename = args.output[0]
     infilename = args.input[0]
     cfgfilename = args.cfg[0]
@@ -76,7 +76,7 @@ as the configuration file but with extension .txt instead of .cfg.
 '''
 
 GENERAL_DESCRIPTION = '''
-Transform or reorganize list in excel or CSV file. How data is transformed
+Transform or reorganize list data in a table file. How data is transformed
 is described in a configuration file. Name of input file,
 output file and configuration file is given as command line
 arguments.
@@ -117,8 +117,8 @@ def gen_cfg_args_named(subparsers: SubParseAct, sub_pars_name: str) -> None:
     cfg_parser.add_argument('-k', '--kind', nargs=1, required=True,
                             help=kind_help, choices=examplekinds)
     reftypes = [e.name.lower() for e in ColumnRef]
-    ref_help = 'How does configuration file reference to columns '
-    ref_help += 'in the data. By column number of by column name. '
+    ref_help = 'How does configuration file reference columns '
+    ref_help += 'in the data. By column number or by column name. '
     ref_help += 'Possible values are (' + ', '.join(reftypes) + '). '
     ref_help += 'Normally "by_name" column references are easier to get right.'
     cfg_parser.add_argument('-r', '--reference', nargs=1, required=True,
@@ -136,7 +136,7 @@ def gen_cfg_args(subparsers: SubParseAct) -> None:
 
 def transf_args(subparsers: SubParseAct) -> None:
     """Add arguments for transform sub-command."""
-    transf_help = 'Transform list in excel or CSV file. How data is '
+    transf_help = 'Transform list data in a table file. How data is '
     transf_help += 'transformed is described in a configuration file. Name '
     transf_help += 'of input file, output file and configuration file is '
     transf_help += 'given as command line arguments.'
@@ -146,7 +146,7 @@ def transf_args(subparsers: SubParseAct) -> None:
                                           SEE_MAIN_HELP)
     transf_parser.set_defaults(func=rfmt_cmd)
     transf_parser.add_argument('-c', '--cfg', nargs=1, required=True,
-                               help='Configuation file name to use.')
+                               help='Configuration file name to use.')
     transf_parser.add_argument('-i', '--input', nargs=1,
                                help='Name of input file.', required=True)
     transf_parser.add_argument('-o', '--output', nargs=1,
@@ -167,7 +167,7 @@ def version_args(subparsers: SubParseAct) -> None:
 
 
 def migrate_args(subparsers: SubParseAct) -> None:
-    """Add arguments for version sub-command."""
+    """Add arguments for migrate-cfg sub-command."""
     migrate_help = 'Migrate configuration file format from older '
     migrate_help += 'format to newest format.'
     migrate_descr = migrate_help + ' The transform command '
@@ -193,7 +193,7 @@ def migrate_args(subparsers: SubParseAct) -> None:
 
 
 def transform_cmd(arguments: Optional[list[str]] = None) -> None:
-    """Command to transform list in excel or CSV file."""
+    """Command to transform list data in table files."""
     ExcelListVersionReporter().check_if_unsupported_python()
     epimain = 'More detailed help is available for each sub-command.'
     if arguments is None:  # pragma: no cover

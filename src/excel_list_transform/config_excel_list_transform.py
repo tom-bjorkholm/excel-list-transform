@@ -220,8 +220,8 @@ class ConfigExcelListTransform(Config, Generic[Column]):
         self.output_table.character_encoding = 'utf-8'
         self.in_excel_col_name_strip = True
         self.in_excel_values_strip = False
-        self.output_borders: bool = False
-        self.output_filtered_table: bool = False
+        self.output_borders: bool = True
+        self.output_filtered_table: bool = True
         self.s01_split_rows: RuleRowSplit[Column] = \
             [{'column': col2userow.pop(0),
               'separators': [' ', '+'],

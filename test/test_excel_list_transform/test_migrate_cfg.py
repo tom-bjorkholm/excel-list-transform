@@ -69,6 +69,8 @@ def test_migrate_cfg1(capsys: CaptureFixture[str]) -> None:
     refcfg.s02_merge_rows = []
     refcfg.s03_split_columns[0]['right_name'] = 'Family Name'
     refcfg.s08_insert_columns[1]['column'] = 'Something Else'
+    refcfg.output_borders = False
+    refcfg.output_filtered_table = False
     infilename = 'test/test_excel_list_transform/bak_compat_0_7_13_name.cfg'
     with TemporaryDirectory() as dirname:
         outfilename = dirname + '/a.cfg'
@@ -97,6 +99,8 @@ def test_migrate_cfg2(capsys: CaptureFixture[str]) -> None:
     refcfg.s02_merge_rows = []
     refcfg.s07_rename_columns[1]['name'] = 'Family Name'
     refcfg.s08_insert_columns[1]['name'] = 'Something else'
+    refcfg.output_borders = False
+    refcfg.output_filtered_table = False
     infilename = 'test/test_excel_list_transform/bak_compat_0_7_13_number.cfg'
     with TemporaryDirectory() as dirname:
         outfilename = dirname + '/a.cfg'
@@ -157,6 +161,8 @@ def test_migrate_cmd1(capsys: CaptureFixture[str], ipar: str,
     refcfg.s02_merge_rows = []
     refcfg.s03_split_columns[0]['right_name'] = 'Family Name'
     refcfg.s08_insert_columns[1]['column'] = 'Something Else'
+    refcfg.output_borders = False
+    refcfg.output_filtered_table = False
     infilename = 'test/test_excel_list_transform/bak_compat_0_7_13_name.cfg'
     with TemporaryDirectory() as dirname:
         outfilename = dirname + '/a.cfg'
@@ -185,6 +191,8 @@ def test_migrate_cmd2(capsys: CaptureFixture[str], ipar: str,
     refcfg.s02_merge_rows = []
     refcfg.s07_rename_columns[1]['name'] = 'Family Name'
     refcfg.s08_insert_columns[1]['name'] = 'Something else'
+    refcfg.output_borders = False
+    refcfg.output_filtered_table = False
     infilename = 'test/test_excel_list_transform/bak_compat_0_7_13_number.cfg'
     with TemporaryDirectory() as dirname:
         outfilename = dirname + '/a.cfg'

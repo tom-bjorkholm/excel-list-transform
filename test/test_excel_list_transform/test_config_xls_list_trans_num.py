@@ -114,6 +114,8 @@ def test_bak_cmpt_0_7_13_num(capsys: CaptureFixture[str]) -> None:
                                               delimiter=',', quotechar='"')
     refcfg.output_table.csv = TioJsonCsvConfig(dialect=CsvDialect.EXCEL,
                                                delimiter=',', quotechar='"')
+    refcfg.output_borders = False
+    refcfg.output_filtered_table = False
     refcfg.s01_split_rows = []
     refcfg.s02_merge_rows = []
     refcfg.s07_rename_columns[1]['name'] = 'Family Name'

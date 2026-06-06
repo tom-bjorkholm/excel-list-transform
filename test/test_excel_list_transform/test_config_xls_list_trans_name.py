@@ -111,6 +111,8 @@ def test_bak_cmpt_0_7_13_nam(capsys: CaptureFixture[str]) -> None:
     configure_output_csv(refcfg)
     refcfg.input_table.character_encoding = 'utf_8_sig'
     refcfg.output_table.character_encoding = 'utf-8'
+    refcfg.output_borders = False
+    refcfg.output_filtered_table = False
     refcfg.input_table.csv = TioJsonCsvConfig(dialect=CsvDialect.UNIX,
                                               delimiter=',', quotechar='"')
     refcfg.output_table.csv = TioJsonCsvConfig(dialect=CsvDialect.EXCEL,

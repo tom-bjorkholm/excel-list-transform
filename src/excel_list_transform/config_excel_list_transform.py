@@ -272,11 +272,10 @@ class ConfigExcelListTransform(Config, Generic[Column]):
                                        factory_function=output_table_factory)
         return {'input_table': input_nesting, 'output_table': output_nesting}
 
-    def _read_old_config(self) -> ReadOldConfiguration:
+    @override
+    def _get_read_old_config(self) -> ReadOldConfiguration:
         """Return old-format migration rules."""
         return ConfigReadOld()
-
-    _get_read_old_configuration = _read_old_config
 
     @override
     def get_validation_plan(self, stderr_file: TextIO) -> ValidationPlan:

@@ -65,9 +65,8 @@ def print_results(data: dict[int, dict[ColumnRef, float]],
 
 def measure_speed() -> None:
     """Measure speed for different data set sizes."""
-#    sizes = [10, 100, 1000, 10*1000, 20*1000, 40*1000, 60*1000,
-#             80*1000, 100*1000, 120*1000]
-    sizes = [100, 500, 1000, 2*1000, 3*1000, 4*1000, 5*1000]
+    sizes = [10, 100, 1000, 10*1000, 20*1000, 40*1000, 60*1000,
+             80*1000, 100*1000, 120*1000]
     resulting_time: dict[int, dict[ColumnRef, float]] = {}
     for i in sizes:
         resulting_time[i] = measure_speed_for_size(i)

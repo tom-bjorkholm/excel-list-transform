@@ -147,15 +147,15 @@ this application is not for you.
 With an input file consisting of 20 columns producing an output file of
 11 columns I have measured the following performance:
 
-| number of rows |   on MacBook Air M4   | on MacMini M4 Pro     |
-|----------------|-----------------------|-----------------------|
-|            100 | less than     seconds | less than 0.1 seconds |
-|           1000 |                       | less than 0.3 seconds |
-|         10 000 |                       | less than 2.5 seconds |
-|         20 000 |                       |  less than 5 seconds  |
-|         40 000 |                       | less than 11 seconds  |
-|         80 000 |                       | less than 23 seconds  |
-|        120 000 |                       | less than 33 seconds  |
+| number of rows |   on MacBook Air M4   |
+|----------------|-----------------------|
+|            100 | less than 0.2 seconds |
+|           1000 | less than 0.3 seconds |
+|         10 000 | less than 2.5 seconds |
+|         20 000 |  less than 5 seconds  |
+|         40 000 | less than 11 seconds  |
+|         80 000 | less than 23 seconds  |
+|        120 000 | less than 34 seconds  |
 
 Naturally your performance will be different based on computer hardware,
 operating system and Python version. Generally it should be reasonably

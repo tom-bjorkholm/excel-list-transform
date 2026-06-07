@@ -140,22 +140,28 @@ configuration file to understand the syntax and the possible options.
 ## Performance
 
 This application is written for the moderate amounts of data when
-registering participants for the majority of sports events. If you have
-millions of rows this application is not for you.
+registering participants for the majority of sports events, or
+processing scrum backlogs in excel. If you have millions of rows
+this application is not for you.
 
 With an input file consisting of 20 columns producing an output file of
 11 columns I have measured the following performance:
 
 | number of rows |   on MacBook Air M4   | on MacMini M4 Pro     |
 |----------------|-----------------------|-----------------------|
-|            100 | less than 0.2 seconds | less than 0.2 seconds |
-|            500 |                       | less than 2 seconds   |
+|            100 | less than     seconds | less than 0.1 seconds |
+|           1000 |                       | less than 0.3 seconds |
+|         10 000 |                       | less than 2.5 seconds |
+|         20 000 |                       |  less than 5 seconds  |
+|         40 000 |                       | less than 11 seconds  |
+|         80 000 |                       | less than 23 seconds  |
+|        120 000 |                       | less than 33 seconds  |
 
-(A performance related fix in a library this application depends on is
- expected soon.)
-
-Naturally your performance will be different based on computer
-hardware, operating system and Python version.
+Naturally your performance will be different based on computer hardware,
+operating system and Python version. Generally it should be reasonably
+fast for less than 10 000 rows, painfully slow but somewhat usable up
+to 100 000 rows and probably so slow that it is unusable for more
+than 100 000 rows.
 
 ## Description of how to write/change the configuration file
 

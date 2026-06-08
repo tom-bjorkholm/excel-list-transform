@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
   name='excel-list-transform',
-  version='0.9.1',
+  version='1.0',
   description='Transform table data with configurable row and column changes.',
   author='Tom Björkholm',
   author_email='klausuler_linnet0q@icloud.com',

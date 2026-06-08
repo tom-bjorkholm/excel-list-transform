@@ -112,5 +112,5 @@ the built and installed application in the virtual environment `./venv`.
 - No flake8 warnings.
 - No mypy errors found.
 - No python layout warnings.
-- Built version(s): 0.9.1
+- Built version(s): 1.0
 - Build and test using Python 3.14.5

@@ -56,32 +56,6 @@ pip3 install --upgrade excel-list-transform
 pip install --upgrade excel-list-transform
 ````
 
-## Version history
-
-| Version | Date        | Python version  | Description                         |
-|---------|-------------|-----------------|-------------------------------------|
-| 0.5     | 10 Sep 2024 | 3.10.5 or newer | First released version              |
-| 0.6     | 22 Sep 2024 | 3.12.6 or newer | Configured encoding for CSV         |
-| 0.6.2   | 28 Sep 2024 | 3.12.6 or newer | Fix name in test report             |
-| 0.7.0   | 03 Nov 2024 | 3.12.6 or newer | Option to strip space in excel      |
-| 0.7.1   | 15 Dec 2024 | 3.12.6 or newer | Refactor tests                      |
-| 0.7.3   | 06 Jan 2025 | 3.12.6 or newer | Example config for Sailwave to RRS  |
-| 0.7.5   | 21 Mar 2025 | 3.12.6 or newer | Example config for Sailarena to RRS |
-| 0.7.6   | 21 Mar 2025 | 3.13.2 or newer | Adapted to Python 3.13.2            |
-| 0.7.7   | 09 Apr 2025 | 3.13.3 or newer | refactor phone number rewrite cfg   |
-| 0.7.9   | 09 Jun 2025 | 3.10.x          | Backport 0.7.12 to Python 3.10      |
-| 0.7.10  | 09 Jun 2025 | 3.11.x          | Backport 0.7.12 to Python 3.11      |
-| 0.7.11  | 09 Jun 2025 | 3.12.x          | Backport 0.7.12 to Python 3.12      |
-| 0.7.12  | 09 Jun 2025 | 3.13.3 or newer | Add version sub-command             |
-| 0.7.13  | 11 Jun 2025 | 3.13 or newer   | Relax Python version requirement    |
-| 0.8.0   | 23 Jul 2025 | 3.10.x          | Backport 0.8.3 to Python 3.10       |
-| 0.8.1   | 23 Jul 2025 | 3.11.x          | Backport 0.8.3 to Python 3.11       |
-| 0.8.2   | 23 Jul 2025 | 3.12.x          | Backport 0.8.3 to Python 3.12       |
-| 0.8.3   | 23 Jul 2025 | 3.13 or newer   | Add split-row and merge-row         |
-| 0.8.4   | 23 Nov 2025 | 3.12.x          | Backport 0.8.5 to Python 3.12       |
-| 0.8.5   | 23 Nov 2025 | 3.13 or newer   | Adapted to Python 3.14              |
-| 0.9     | 06 Jun 2026 | 3.13 or newer   | Many new input/output formats       |
-
 ## Running the application
 
 ### Running the application on mac and Linux
@@ -512,5 +486,5 @@ Source code and tests are available at [https://bitbucket.org/tom-bjorkholm/exce
 - No flake8 warnings.
 - No mypy errors found.
 - No python layout warnings.
-- Built version(s): 0.9.1
+- Built version(s): 1.0
 - Build and test using Python 3.14.5

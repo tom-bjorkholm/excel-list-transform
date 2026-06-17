@@ -36,3 +36,4 @@ non_cursor_AGENTS.md
 *.xlsx
 example/result/*
 dep_libs_doc/*
+dep_lib_doc/*

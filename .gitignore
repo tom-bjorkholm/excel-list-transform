@@ -23,6 +23,7 @@ __pycache__
 .claude/*
 .claudeignore
 AGENTS.md
+CLAUDE.md
 AGENTS.md.old
 non_cursor_AGENTS.md
 *.docx

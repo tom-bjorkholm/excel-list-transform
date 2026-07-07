@@ -52,8 +52,7 @@ How this is done is governed by a configuration file. The application can create
 This repository uses submodules. Clone it with:
 
 ```sh
-git clone --recurse-submodules \
-  git@bitbucket.org:tom-bjorkholm/excel-list-transform.git
+git clone --recurse-submodules git@github.com:tom-bjorkholm/excel-list-transform.git
 ```
 
 If you already cloned without submodules, initialize them with:

@@ -478,7 +478,7 @@ python3 -m excel_list_transform.recode -i a.txt -o b.txt --from cp1250 --to utf-
 
 ## Source code
 
-Source code and tests are available at [https://bitbucket.org/tom-bjorkholm/excel-list-transform](https://bitbucket.org/tom-bjorkholm/excel-list-transform).
+Source code and tests are available at [https://github.com/tom-bjorkholm/excel-list-transform](https://github.com/tom-bjorkholm/excel-list-transform).
 
 ## Test summary
 

@@ -7,7 +7,7 @@ This python application was born out of an experience at sail racing events. At 
 ## Using it
 
 If you want to use it install it using pip from [https://pypi.org/project/excel-list-transform](https://pypi.org/project/excel-list-transform).
-There is no need to download anything from Bitbucket to use the application.
+There is no need to download anything from GitHub to use the application.
 
 ### Installing on mac and Linux
 

@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
   name='excel-list-transform',
-  version='1.0.1',
+  version='1.1',
   description='Transform table data with configurable row and column changes.',
   author='Tom Björkholm',
   author_email='klausuler_linnet0q@icloud.com',
@@ -14,14 +14,10 @@ setup(
   package_dir={'excel_list_transform': 'src/excel_list_transform'},
   package_data={'excel_list_transform': ['src/py.typed']},
   install_requires=[
-    'tableio-cfg-json >= 0.4',
-    'tableio >= 1.0',
-    'config-as-json >= 1.2',
-    'versionreporter >= 0.2',
-    'argcomplete >= 3.6.3',
-    'pip >= 26.1',
-    'setuptools >= 82.0.1',
-    'build >= 1.5.0',
-    'wheel>=0.47.0'
+    'tableio-cfg-json >= 0.8',
+    'tableio >= 1.1',
+    'config-as-json >= 1.4',
+    'versionreporter >= 0.4',
+    'argcomplete >= 3.7.0'
   ]
 )

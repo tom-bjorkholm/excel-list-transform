@@ -107,9 +107,9 @@ the built and installed application in the virtual environment `./venv`.
 
 ## Test summary
 
-- Test result: 1368 passed in 64s (0:01:04)
+- Test result: 1368 passed, 1 warning in 64s (0:01:04)
 - No flake8 warnings.
 - No mypy errors found.
 - No python layout warnings.
-- Built version(s): 1.0.1
-- Build and test using Python 3.14.5
+- Built version(s): 1.1
+- Build and test using Python 3.14.6

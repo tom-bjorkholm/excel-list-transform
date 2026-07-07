@@ -6,7 +6,7 @@
 
 
 from datetime import date
-
+from typing import TextIO
 from packaging.version import Version
 import pytest
 from pytest import CaptureFixture, MonkeyPatch
@@ -29,7 +29,7 @@ def test_reporter_config() -> None:
     assert ExcelListVersionReporter.get_main_package_name() == \
         'excel-list-transform'
     assert ExcelListVersionReporter.get_recommended_python_version() == \
-        Version('3.13')
+        Version('3.14')
 
 
 def test_version_table(capsys: CaptureFixture[str],
@@ -39,11 +39,13 @@ def test_version_table(capsys: CaptureFixture[str],
                     'openpyxl': Version('4.5.6'),
                     'pylightxl': Version('7.8.9'),
                     'XlsxWriter': Version('10.11.12'),
-                    'Python': Version('3.13.1')}
+                    'Python': Version('3.14.6')}
 
     def no_new_packages(_: ExcelListVersionReporter,
-                        versions: dict[str, Version]) -> None:
+                        versions: dict[str, Version], out_file: TextIO) \
+            -> None:
         """Skip PyPI lookup in this output-focused test."""
+        assert out_file is not None
         assert versions == version_data
 
     monkeypatch.setattr(ExcelListVersionReporter, '_print_info_on_new_pkgs',
@@ -55,7 +57,7 @@ def test_version_table(capsys: CaptureFixture[str],
     assert 'openpyxl ............ 4.5.6' in out
     assert 'pylightxl ........... 7.8.9' in out
     assert 'XlsxWriter .......... 10.11.12' in out
-    assert 'Python .............. 3.13.1' in out
+    assert 'Python .............. 3.14.6' in out
     assert 'You are running an old Python version.' not in out
 
 
@@ -72,8 +74,10 @@ def test_print_upgrade_text(capsys: CaptureFixture[str],
                     'Python': Version('3.12.0')}
 
     def no_new_packages(_: ExcelListVersionReporter,
-                        versions: dict[str, Version]) -> None:
+                        versions: dict[str, Version], out_file: TextIO) \
+            -> None:
         """Skip PyPI lookup in this output-focused test."""
+        assert out_file is not None
         assert versions == version_data
 
     monkeypatch.setattr(ExcelListVersionReporter, '_print_info_on_new_pkgs',

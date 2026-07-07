@@ -11,7 +11,7 @@ from datetime import date
 from importlib.metadata import version as metadata_version
 from io import StringIO
 from tempfile import TemporaryDirectory
-from typing import Optional
+from typing import Optional, TextIO
 import sys
 from config_as_json import InvalidConfiguration
 from packaging.version import Version
@@ -247,8 +247,10 @@ def test_version_cmd1(capsys: CaptureFixture[str],
                       monkeypatch: MonkeyPatch) -> None:
     """Test command to print version information."""
     def no_new_packages(_: ExcelListVersionReporter,
-                        versions: dict[str, Version]) -> None:
+                        versions: dict[str, Version], out_file: TextIO) \
+            -> None:
         """Skip PyPI lookup in this command test."""
+        assert out_file is not None
         assert versions is not None
 
     mod = 'excel_list_transform.version_information.'

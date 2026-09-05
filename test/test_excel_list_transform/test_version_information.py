@@ -28,8 +28,7 @@ def test_reporter_config() -> None:
         date(year=2027, month=10, day=1): '3.13'}
     assert ExcelListVersionReporter.get_main_package_name() == \
         'excel-list-transform'
-    assert ExcelListVersionReporter.get_recommended_python_version() == \
-        Version('3.14')
+    assert ExcelListVersionReporter.recommended_python() == Version('3.14')
 
 
 def test_version_table(capsys: CaptureFixture[str],

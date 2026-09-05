@@ -90,7 +90,8 @@ def test_xls_rfmt_rd_inc4(capsys: CaptureFixture[str], t: str) -> None:
                          [('{'
                            '"input_table": {'
                            '"format_name": "CSV", "csv": "B"}}',
-                           'Nested Config member csv must be a JSON object'),
+                           'Nested Config member input_table.csv '
+                           'must be a JSON object'),
                           ('{"s04_remove_columns": {"delimiter" : ";"}}',
                            'Unexpected dictionary for')])
 def test_cfg_xls_lst_rfmt_rd(capsys: CaptureFixture[str], t: str,

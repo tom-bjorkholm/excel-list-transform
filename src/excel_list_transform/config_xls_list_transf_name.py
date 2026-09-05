@@ -21,7 +21,8 @@ class ConfigXlsListTransfName(ConfigExcelListTransform[str]):
     def __init__(self, from_json_data_text: Optional[str] = None,
                  from_json_filename: Optional[PathOrStr] = None,
                  auto_ch_hook: Optional[ConfigAutoChangeHook] = None,
-                 stderr_file: TextIO = sys.stderr) -> None:
+                 stderr_file: TextIO = sys.stderr, *,
+                 member_name: Optional[str] = None) -> None:
         """Construct configuration for excel list transform."""
         col_to_use = ['street', 'street number', 'name', 'last name',
                       'Phone', 'Phone', 'Phone', 'Phone', 'Phone',
@@ -43,7 +44,8 @@ class ConfigXlsListTransfName(ConfigExcelListTransform[str]):
         super().__init__(col_ref=ColumnRef.BY_NAME, colinfo=colinfo, tinfo='a',
                          from_json_data_text=from_json_data_text,
                          from_json_filename=from_json_filename,
-                         auto_ch_hook=auto_ch_hook, stderr_file=stderr_file)
+                         auto_ch_hook=auto_ch_hook, stderr_file=stderr_file,
+                         member_name=member_name)
 
     @override
     def get_column_val_steps(self) -> list[MemberValidationStep]:

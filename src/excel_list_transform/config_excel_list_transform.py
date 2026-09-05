@@ -18,7 +18,7 @@ from config_as_json import Config, ConfigAutoChangeHook, ConfigNesting, \
     CallingWholeConfigValidator, MemberValidator, DictKeysValidator, \
     DictRule, DictForEachValidator, DictVariant, \
     DiscriminatedDictValidator, ListForEachValidator, \
-    ListSizeValidator, ListValueTypeValidator
+    ListSizeValidator, ListValueTypeValidator, member_path
 from tableio import CAP_IGNORABLE, CAP_NEEDED, Capabilities, FileAccess, \
     TableBorderStyle
 from tableio_cfg_json import TioJsonConfig
@@ -70,28 +70,28 @@ def output_capabilities() -> Capabilities:
                         can_write_borders=CAP_IGNORABLE)
 
 
-def input_table_factory(from_json_data_text: Optional[str] = None,
+def input_table_factory(*, from_json_data_text: Optional[str] = None,
                         from_json_filename: Optional[PathOrStr] = None,
-                        auto_ch_hook: Optional[ConfigAutoChangeHook] = None,
-                        stderr_file: TextIO = sys.stderr) -> TioJsonConfig:
+                        stderr_file: TextIO = sys.stderr,
+                        member_name: Optional[str] = None) -> TioJsonConfig:
     """Create JSON-backed TableIO configuration for input files."""
     return TioJsonConfig(capabilities=input_capabilities(),
                          file_access=FileAccess.READ,
                          from_json_data_text=from_json_data_text,
                          from_json_filename=from_json_filename,
-                         auto_ch_hook=auto_ch_hook, stderr_file=stderr_file)
+                         stderr_file=stderr_file, member_name=member_name)
 
 
-def output_table_factory(from_json_data_text: Optional[str] = None,
+def output_table_factory(*, from_json_data_text: Optional[str] = None,
                          from_json_filename: Optional[PathOrStr] = None,
-                         auto_ch_hook: Optional[ConfigAutoChangeHook] = None,
-                         stderr_file: TextIO = sys.stderr) -> TioJsonConfig:
+                         stderr_file: TextIO = sys.stderr,
+                         member_name: Optional[str] = None) -> TioJsonConfig:
     """Create JSON-backed TableIO configuration for output files."""
     return TioJsonConfig(capabilities=output_capabilities(),
                          file_access=FileAccess.CREATE,
                          from_json_data_text=from_json_data_text,
                          from_json_filename=from_json_filename,
-                         auto_ch_hook=auto_ch_hook, stderr_file=stderr_file)
+                         stderr_file=stderr_file, member_name=member_name)
 
 
 def _invalid_projection(member_name: str, message: str,
@@ -202,7 +202,8 @@ class ConfigExcelListTransform(Config, Generic[Column]):
                  tinfo: Column, from_json_data_text: Optional[str] = None,
                  from_json_filename: Optional[PathOrStr] = None,
                  auto_ch_hook: Optional[ConfigAutoChangeHook] = None,
-                 stderr_file: TextIO = sys.stderr) -> None:
+                 stderr_file: TextIO = sys.stderr,
+                 member_name: Optional[str] = None) -> None:
         """Construct configuration for excel list transform."""
         assert isinstance(colinfo.tinfo, type(tinfo))
         hook = EltMigrateCfgWarnHook() if auto_ch_hook is None \
@@ -213,9 +214,11 @@ class ConfigExcelListTransform(Config, Generic[Column]):
         col2use = deepcopy(colinfo.col_to_use)  # dont destroying caller's arg
         col2userow = deepcopy(colinfo.col_to_use_row)
         self.max_column_read: int = 20
-        self.input_table: TioJsonConfig = input_table_factory()
+        self.input_table: TioJsonConfig = input_table_factory(
+            member_name=member_path(member_name, 'input_table'))
         self.input_table.character_encoding = 'utf_8_sig'
-        self.output_table: TioJsonConfig = output_table_factory()
+        self.output_table: TioJsonConfig = output_table_factory(
+            member_name=member_path(member_name, 'output_table'))
         self.output_table.character_encoding = 'utf-8'
         self.in_excel_col_name_strip = True
         self.in_excel_values_strip = False
@@ -259,7 +262,8 @@ class ConfigExcelListTransform(Config, Generic[Column]):
               'case': CaseSensitivity.IGNORE_CASE}]
         super().__init__(from_json_data_text=from_json_data_text,
                          from_json_filename=from_json_filename,
-                         auto_ch_hook=hook, stderr_file=stderr_file)
+                         auto_ch_hook=hook, stderr_file=stderr_file,
+                         member_name=member_name)
 
     @override
     def nested_configs(self) -> NestedConfigs:

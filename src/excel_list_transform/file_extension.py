@@ -6,25 +6,23 @@
 
 
 from os import path
-from copy import deepcopy
 from typing import Optional
+
+
+def _ends_with_ext(filename: str, ext: str) -> bool:
+    """Check (case insensitive) if filename ends with non-empty ext."""
+    return ext != '' and filename.lower().endswith(ext.lower())
 
 
 def fix_file_extension(filename: str, ext_to_add: str,
                        ext_to_remove: Optional[str] = None,
                        for_reading: bool = False) -> str:
     """Add and remove file extensions as needed."""
-    ret = deepcopy(filename)
-    low = ret.lower()
-    if for_reading and path.exists(path=ret):
-        return ret
-    if ext_to_remove is not None:
-        extlowrem = ext_to_remove.lower()
-        extlen = len(ext_to_remove)
-        if low[-extlen:] == extlowrem:
-            ret = ret[:-extlen]
-    extlowadd = ext_to_add.lower()
-    extlen = len(ext_to_add)
-    if low[-extlen:] != extlowadd:
-        ret = ret + ext_to_add
+    if for_reading and path.exists(path=filename):
+        return filename
+    ret = filename
+    if ext_to_remove is not None and _ends_with_ext(ret, ext_to_remove):
+        ret = ret[:-len(ext_to_remove)]
+    if not _ends_with_ext(ret, ext_to_add):
+        ret += ext_to_add
     return ret

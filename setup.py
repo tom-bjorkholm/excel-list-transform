@@ -14,10 +14,12 @@ setup(
   package_dir={'excel_list_transform': 'src/excel_list_transform'},
   package_data={'excel_list_transform': ['src/py.typed']},
   install_requires=[
-    'tableio-cfg-json >= 1.4',
-    'tableio >= 1.1',
-    'config-as-json >= 1.7',
-    'versionreporter >= 0.4',
-    'argcomplete >= 3.7.2'
+    'tableio-cfg-json >= 2.0',
+    'tableio >= 1.3',
+    'config-as-json >= 1.8',
+    'versionreporter >= 0.5',
+    'argcomplete >= 3.7.2',
+    'edit-cfg-json >= 1.0.0',
+    'edit-cfg-json-tk >= 1.0.0'
   ]
 )

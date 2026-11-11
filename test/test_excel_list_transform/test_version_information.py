@@ -22,13 +22,12 @@ def test_reporter_config() -> None:
                 'versionreporter']:
         assert pkg in reporter.package_names()
     assert reporter.get_app_support_expires() == {
-        date(year=2025, month=10, day=1): '3.10',
-        date(year=2025, month=12, day=1): '3.11',
         date(year=2026, month=3, day=1): '3.12',
-        date(year=2027, month=10, day=1): '3.13'}
+        date(year=2027, month=11, day=1): '3.13',
+        date(year=2028, month=11, day=1): '3.14'}
     assert ExcelListVersionReporter.get_main_package_name() == \
         'excel-list-transform'
-    assert ExcelListVersionReporter.recommended_python() == Version('3.14')
+    assert ExcelListVersionReporter.recommended_python() == Version('3.15')
 
 
 def test_version_table(capsys: CaptureFixture[str],
@@ -38,7 +37,7 @@ def test_version_table(capsys: CaptureFixture[str],
                     'openpyxl': Version('4.5.6'),
                     'pylightxl': Version('7.8.9'),
                     'XlsxWriter': Version('10.11.12'),
-                    'Python': Version('3.14.6')}
+                    'Python': Version('3.15.6')}
 
     def no_new_packages(_: ExcelListVersionReporter,
                         versions: dict[str, Version], out_file: TextIO) \
@@ -56,7 +55,7 @@ def test_version_table(capsys: CaptureFixture[str],
     assert 'openpyxl ............ 4.5.6' in out
     assert 'pylightxl ........... 7.8.9' in out
     assert 'XlsxWriter .......... 10.11.12' in out
-    assert 'Python .............. 3.14.6' in out
+    assert 'Python .............. 3.15.6' in out
     assert 'You are running an old Python version.' not in out
 
 
@@ -94,10 +93,10 @@ def test_print_upgrade_text(capsys: CaptureFixture[str],
 
 
 @pytest.mark.parametrize('py_version, today, should_print',
-                         [(Version('3.11.1'),
-                           date(year=2025, month=12, day=25), True),
-                          (Version('3.11.1'),
-                           date(year=2025, month=9, day=25), False),
+                         [(Version('3.12.1'),
+                           date(year=2026, month=12, day=25), True),
+                          (Version('3.13.1'),
+                           date(year=2026, month=9, day=25), False),
                           (Version('3.10.11'),
                            date(year=2027, month=12, day=25), True)])
 def test_support_check(capsys: CaptureFixture[str], py_version: Version,

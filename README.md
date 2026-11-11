@@ -45,7 +45,10 @@ This small python application:
   an ODS spreadsheet file, a comma separated values (CSV) file, or
   any of a number of other file formats.
 
-How this is done is governed by a configuration file. The application can create a number of example configuration files with accompanying description text files.
+How this is done is governed by a configuration file. The application can
+create a number of example configuration files with accompanying description
+text files, and can open a configuration file in a configuration editor
+that explains every setting.
 
 ## Cloning
 
@@ -107,7 +110,7 @@ the built and installed application in the virtual environment `./venv`.
 
 ## Test summary
 
-- Test result: 1348 passed in 62s (0:01:02)
+- Test result: 1379 passed in 66s (0:01:06)
 - No flake8 warnings.
 - No mypy errors found.
 - No pylint warnings.

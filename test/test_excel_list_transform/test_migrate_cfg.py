@@ -258,7 +258,7 @@ def test_migrate_cmd_help1(capsys: CaptureFixture[str]) -> None:
         transform_cmd(['-h'])
     out, err = capsys.readouterr()
     assert '' == err
-    assert ',migrate-cfg}' in out
+    assert ',migrate-cfg' in out
     assert '  migrate-cfg  ' in out
     assert 'Migrate configuration file format from older format' in out
     assert 'newest format.' in out

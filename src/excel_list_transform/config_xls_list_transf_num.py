@@ -32,7 +32,7 @@ def get_merge_first_column(rule: SingleRuleMerge[int]) -> int:
 
 # pylint: disable-next=too-many-instance-attributes,duplicate-code
 class ConfigXlsListTransfNum(ConfigExcelListTransform[int]):
-    """Class with configuration for excel list transform."""
+    """Configuration of excel-list-transform referencing columns by number."""
 
     def __init__(self, from_json_data_text: Optional[str] = None,
                  from_json_filename: Optional[PathOrStr] = None,

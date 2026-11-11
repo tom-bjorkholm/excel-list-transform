@@ -21,5 +21,8 @@ setup(
     'argcomplete >= 3.7.2',
     'edit-cfg-json >= 1.0.0',
     'edit-cfg-json-tk >= 1.0.0'
-  ]
+  ],
+  extras_require={
+    'textual': ['edit-cfg-json-textual >= 1.0.0']
+  }
 )

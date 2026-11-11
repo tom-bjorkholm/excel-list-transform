@@ -12,6 +12,7 @@ from typing import Optional
 import argparse
 import argcomplete
 from config_as_json import InvalidConfiguration
+from edit_cfg_json import available_uis
 from excel_list_transform.transform_func import transform_named_files
 from excel_list_transform.generate_cfg import generate_examplecfg
 from excel_list_transform.generate_cfg import get_example_names
@@ -19,6 +20,7 @@ from excel_list_transform.config_enums import ColumnRef
 from excel_list_transform.str_to_enum import string_to_enum_best_match
 from excel_list_transform.version_information import ExcelListVersionReporter
 from excel_list_transform.migrate_cfg import migrate_cfg
+from excel_list_transform.edit_cfg import edit_cfg
 
 
 def gen_cfg_cmd(args: argparse.Namespace) -> int:
@@ -54,6 +56,12 @@ def migrate_cmd(args: argparse.Namespace) -> int:
     return migrate_cfg(infile=infilename, outfile=outfilename)
 
 
+def edit_cfg_cmd(args: argparse.Namespace) -> int:
+    """Edit configuration file in a configuration editor."""
+    outfilename = None if args.output is None else args.output[0]
+    return edit_cfg(infile=args.input[0], outfile=outfilename, ui_name=args.ui)
+
+
 USAGE_ORDER = '''
 The normal way to use this command is:
 (1) Using the "cfg-example" sub-command a few example configuration (.cfg)
@@ -62,6 +70,8 @@ files with description (.txt) files are generated.
 description (.txt) files.
 (3) Find an example that is close to what you want to achieve.
 (4) Modify that configuration file to achieve what you want to achieve.
+Use the "editcfg" sub-command to modify it in a configuration editor that
+explains every setting (or modify it in a text editor).
 (5) Use the "transform" sub-command to read your data and output it
 transformed or reorganized according to your modified configuration
 file.
@@ -192,6 +202,32 @@ def migrate_args(subparsers: SubParseAct) -> None:
     migrate_parser.set_defaults(func=migrate_cmd)
 
 
+def edit_cfg_args(subparsers: SubParseAct) -> None:
+    """Add arguments for editcfg sub-command."""
+    edit_help = 'Edit a configuration file in a configuration editor that '
+    edit_help += 'explains every setting and checks the values before '
+    edit_help += 'saving.'
+    edit_descr = edit_help + ' The editor opens in a window when there is '
+    edit_descr += 'a display, otherwise in the terminal if the terminal '
+    edit_descr += 'editor is installed (pip install '
+    edit_descr += '"excel-list-transform[textual]"). The file to edit must '
+    edit_descr += 'exist. Use the "cfg-example" sub-command to create one.'
+    edit_parser = subparsers.add_parser('editcfg', aliases=['edit-cfg'],
+                                        help=edit_help, epilog=USAGE_ORDER,
+                                        description=edit_descr +
+                                        SEE_MAIN_HELP)
+    edit_parser.add_argument('-i', '--input', nargs=1, required=True,
+                             help='Name of configuration file to edit.')
+    edit_parser.add_argument('-o', '--output', nargs=1, default=None,
+                             help='Name of configuration file to save to, ' +
+                             'if not the input file.')
+    ui_help = 'User interface to edit in, instead of the best one for this '
+    ui_help += 'machine.'
+    edit_parser.add_argument('--ui', default=None, choices=available_uis(),
+                             help=ui_help)
+    edit_parser.set_defaults(func=edit_cfg_cmd)
+
+
 def transform_cmd(arguments: Optional[list[str]] = None) -> None:
     """Command to transform list data in table files."""
     ExcelListVersionReporter().check_if_unsupported_python()
@@ -214,13 +250,16 @@ def transform_cmd(arguments: Optional[list[str]] = None) -> None:
     transf_args(subparsers)
     version_args(subparsers)
     migrate_args(subparsers)
+    edit_cfg_args(subparsers)
     argcomplete.autocomplete(parser)
     args = parser.parse_args(args=fixed_args)
     try:
-        _ = args.func(args)
+        return_code = args.func(args)
     except (InvalidConfiguration, KeyError) as exc:
         print(_config_error_message(exc), file=sys_stderr)
         raise SystemExit(1) from None
+    if return_code:
+        raise SystemExit(return_code)
 
 
 if __name__ == "__main__":  # pragma: no cover

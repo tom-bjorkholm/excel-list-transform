@@ -16,7 +16,7 @@ from excel_list_transform.config_excel_list_transform import \
 
 # pylint: disable-next=too-many-instance-attributes,duplicate-code
 class ConfigXlsListTransfName(ConfigExcelListTransform[str]):
-    """Class with configuration for excel list transform."""
+    """Configuration of excel-list-transform referencing columns by name."""
 
     def __init__(self, from_json_data_text: Optional[str] = None,
                  from_json_filename: Optional[PathOrStr] = None,

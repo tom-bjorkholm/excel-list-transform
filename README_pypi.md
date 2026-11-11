@@ -35,7 +35,8 @@ This small python application:
 
 How this is done is governed by a configuration file. The application can
 create a number of example configuration files with accompanying description
-text files.
+text files, and can open a configuration file in a configuration editor that
+explains every setting.
 
 ## Installing it
 
@@ -56,6 +57,19 @@ pip3 install --upgrade excel-list-transform
 pip install --upgrade excel-list-transform
 ````
 
+### Installing the terminal configuration editor (optional)
+
+The "editcfg" sub-command opens the configuration editor in a window when
+there is a display. To also be able to edit in the terminal (for instance
+over a remote shell without a display), install the optional extra
+"textual":
+
+````sh
+pip3 install --upgrade "excel-list-transform[textual]"
+````
+
+(On Microsoft Windows use `pip` instead of `pip3`.)
+
 ## Running the application
 
 ### Running the application on mac and Linux
@@ -69,6 +83,8 @@ python3 -m excel_list_transform cfg-example -k forms_to_rrs -r by_name -o exampl
 python3 -m excel_list_transform transform -c example.cfg -i input.xlsx -o output.xlsx
 python3 -m excel_list_transform migrate-cfg --help
 python3 -m excel_list_transform migrate-cfg -i old.cfg -o new.cfg
+python3 -m excel_list_transform editcfg --help
+python3 -m excel_list_transform editcfg -i example.cfg
 ````
 
 ### Running the application on Microsoft Windows
@@ -82,6 +98,8 @@ python -m excel_list_transform cfg-example -k forms_to_rrs -r by_name -o example
 python -m excel_list_transform transform -c example.cfg -i input.xlsx -o output.xlsx
 python -m excel_list_transform migrate-cfg --help
 python -m excel_list_transform migrate-cfg -i old.cfg -o new.cfg
+python -m excel_list_transform editcfg --help
+python -m excel_list_transform editcfg -i example.cfg
 ````
 
 ## Suggested way to get started
@@ -92,6 +110,8 @@ python -m excel_list_transform migrate-cfg -i old.cfg -o new.cfg
     description (.txt) files.
  3. Find an example that is close to what you want to achieve.
  4. Modify that configuration file to achieve what you want to achieve.
+    Use the "editcfg" sub-command to modify it in a configuration editor that
+    explains every setting (or modify it in a text editor).
  5. Use the "transform" sub-command to read your data and output it transformed
     or reorganized according to your modified configuration file.
  6. Read the produced output. If necessary go back to step 4 and adjust how the
@@ -110,6 +130,23 @@ text file describing it.
 
 Read the text file describing the configuration file while looking at the
 configuration file to understand the syntax and the possible options.
+
+### Editing a configuration file
+
+The "editcfg" sub-command opens a configuration file in a configuration
+editor. The editor shows an explanation of every setting, checks the values
+before saving, and keeps a backup (.bak) of the file it overwrites. It opens
+in a window when there is a display, otherwise in the terminal (if the
+optional extra "textual" is installed, see above). Use the "--ui" option to
+choose the editor yourself, and the "-o" option to save to another file than
+the one you opened.
+
+"column_ref" cannot be changed in the editor, as the rest of the file is
+written for it. Generate a new example with the other "-r" value instead.
+
+There is a separate user guide for the editor opened by the "editcfg"
+sub-command. See
+[https://github.com/tom-bjorkholm/edit-cfg-json/blob/master/doc/end_users_guide.md](https://github.com/tom-bjorkholm/edit-cfg-json/blob/master/doc/end_users_guide.md)
 
 ## Performance
 
@@ -482,7 +519,7 @@ Source code and tests are available at [https://github.com/tom-bjorkholm/excel-l
 
 ## Test summary
 
-- Test result: 1348 passed in 62s (0:01:02)
+- Test result: 1379 passed in 66s (0:01:06)
 - No flake8 warnings.
 - No mypy errors found.
 - No pylint warnings.

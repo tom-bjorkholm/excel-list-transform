@@ -220,8 +220,8 @@ class ConfigExcelListTransform(Config, Generic[Column]):
         self.output_table: TioJsonConfig = output_table_factory(
             member_name=member_path(member_name, 'output_table'))
         self.output_table.character_encoding = 'utf-8'
-        self.in_excel_col_name_strip = True
-        self.in_excel_values_strip = False
+        self.in_excel_col_name_strip: bool = True
+        self.in_excel_values_strip: bool = False
         self.output_borders: bool = True
         self.output_filtered_table: bool = True
         self.s01_split_rows: RuleRowSplit[Column] = \

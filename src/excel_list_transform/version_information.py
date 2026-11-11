@@ -6,8 +6,22 @@
 
 
 from datetime import date
+from importlib.metadata import PackageNotFoundError, version
 from packaging.version import Version
 from versionreporter import VersionReporter
+
+
+OPTIONAL_PACKAGES = ['edit-cfg-json-textual']
+"""Packages of optional extras, reported only when they are installed."""
+
+
+def is_installed(package_name: str) -> bool:
+    """Return whether the named distribution package is installed."""
+    try:
+        version(package_name)
+    except PackageNotFoundError:
+        return False
+    return True
 
 
 class ExcelListVersionReporter(VersionReporter):
@@ -18,7 +32,8 @@ class ExcelListVersionReporter(VersionReporter):
         return ['excel_list_transform', 'tableio',
                 'tableio-cfg-json', 'config-as-json',
                 'versionreporter', 'edit-cfg-json',
-                'edit-cfg-json-tk']
+                'edit-cfg-json-tk'] + \
+            [name for name in OPTIONAL_PACKAGES if is_installed(name)]
 
     def get_app_support_expires(self) -> dict[date, str]:
         """Return Python-version support cutoffs for this application."""

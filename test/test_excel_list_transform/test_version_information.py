@@ -126,3 +126,18 @@ def test_support_check(capsys: CaptureFixture[str], py_version: Version,
         assert ' install --upgrade excel-list-transform' in out
     else:
         assert out == ''
+
+
+@pytest.mark.parametrize('installed', [True, False])
+def test_optional_packages(monkeypatch: MonkeyPatch, installed: bool) -> None:
+    """Test that optional extras are reported only when installed."""
+    def is_installed(package_name: str) -> bool:
+        """Pretend the optional package is installed or not."""
+        assert package_name == 'edit-cfg-json-textual'
+        return installed
+
+    monkeypatch.setattr('excel_list_transform.version_information.'
+                        'is_installed', is_installed)
+    names = ExcelListVersionReporter().package_names()
+    assert ('edit-cfg-json-textual' in names) == installed
+    assert 'edit-cfg-json-tk' in names

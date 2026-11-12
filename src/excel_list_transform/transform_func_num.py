@@ -28,12 +28,10 @@ def remove_columns_num(indata: NumData,
         return indata
     ret = deepcopy(indata)
     for row in ret:
-        rowlen = len(row)
         cols_must_exist_lst(cols=cfg.s04_remove_columns, row=row,
                             param='s04_remove_columns', tinfo=2)
         for i in reversed(cfg.s04_remove_columns):
-            if 0 <= i < rowlen:
-                row.pop(i)
+            row.pop(i)
     return ret
 
 

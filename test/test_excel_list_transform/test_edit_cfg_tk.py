@@ -4,10 +4,11 @@
 The editor itself is tested in its own package, so these tests only
 check the integration: that editcfg reaches the Tk window, and that the
 values of the file and the descriptions of this application are shown
-in it. The event loop of the window is replaced by a function that
-withdraws the window before Tk has drawn it, records what it holds and
-destroys it, so no window is ever on the screen. On a machine without
-a display (such as a build server) the tests are skipped.
+in it. Tk windows are withdrawn as soon as they are made, and the event
+loop of the window is replaced by a function that records what the
+window holds and destroys it, so no window is ever on the screen and
+none is left behind when the test ends. On a machine without a display
+(such as a build server) the tests are skipped.
 """
 
 # Copyright (c) 2026 Tom Björkholm
@@ -47,6 +48,22 @@ class Shown:
     """Text of every label in the layout."""
 
 
+class HiddenTk(tkinter.Tk):
+    """A Tk window that is withdrawn as soon as it is made.
+
+    The editor asks Tk for sizes (update_idletasks) before it starts the
+    event loop, and that maps a window that is not withdrawn. On macOS a
+    window that has been mapped stays on the screen, with a busy pointer,
+    until an event loop runs, also after it is destroyed. The tests never
+    run one, so the window would stay until the whole test run ends.
+    """
+
+    def __init__(self) -> None:
+        """Make the window withdrawn, before Tk has had idle time."""
+        super().__init__()
+        self.withdraw()
+
+
 def all_widgets(widget: tkinter.Misc) -> Iterator[tkinter.Misc]:
     """Return a widget and every widget below it."""
     yield widget
@@ -81,15 +98,15 @@ def record(window: tkinter.Tk, shown: Shown) -> None:
 def fake_mainloop(shown: Shown) -> Callable[[tkinter.Tk, int], None]:
     """Return an event loop that records a window and then closes it.
 
-    The window is withdrawn at once, before Tk has had any idle time to
-    draw it, and is always destroyed, also when recording fails, so a
-    failing test leaves no Tk behind for the next test.
+    The window is always destroyed, also when recording fails, so a
+    failing test leaves no Tk behind for the next test. It must never
+    have been on the screen (see HiddenTk).
     """
     def mainloop(window: tkinter.Tk, n: int = 0) -> None:
         """Record what the window shows instead of handing it to a user."""
-        assert n == 0
-        window.withdraw()
         try:
+            assert n == 0
+            assert not window.winfo_ismapped()
             record(window, shown)
         finally:
             window.destroy()
@@ -123,6 +140,7 @@ def test_editcfg_tk_shows(capsys: CaptureFixture[str],
     capsys.readouterr()
     shown = Shown()
     monkeypatch.setattr(tkinter.Tk, 'mainloop', fake_mainloop(shown))
+    monkeypatch.setattr(tkinter, 'Tk', HiddenTk)
     transform_cmd(['editcfg', '-i', str(cfg_file)] + ui_args)
     out, err = capsys.readouterr()
     assert '' == err

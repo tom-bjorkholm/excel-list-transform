@@ -22,7 +22,10 @@ from excel_list_transform.commontypes import NumData, NameData
                           ([['ab', 'cd', 'ef'],
                             [1, None], ['a', 'x y', 7]],
                            [{'ab': 1, 'cd': None, 'ef': None},
-                            {'ab': 'a', 'cd': 'x y', 'ef': 7}])])
+                            {'ab': 'a', 'cd': 'x y', 'ef': 7}]),
+                          ([[1, 1.0, 'Ab', 'ab']], []),
+                          ([[1, 1.0, 'Ab', 'ab'], [2, 3, 4, 5]],
+                           [{'1': 2, '1.0': 3, 'Ab': 4, 'ab': 5}])])
 def test_nam_col_num_cols_ok(capsys: CaptureFixture[str], ind: NumData,
                              outd: NameData) -> None:
     """Test OK cases of named_cols_from_num_cols."""
@@ -41,7 +44,13 @@ def test_nam_col_num_cols_ok(capsys: CaptureFixture[str], ind: NumData,
                           ([['ab', 'cd', 'ef'],
                             [1, 2, 3], [4, 5, 6, 7]],
                            'b.dat', 'Data row(s) have more columns than ' +
-                           'title row in file b.dat')])
+                           'title row in file b.dat'),
+                          ([['ab', 'cd', 'ab'], [1, 2, 3]], 'c.csv',
+                           'Duplicate input column name "ab" in file c.csv'),
+                          ([[1, 'x', '1'], [1, 2, 3]], 'd.csv',
+                           'Duplicate input column name "1" in file d.csv'),
+                          ([['ab', 'ab']], 'e.csv',
+                           'Duplicate input column name "ab" in file e.csv')])
 def test_nam_col_num_cols_nok(capsys: CaptureFixture[str], ind: NumData,
                               fname: str, msg: str) -> None:
     """Test not OK cases of named_cols_from_num_cols."""

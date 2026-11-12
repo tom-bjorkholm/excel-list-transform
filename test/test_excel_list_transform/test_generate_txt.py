@@ -10,6 +10,7 @@
 from tempfile import TemporaryDirectory
 import pytest
 from pytest import CaptureFixture
+from excel_list_transform import generate_txt
 from excel_list_transform.generate_txt import generate_syntax_txt
 
 
@@ -45,3 +46,15 @@ def test_generate_syntax_txt(capsys: CaptureFixture[str], txt_file: str,
     _assert_txt_layout(content)
     assert '' == out
     assert '' == err
+
+
+@pytest.mark.parametrize('sections, expected',
+                         [([], ''),
+                          (['\n\n'], ''),
+                          (['', '  \n \n', '\n  a\n\n\n  b  \n'], 'a\n\nb'),
+                          (['  x\n', '', '  y'], 'x\n\ny'),
+                          (['  x\n    y\n', '\n\nz\n\n'], 'x\n  y\n\nz')])
+def test_join_sections(sections: list[str], expected: str) -> None:
+    """Test that sections are dedented, compacted and empty ones skipped."""
+    # pylint: disable-next=protected-access
+    assert generate_txt._join_sections(sections) == expected

@@ -12,8 +12,8 @@ from datetime import datetime
 import sys
 import pytest
 from pytest import CaptureFixture
-from excel_list_transform.row_split_merge import get_nosep_pos, \
-    in_nosep_pos, split_one_str, one_split_one_row, one_split, \
+from excel_list_transform.row_split_merge import split_one_str, \
+    one_split_one_row, one_split, \
     split_rows, split_rows_cfg, merge_strings, \
     merge_identified_rows, identify_rows_to_merge, \
     one_merge_rows, one_rule_merge_rows, merge_rows, \
@@ -25,47 +25,29 @@ from excel_list_transform.config_excel_list_transform import RuleMerge, \
 from excel_list_transform.commontypes import NameData, NameRow, Value
 
 
-@pytest.mark.parametrize('instr,nseps,res',
-                         [('abc', [], []),
-                          ('abc def ddd', [' '],
-                           [(3, 4), (7, 8)]),
-                          ('abc def ddd', [' d', 'bc'],
-                           [(1, 3), (3, 5), (7, 9)]),
-                          ('abcdefghijk', ['bc', 'abc', 'gh', 'ghi'],
-                           [(0, 3), (6, 9)])])
-def test_get_nosep_pos1(capsys: CaptureFixture[str], instr: str,
-                        nseps: list[str], res: list[tuple[int, int]]) -> None:
-    """Test normal cases for get_nosep_pos."""
-    ret = get_nosep_pos(instr=deepcopy(instr), not_separators=nseps)
-    out, err = capsys.readouterr()
-    assert ret == res
-    assert '' == out
-    assert '' == err
-
-
-@pytest.mark.parametrize('pos,nseps,res',
-                         [(4, [(2, 3), (7, 8)], False),
-                          (15, [], False),
-                          (4, [(2, 5)], True),
-                          (5, [(1, 3), (5, 7), (10, 12)], True),
-                          (5, [(1, 3), (4, 5), (7, 10)], False)])
-def test_in_nosep_pos1(capsys: CaptureFixture[str], pos: int,
-                       nseps: list[tuple[int, int]], res: bool) -> None:
-    """Test normal cases for in_nosep_pos."""
-    ret = in_nosep_pos(pos=deepcopy(pos), nosep_pos=deepcopy(nseps))
-    out, err = capsys.readouterr()
-    assert ret == res
-    assert '' == out
-    assert '' == err
-
-
 @pytest.mark.parametrize('instr,sep,nosep,res',
                          [('abcdef', ['b', 'd'], [], ['a', 'c', 'ef']),
                           ('abcdef', ['b', 'd'], ['bc'], ['abc', 'ef']),
                           ('abcdef', ['b', 'd'], ['cd'], ['a', 'cdef']),
                           ('abcabcdabcdeabcdefabcdefg', ['bc', 'e'],
                            ['fff', 'efg'],
-                           ['a', 'a', 'da', 'd', 'a', 'd', 'fa', 'defg'])])
+                           ['a', 'a', 'da', 'd', 'a', 'd', 'fa', 'defg']),
+                          ('x 1,5 y, z', [','], ['1,5'], ['x 1,5 y', ' z']),
+                          ('a 1,5,b', [','], ['1,5'], ['a 1,5', 'b']),
+                          ('a, b', [',', ', '], [], ['a', 'b']),
+                          ('a, b', [', ', ','], [], ['a', 'b']),
+                          ('a + b+c', [' ', '+'], ['\\ ', '\\+', ' + '],
+                           ['a + b', 'c']),
+                          ('a\\ b c', [' '], ['\\ '], ['a\\ b', 'c']),
+                          ('abcd', ['b', 'c'], ['bc', 'abc'], ['abcd']),
+                          ('a.b*c(d', ['.', '*', '('], [],
+                           ['a', 'b', 'c', 'd']),
+                          ('a.b', ['*'], [], ['a.b']),
+                          (',a', [','], [], ['', 'a']),
+                          ('a,b,', [','], [], ['a', 'b', '']),
+                          ('a,,b', [','], [], ['a', '', 'b']),
+                          (',', [','], [], ['', '']),
+                          ('', [','], [], [''])])
 def test_split_one_str(capsys: CaptureFixture[str], instr: str, sep: list[str],
                        nosep: list[str], res: list[str]) -> None:
     """Test normal cases for split_one_str."""
@@ -75,6 +57,14 @@ def test_split_one_str(capsys: CaptureFixture[str], instr: str, sep: list[str],
     assert ret == res
     assert '' == out
     assert '' == err
+
+
+@pytest.mark.parametrize('sep,nosep', [([], []), ([''], []), ([',', ''], []),
+                                       ([','], [''])])
+def test_split_one_str_bad(sep: list[str], nosep: list[str]) -> None:
+    """Test split_one_str rejects separators that would never end."""
+    with pytest.raises(AssertionError):
+        _ = split_one_str(instr='a,b', separators=sep, not_separators=nosep)
 
 
 @pytest.mark.parametrize('inrow,col,seps,noseps,res',
@@ -89,7 +79,12 @@ def test_split_one_str(capsys: CaptureFixture[str], instr: str, sep: list[str],
                            {'a': 'b', 'c': 'x', 'f': 'g'}]),
                           ({'a': 'b', 'c': 'de', 'f': 'g'}, 'c',
                            ['+', ' ', '-'], ['  ', '++'],
-                           [{'a': 'b', 'c': 'de', 'f': 'g'}])])
+                           [{'a': 'b', 'c': 'de', 'f': 'g'}]),
+                          ({'a': 'b', 'c': 'd,', 'f': None}, 'c', [','], [],
+                           [{'a': 'b', 'c': 'd', 'f': None},
+                            {'a': 'b', 'c': '', 'f': None}]),
+                          ({'a': 'b', 'c': '', 'f': 'g'}, 'c', [','], [],
+                           [{'a': 'b', 'c': '', 'f': 'g'}])])
 # pylint: disable-next=too-many-arguments,too-many-positional-arguments
 def test_one_split_one_na_ok1(capsys: CaptureFixture[str], inrow: NameRow,
                               col: str, seps: list[str], noseps: list[str],
@@ -291,7 +286,16 @@ def test_spl_rows_namcfg_ok1(capsys: CaptureFixture[str], indata: NameData,
                             1.23, 'a', 1.23, datetime(year=2025, month=6,
                                                       day=1, hour=12,
                                                       minute=13, second=14)],
-                           '@', '1.23@a@2025-06-01 12:13:14')])
+                           '@', '1.23@a@2025-06-01 12:13:14'),
+                          ([None, 'x'], ';', 'x'),
+                          (['x', None], ';', 'x'),
+                          (['', 'b'], ',', 'b'),
+                          (['a', '', 'b', None, 'a'], ',', 'a,b'),
+                          ([None, None], ';', None),
+                          (['', None, ''], ';', None),
+                          ([None, 7], ';', 7),
+                          ([0, None, 0], ';', 0),
+                          ([0, 'x'], '-', '0-x')])
 def test_merge_strings(capsys: CaptureFixture[str], inlst: list[Value],
                        sep: str, res: Value) -> None:
     """Test OK cases of merge_strings."""
@@ -558,6 +562,28 @@ def test_merge_rows_name_ok4(capsys: CaptureFixture[str], data: NameData,
     txt = cfg1.as_json_string(stderr_file=sys.stderr)
     cfg2 = ConfigXlsListTransfName(from_json_data_text=txt)
     ret = merge_rows_cfg(indata=deepcopy(data), cfg=cfg2, tinfo='a')
+    out, err = capsys.readouterr()
+    assert ret == res
+    assert '' == out
+    assert '' == err
+
+
+@pytest.mark.parametrize('data,res',
+                         [([{'k': 'a', 'v': None}, {'k': 'a', 'v': 'x'},
+                            {'k': 'a', 'v': ''}], [{'k': 'a', 'v': 'x'}]),
+                          ([{'k': 'a', 'v': None}, {'k': 'a', 'v': ''}],
+                           [{'k': 'a', 'v': None}]),
+                          ([{'k': 'a', 'v': 'y'}, {'k': 'b', 'v': None},
+                            {'k': 'a', 'v': None}, {'k': 'a', 'v': 'x'}],
+                           [{'k': 'a', 'v': 'y;x'}, {'k': 'b', 'v': None}]),
+                          ([{'k': None, 'v': 1}, {'k': None, 'v': 2}],
+                           [{'k': None, 'v': '1;2'}])])
+def test_merge_rows_empty(capsys: CaptureFixture[str], data: NameData,
+                          res: NameData) -> None:
+    """Test that empty cells are left out when merging rows."""
+    cfg = ConfigXlsListTransfName()
+    cfg.s02_merge_rows = [{'columns': ['k'], 'separator': ';'}]
+    ret = merge_rows_cfg(indata=deepcopy(data), cfg=cfg, tinfo='k')
     out, err = capsys.readouterr()
     assert ret == res
     assert '' == out

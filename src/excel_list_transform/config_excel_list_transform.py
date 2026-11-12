@@ -18,7 +18,7 @@ from config_as_json import Config, ConfigAutoChangeHook, ConfigNesting, \
     CallingWholeConfigValidator, MemberValidator, DictKeysValidator, \
     DictRule, DictForEachValidator, DictVariant, \
     DiscriminatedDictValidator, ListForEachValidator, \
-    ListSizeValidator, ListValueTypeValidator, member_path
+    ListSizeValidator, ListValueTypeValidator, StrLenValidator, member_path
 from tableio import CAP_IGNORABLE, CAP_NEEDED, Capabilities, FileAccess, \
     TableBorderStyle
 from tableio_cfg_json import TioJsonConfig
@@ -149,6 +149,11 @@ def _invalid_rule(member_name: str, message: str,
     msg = f'Invalid configuration: {member_name} {message}'
     print(msg, file=stderr_file)
     raise InvalidConfiguration(msg)
+
+
+def _non_empty() -> StrLenValidator:
+    """Return validator rejecting empty strings (e.g. empty separators)."""
+    return StrLenValidator(min_length=1, max_length=None)
 
 
 # pylint: disable-next=too-few-public-methods
@@ -351,7 +356,9 @@ class ConfigExcelListTransform(Config, Generic[Column]):
             DictRule(keys=['column'], validators=[self._column_validator()]),
             DictRule(keys=['separators'],
                      validators=[ListSizeValidator(1, sys.maxsize),
-                                 ListValueTypeValidator(str)]),
+                                 ListValueTypeValidator(str),
+                                 ListForEachValidator(
+                                     element_validators=[_non_empty()])]),
             DictRule(keys=['not_separators'],
                      validators=[ListValueTypeValidator(str)])])
         validator = ListForEachValidator(
@@ -386,7 +393,8 @@ class ConfigExcelListTransform(Config, Generic[Column]):
         keys = ['column', 'separator', 'where', self._colinfo.split_last]
         values_validator = DictForEachValidator(rules=[
             DictRule(keys=['column'], validators=[self._column_validator()]),
-            DictRule(keys=['separator'], validators=[ValueTypeValidator(str)]),
+            DictRule(keys=['separator'],
+                     validators=[ValueTypeValidator(str), _non_empty()]),
             DictRule(keys=['where'],
                      validators=[ValueTypeValidator(SplitWhere)]),
             self._split_last_rule()])

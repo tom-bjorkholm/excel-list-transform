@@ -170,7 +170,7 @@ def insert_into_row(row: NumRow | NameRow, colref: Column, val: Value) -> None:
 
 def merge_columns(indata: Data[Row], cfg: ConfigExcelListTransform[Column],
                   tinfo: Column) -> Data[Row]:
-    """Merge columns in the list in indata."""
+    """Merge columns in indata, leaving out empty values (None and '')."""
     if len(cfg.s05_merge_columns) == 0:
         return indata
     ret = deepcopy(indata)
@@ -188,7 +188,7 @@ def merge_columns(indata: Data[Row], cfg: ConfigExcelListTransform[Column],
             for j in reversed(colspec):
                 assert isinstance(j, type(tinfo))
                 popval = pop_from_row(row=row, colref=j)
-                if popval is not None:
+                if popval not in (None, ''):
                     vals.insert(0, str(popval))
             if len(vals) > 0:
                 sep = i['separator']

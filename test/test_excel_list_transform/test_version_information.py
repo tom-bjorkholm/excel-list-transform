@@ -11,7 +11,9 @@ from packaging.version import Version
 import pytest
 from pytest import CaptureFixture, MonkeyPatch
 
-from excel_list_transform.version_information import ExcelListVersionReporter
+from excel_list_transform import version_information
+from excel_list_transform.version_information import \
+    ExcelListVersionReporter
 
 
 def test_reporter_config() -> None:
@@ -141,3 +143,12 @@ def test_optional_packages(monkeypatch: MonkeyPatch, installed: bool) -> None:
     names = ExcelListVersionReporter().package_names()
     assert ('edit-cfg-json-textual' in names) == installed
     assert 'edit-cfg-json-tk' in names
+
+
+@pytest.mark.parametrize('package, installed',
+                         [('excel-list-transform', True),
+                          ('excel_list_transform', True),
+                          ('no-such-distribution-xyz-0815', False)])
+def test_is_installed(package: str, installed: bool) -> None:
+    """Test detection of installed distribution packages."""
+    assert version_information.is_installed(package) == installed

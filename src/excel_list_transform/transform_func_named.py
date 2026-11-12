@@ -11,9 +11,11 @@ from config_as_json import Config
 from excel_list_transform.config_xls_list_transf_name import \
     ConfigXlsListTransfName
 from excel_list_transform.check_indata_common import check_indata_common
-from excel_list_transform.commontypes import NameData, get_checked_type
+from excel_list_transform.commontypes import NameData, NameRow, \
+    get_checked_type
 from excel_list_transform.transform_func_common import \
-    cols_must_exist_dict, split_columns, merge_columns, rewrite_columns
+    cols_must_exist_lst, col_must_exist_name, split_columns, merge_columns, \
+    rewrite_columns
 from excel_list_transform.row_split_merge import split_rows_cfg, \
     merge_rows_cfg
 from excel_list_transform.handle_tableio import read_table_named, \
@@ -22,19 +24,32 @@ from excel_list_transform.handle_tableio import read_table_named, \
 
 def rename_columns_name(indata: NameData,
                         cfg: ConfigXlsListTransfName) -> NameData:
-    """Rename columns in the list in indata with column name refs."""
+    """Rename columns in the list in indata with column name refs.
+
+    Renames are applied in order. A rename must not overwrite an
+    existing column (so a swap of two names is an error).
+    """
     if len(cfg.s07_rename_columns) == 0:
         return indata
     ret = deepcopy(indata)
     for row in ret:
-        cols_must_exist_dict(rule=cfg.s07_rename_columns, row=row,
-                             param='s07_rename_columns', tinfo='a')
         for i in cfg.s07_rename_columns:
             from_name: str = get_checked_type(value=i['column'], istype=str)
             to_name: str = get_checked_type(value=i['name'], istype=str)
-            val = row.pop(from_name)
-            row[to_name] = val
+            rename_column(row=row, from_name=from_name, to_name=to_name)
     return ret
+
+
+def rename_column(row: NameRow, from_name: str, to_name: str) -> None:
+    """Rename one column in row, stop with error report on collision."""
+    col_must_exist_name(col=from_name, row=row, param='s07_rename_columns')
+    val = row.pop(from_name)
+    if to_name in row:
+        msg = f's07_rename_columns: cannot rename "{from_name}" to '
+        msg += f'"{to_name}", column "{to_name}" already exists.'
+        print(msg, file=sys.stderr)
+        sys.exit(1)
+    row[to_name] = val
 
 
 def insert_columns_name(indata: NameData,
@@ -99,6 +114,14 @@ def check_indata_name(indata: NameData) -> None:
                 raise RuntimeError(msg)
 
 
+def column_order_must_exist(indata: NameData,
+                            cfg: ConfigXlsListTransfName) -> None:
+    """Stop with error report if s10_column_order names a missing column."""
+    for row in indata:
+        cols_must_exist_lst(cols=cfg.s10_column_order, row=row,
+                            param='s10_column_order', tinfo='a')
+
+
 def transform_data_name(indata: NameData,
                         cfg: ConfigXlsListTransfName) -> NameData:
     """Transform list in the data with column name refs."""
@@ -110,6 +133,7 @@ def transform_data_name(indata: NameData,
     ret = rename_columns_name(indata=ret, cfg=cfg)
     ret = insert_columns_name(indata=ret, cfg=cfg)
     ret = rewrite_columns(indata=ret, cfg=cfg, tinfo='a')
+    column_order_must_exist(indata=ret, cfg=cfg)
     return ret
 
 

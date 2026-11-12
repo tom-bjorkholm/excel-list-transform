@@ -295,11 +295,20 @@ these strings are present in the identified column it is seen
 as the separator between the parts of the column value that go
 into different rows.
 
+Separators must not be empty strings. If more than one
+separator matches at the same position, the longest one is used.
+Empty parts (from a separator at the start or end of the value,
+or from two adjacent separators) are kept, and give rows where
+the column is empty.
+
 **"not_separators"** take as argument a list of strings. These strings
 are not regarded as separators even if they include the strings
 of one or more separator. (For instance ";" could be a separator,
 but using **"not_separators"** the string "\\;" could be seen as not
 a separator.)
+The column value is scanned from the start. At each position a
+not-separator takes precedence over a separator, so a separator
+that is part of a not-separator never splits the value.
 
 ### "s02_merge_rows"
 
@@ -318,6 +327,7 @@ For each column that has the same value for all rows merged, that
 value will be in the merged row. When rows being merged have different
 values for a column, the set of unique values from different rows
 will form the value for that column in the merged row.
+Empty values are left out.
 
 The **"separator"** keyword is used to specify the string that is
 concatenated between values for one column from different rows
@@ -367,6 +377,7 @@ in the case of *"BY_NAME"*.
 **"separator"** is a string of characters that indicate the position
 where the column shall be split. (For instance a single space
 if splitting between two words.)
+The separator must not be an empty string.
 
 **"where"** can either have the value *"RIGHTMOST"* or the value
 *"LEFTMOST"*. This is used if the separator string is present
@@ -404,6 +415,7 @@ column references are column numbers.
 
 **"separator"** is a string of characters that is inserted between
 the column values being merged.
+Empty values are left out.
 
 ### "s06_place_columns_first"
 
@@ -423,6 +435,8 @@ column number in the case of *"BY_NUMBER"*, and a column name/title
 in the case of *"BY_NAME"*.
 
 **"name"** is the new name/title of the column identified by **"column"**.
+In the case of *"BY_NAME"* the renames are done in the listed order,
+and a rename must not give a column the name of an existing column.
 
 ### "s08_insert_columns"
 
@@ -495,6 +509,8 @@ The value of the **"s10_column_order"** key is a list of column names.
 The columns will be output in this order.
 Columns not mentioned in **"s10_column_order"** will not be output,
 and will thus be removed.
+Each name in **"s10_column_order"** must be the name of an existing
+column (as named after all other steps).
 (For *"BY_NUMBER"* see **"s04_remove_columns"** and **"s06_place_columns_first"**.)
 
 ## Utility for recoding text files
@@ -519,7 +535,7 @@ Source code and tests are available at [https://github.com/tom-bjorkholm/excel-l
 
 ## Test summary
 
-- Test result: 1383 passed in 69s (0:01:09)
+- Test result: 1456 passed in 71s (0:01:11)
 - No flake8 warnings.
 - No mypy errors found.
 - No pylint warnings.

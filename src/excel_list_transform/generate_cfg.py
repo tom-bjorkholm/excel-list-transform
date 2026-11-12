@@ -99,13 +99,12 @@ format of the phone number and save to excel.
 
 
 def rewrite_phone_46_cfg(cfg: ConfigXlsListTransfName | ConfigXlsListTransfNum,
-                         column: Column, append: bool) -> None:
-    """Add configuration to rewrite +46 phone numbers."""
+                         column: Column) -> None:
+    """Set configuration (replacing any rules) to rewrite +46 numbers."""
     assert (isinstance(cfg, ConfigXlsListTransfName) and
             isinstance(column, str)) or \
            (isinstance(cfg, ConfigXlsListTransfNum) and
             isinstance(column, int))
-    assert isinstance(append, bool)
     rules: RuleRewrite[Column] = [
         {'kind': RewriteKind.STRIP,
          'chars': '', 'case': CaseSensitivity.IGNORE_CASE},
@@ -120,8 +119,7 @@ def rewrite_phone_46_cfg(cfg: ConfigXlsListTransfName | ConfigXlsListTransfNum,
         {'kind': RewriteKind.REGEX_SUBSTITUTE,
          'from': '^4607', 'to': '+467', 'case': CaseSensitivity.MATCH_CASE}
     ]
-    if not append:
-        cfg.s09_rewrite_columns.clear()
+    cfg.s09_rewrite_columns.clear()
     for rule in rules:
         newrule: SingleRuleRewrite[Column] = deepcopy(rule)
         newrule['column'] = column
@@ -141,7 +139,7 @@ def generate_syntax_sa2r_name(filename: str, colref: ColumnRef) -> None:
     cfg.s07_rename_columns = [{'column': 'WhatsApp',
                                'name': 'Whats App Number'}]
     cfg.s08_insert_columns = [{'column': 'MNA No.', 'value': None}]
-    rewrite_phone_46_cfg(cfg=cfg, column='Phone', append=False)
+    rewrite_phone_46_cfg(cfg=cfg, column='Phone')
     cfg.s10_column_order = list(RRS_COLUMNS)
     cfg.write(to_json_filename=filename)
 
@@ -162,7 +160,7 @@ def generate_syntax_sw2r_name(filename: str, colref: ColumnRef) -> None:
     cfg.s07_rename_columns = [{'column': 'Name', 'name': 'First Name'}]
     cfg.s08_insert_columns = [{'column': 'MNA No.', 'value': None},
                               {'column': 'Whats App Number', 'value': None}]
-    rewrite_phone_46_cfg(cfg=cfg, column='Phone', append=False)
+    rewrite_phone_46_cfg(cfg=cfg, column='Phone')
     cfg.s10_column_order = list(RRS_COLUMNS)
     cfg.write(to_json_filename=filename)
 
@@ -224,7 +222,7 @@ def generate_syntax_sa2r_num(filename: str, colref: ColumnRef) -> None:
     cfg.s06_place_columns_first = []
     cfg.s07_rename_columns = [{'column': 10, 'name': 'Whats App Number'}]
     cfg.s08_insert_columns = [{'column': 3, 'name': 'MNA No.', 'value': None}]
-    rewrite_phone_46_cfg(cfg=cfg, column=10, append=False)
+    rewrite_phone_46_cfg(cfg=cfg, column=10)
     cfg.write(to_json_filename=filename)
 
 
@@ -248,7 +246,7 @@ def generate_syntax_sw2r_num(filename: str, colref: ColumnRef) -> None:
     cfg.s08_insert_columns = [{'column': 3, 'name': 'MNA No.', 'value': None},
                               {'column': 11, 'name': 'Whats App Number',
                               'value': None}]
-    rewrite_phone_46_cfg(cfg=cfg, column=10, append=False)
+    rewrite_phone_46_cfg(cfg=cfg, column=10)
     cfg.write(to_json_filename=filename)
 
 
@@ -280,7 +278,7 @@ def generate_syntax_o2r_name(filename: str, colref: ColumnRef) -> None:
         {'column': 'Division', 'value': None},
         {'column': 'Boat Name', 'value': None},
         {'column': 'Whats App Number', 'value': None}]
-    rewrite_phone_46_cfg(cfg=cfg, column='Phone', append=False)
+    rewrite_phone_46_cfg(cfg=cfg, column='Phone')
     cfg.s10_column_order = list(RRS_COLUMNS)
     cfg.write(to_json_filename=filename)
 
@@ -314,7 +312,7 @@ def generate_syntax_o2r_num(filename: str, colref: ColumnRef) -> None:
         {'column': 3, 'name': 'MNA No.', 'value': None},
         {'column': 5, 'name': 'Boat Name', 'value': None},
         {'column': 11, 'name': 'Whats App Number', 'value': None}]
-    rewrite_phone_46_cfg(cfg=cfg, column=10, append=False)
+    rewrite_phone_46_cfg(cfg=cfg, column=10)
     cfg.write(to_json_filename=filename)
 
 
@@ -351,7 +349,7 @@ def generate_syntax_o2s_name(filename: str, colref: ColumnRef) -> None:
     cfg.s08_insert_columns = [
         {'column': 'Division', 'value': None},
         {'column': 'Boat', 'value': None}]
-    rewrite_phone_46_cfg(cfg=cfg, column='HelmPhone', append=False)
+    rewrite_phone_46_cfg(cfg=cfg, column='HelmPhone')
     cfg.s10_column_order = ['Class', 'Division', 'Nat', 'SailNo', 'Boat',
                             'HelmName', 'Club', 'HelmEmail', 'HelmPhone']
     cfg.write(to_json_filename=filename)
@@ -383,7 +381,7 @@ def generate_syntax_o2s_num(filename: str, colref: ColumnRef) -> None:
     cfg.s08_insert_columns = [
         {'column': 1, 'name': 'Division', 'value': None},
         {'column': 4, 'name': 'Boat', 'value': None}]
-    rewrite_phone_46_cfg(cfg=cfg, column=8, append=False)
+    rewrite_phone_46_cfg(cfg=cfg, column=8)
     cfg.write(to_json_filename=filename)
 
 

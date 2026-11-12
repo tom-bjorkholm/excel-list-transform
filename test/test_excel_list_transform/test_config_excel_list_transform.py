@@ -5,6 +5,7 @@
 # MIT License
 
 from io import StringIO
+import json
 import sys
 import pytest
 from pytest import CaptureFixture
@@ -210,3 +211,37 @@ def test_split_row_val_bad(member_value: object, msg: str) -> None:
                                   stderr_file)
     assert msg in str(exc_info.value)
     assert msg in stderr_file.getvalue()
+
+
+def _empty_separator(rules: object, member: str) -> None:
+    """Set an empty separator in the first rule of member rules."""
+    assert isinstance(rules, list) and isinstance(rules[0], dict)
+    if member == 's01_split_rows':
+        rules[0]['separators'] = [',', '']
+    else:
+        rules[0]['separator'] = ''
+
+
+@pytest.mark.parametrize('cls', [ConfigXlsListTransfName,
+                                 ConfigXlsListTransfNum])
+@pytest.mark.parametrize('member, path',
+                         [('s01_split_rows',
+                           's01_split_rows[0][separators][1]'),
+                          ('s03_split_columns',
+                           's03_split_columns[0][separator]')])
+def test_empty_separator_bad(capsys: CaptureFixture[str],
+                             cls: type[ConfigXlsListTransfName] |
+                             type[ConfigXlsListTransfNum],
+                             member: str, path: str) -> None:
+    """Test that empty separators are rejected when writing and reading."""
+    cfg = cls()
+    data = json.loads(cfg.as_json_string(stderr_file=sys.stderr))
+    _empty_separator(data[member], member)
+    _empty_separator(getattr(cfg, member), member)
+    with pytest.raises(InvalidConfiguration):
+        _ = cfg.as_json_string(stderr_file=sys.stderr)
+    with pytest.raises(InvalidConfiguration):
+        _ = cls(from_json_data_text=json.dumps(data), stderr_file=sys.stderr)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert err.count(f'{path} has length 0') == 2

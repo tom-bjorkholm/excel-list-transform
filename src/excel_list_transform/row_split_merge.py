@@ -4,6 +4,7 @@
 # Copyright (c) 2025 - 2026 Tom Björkholm
 # MIT License
 
+import re
 import sys
 from typing import overload
 from copy import deepcopy
@@ -17,64 +18,35 @@ from excel_list_transform.config_xls_list_transf_num import \
     ConfigXlsListTransfNum
 
 
-def get_nosep_pos(instr: str,
-                  not_separators: list[str]) -> list[tuple[int, int]]:
-    """Find begin and end position of all not separators in input."""
-    nosep_pos: list[tuple[int, int]] = []
-    start = 0
-    found = True
-    lenstr = len(instr)
-    while found:
-        found = False
-        nsep_pos = (lenstr, 0)
-        for nsep in not_separators:
-            beg = instr.find(nsep, start)
-            if beg >= 0:
-                found = True
-                end = beg + len(nsep)
-                if beg < nsep_pos[0] or (beg == nsep_pos[0] and
-                                         end > nsep_pos[1]):
-                    nsep_pos = (beg, end)
-        if not found:
-            break
-        nosep_pos.append(nsep_pos)
-        start = nsep_pos[1]
-    return nosep_pos
-
-
-def in_nosep_pos(pos: int, nosep_pos: list[tuple[int, int]]) -> bool:
-    """Is this pos inside any of the nosep_pos intervals."""
-    for nsepbeg, nsepend in nosep_pos:
-        if nsepbeg <= pos < nsepend:
-            return True
-    return False
+def _alternatives(strings: list[str]) -> str:
+    """Return a regex alternation that prefers the longest string."""
+    by_length = sorted(strings, key=len, reverse=True)
+    return '|'.join(re.escape(text) for text in by_length)
 
 
 def split_one_str(instr: str, separators: list[str],
                   not_separators: list[str]) -> list[str]:
-    """Split one string based on separators and not separators."""
-    nosep_pos = get_nosep_pos(instr=instr, not_separators=not_separators)
+    """Split one string at separators that are not in a not-separator.
+
+    The string is scanned from left to right. At each position a
+    not-separator takes precedence over a separator, and a longer
+    string takes precedence over a shorter one. All parts are kept,
+    also empty parts (from leading, trailing or adjacent separators).
+    @param separators  Non-empty list of non-empty strings (enforced
+                       by configuration validation).
+    """
+    assert separators and all(separators) and all(not_separators)
+    pattern = f'(?P<sep>{_alternatives(separators)})'
+    if not_separators:
+        pattern = f'{_alternatives(not_separators)}|{pattern}'
+    parts: list[str] = []
     start = 0
-    ret: list[str] = []
-    while start < len(instr):
-        pos = len(instr)
-        seplen = 0
-        for sep in separators:
-            tpos = instr.find(sep, start)
-            if tpos < 0:
-                continue
-            if in_nosep_pos(pos=tpos, nosep_pos=nosep_pos):
-                continue
-            if tpos < pos:
-                pos = tpos
-                seplen = len(sep)
-        if pos < len(instr):
-            ret.append(instr[start:pos])
-            start = pos + seplen
-        else:
-            ret.append(instr[start:])
-            start = len(instr)
-    return ret
+    for match in re.finditer(pattern, instr):
+        if match.lastgroup == 'sep':
+            parts.append(instr[start:match.start()])
+            start = match.end()
+    parts.append(instr[start:])
+    return parts
 
 
 @overload
@@ -225,28 +197,24 @@ def split_rows_cfg(indata: Data[Row],
 def merge_strings(to_merge: list[Value], sep: str) -> Value:
     """Merge list of strings to one cell value.
 
-    If two or more values are on several position it will be
-    merged only once. If two positions have different values
-    the values will be converted to str and concatenated with
-    the separator sep.
+    Empty values (None and '') are left out. A value present in
+    several positions is merged only once. If a single distinct
+    value remains it is returned unchanged (keeping its type).
+    Several distinct values are converted to str and joined with
+    the separator sep. If all values are empty None is returned.
     @param to_merge A list of the cell values for one column for the rows
                     that are subject to the merge.
     @param sep      The separator between values when merged.
     """
     uniq: list[Value] = []
-    for i in to_merge:
-        if i not in uniq:
-            uniq.append(deepcopy(i))
+    for value in to_merge:
+        if value not in (None, '') and value not in uniq:
+            uniq.append(deepcopy(value))
     if not uniq:
         return None
     if len(uniq) == 1:
         return uniq[0]
-    ret = str(uniq[0])
-    for i in uniq[1:]:
-        if ret:
-            ret += sep
-        ret += str(i)
-    return ret
+    return sep.join(str(value) for value in uniq)
 
 
 def columns_in_row(row: Row, tinfo: Column) -> list[Column]:

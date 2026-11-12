@@ -222,6 +222,13 @@ def test_spl_cols_nok_nam(capsys: CaptureFixture[str], ind: NameData,
                            [{'columns': ['x', 'y'], 'separator': 'ww'}],
                            [{'x': 'bwwc', 'z': 'd'}, {'x': 'e', 'z': 'f'},
                             {'x': 'h', 'z': 'j'}, {'x': None, 'z': 'm'}]),
+                          ([{'x': '', 'y': 'c', 'z': 'd'},
+                            {'x': 'e', 'y': '', 'z': 'f'},
+                            {'x': '', 'y': None, 'z': 'j'},
+                            {'x': 0, 'y': '', 'z': 'm'}],
+                           [{'columns': ['x', 'y'], 'separator': 'ww'}],
+                           [{'x': 'c', 'z': 'd'}, {'x': 'e', 'z': 'f'},
+                            {'x': None, 'z': 'j'}, {'x': '0', 'z': 'm'}]),
                           ([{'x': 'b', 'y': 'c', 'z': 'd'},
                             {'x': 'e', 'y': None, 'z': 'f'},
                             {'x': None, 'y': 'h', 'z': 'j'},
@@ -271,7 +278,18 @@ def test_mrg_cols_nok_nam(capsys: CaptureFixture[str], ind: NameData,
                            [{'column': 'y', 'name': 'One'},
                             {'column': 'z', 'name': 'Zwei'}],
                            [{'x': 'a', 'One': 'b', 'Zwei': 'c'},
-                            {'x': 'd', 'One': 'e', 'Zwei': 'f'}])])
+                            {'x': 'd', 'One': 'e', 'Zwei': 'f'}]),
+                          ([{'x': 'a', 'y': 'b'}],
+                           [{'column': 'x', 'name': 'q'},
+                            {'column': 'q', 'name': 'r'}],
+                           [{'y': 'b', 'r': 'a'}]),
+                          ([{'x': 'a', 'y': 'b'}],
+                           [{'column': 'y', 'name': 'z'},
+                            {'column': 'x', 'name': 'y'}],
+                           [{'z': 'b', 'y': 'a'}]),
+                          ([{'x': 'a', 'y': 'b'}],
+                           [{'column': 'x', 'name': 'x'}],
+                           [{'x': 'a', 'y': 'b'}])])
 def test_ren_cols_ok_nam(capsys: CaptureFixture[str], ind: NameData,
                          nam: Rule[str], exp: NameData) -> None:
     """Test ok renaming of columns."""
@@ -287,7 +305,21 @@ def test_ren_cols_ok_nam(capsys: CaptureFixture[str], ind: NameData,
 @pytest.mark.parametrize('nam, msg',
                          [([{'column': 'y', 'name': 'One'},
                             {'column': 'q', 'name': 'Zwei'}],
-                           's07_rename_columns: no column named "q" in data')])
+                           's07_rename_columns: no column named "q" in data'),
+                          ([{'column': 'x', 'name': 'y'},
+                            {'column': 'y', 'name': 'x'}],
+                           's07_rename_columns: cannot rename "x" to "y", '
+                           'column "y" already exists.'),
+                          ([{'column': 'x', 'name': 'z'}],
+                           's07_rename_columns: cannot rename "x" to "z", '
+                           'column "z" already exists.'),
+                          ([{'column': 'x', 'name': 'q'},
+                            {'column': 'y', 'name': 'q'}],
+                           's07_rename_columns: cannot rename "y" to "q", '
+                           'column "q" already exists.'),
+                          ([{'column': 'x', 'name': 'q'},
+                            {'column': 'x', 'name': 'r'}],
+                           's07_rename_columns: no column named "x" in data')])
 @pytest.mark.parametrize('ind',
                          [[{'x': 'a', 'y': 'b', 'z': 'c'},
                            {'x': 'd', 'y': 'e', 'z': 'f'}],
@@ -577,11 +609,46 @@ def test_tr_data_ok_nam(capsys: CaptureFixture[str]) -> None:
     cfg.s07_rename_columns = test_data.rename_cols
     cfg.s08_insert_columns = test_data.insert_cols
     cfg.s09_rewrite_columns = test_data.rewrite_cols
+    cfg.s10_column_order = test_data.column_order
     res = transform_data_name(indata=test_data.indata, cfg=cfg)
     out, err = capsys.readouterr()
     assert '' == err
     assert '' == out
     assert_data_is_equal(res, cast(NameData, test_data.result))
+
+
+def _rename_only_cfg(order: list[str]) -> ConfigXlsListTransfName:
+    """Return a config that only renames x to n and orders columns."""
+    cfg = ConfigXlsListTransfName()
+    for member in ('s01_split_rows', 's02_merge_rows', 's03_split_columns',
+                   's05_merge_columns', 's08_insert_columns',
+                   's09_rewrite_columns'):
+        setattr(cfg, member, [])
+    cfg.s07_rename_columns = [{'column': 'x', 'name': 'n'}]
+    cfg.s10_column_order = order
+    return cfg
+
+
+@pytest.mark.parametrize('order, missing',
+                         [(['b', 'a'], None), (['n', 'b'], None), ([], None),
+                          (['a', 'q'], 'q'), (['x', 'a'], 'x')])
+def test_tr_data_col_order(capsys: CaptureFixture[str], order: list[str],
+                           missing: Optional[str]) -> None:
+    """Test that s10_column_order must name existing (renamed) columns."""
+    cfg = _rename_only_cfg(order)
+    indata: NameData = [{'x': 1, 'a': 2, 'b': 3}, {'x': 4, 'a': 5, 'b': 6}]
+    if missing is None:
+        assert transform_data_name(indata=indata, cfg=cfg) == [
+            {'n': 1, 'a': 2, 'b': 3}, {'n': 4, 'a': 5, 'b': 6}]
+    else:
+        with pytest.raises(SystemExit):
+            _ = transform_data_name(indata=indata, cfg=cfg)
+    out, err = capsys.readouterr()
+    assert '' == out
+    if missing is None:
+        assert '' == err
+    else:
+        assert f's10_column_order: no column named "{missing}"' in err
 
 
 @pytest.mark.parametrize('enc', ['utf-8', 'iso8859-1'])

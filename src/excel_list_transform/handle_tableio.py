@@ -4,6 +4,7 @@
 # Copyright (c) 2026 Tom Björkholm
 # MIT License
 
+import sys
 from enum import Enum, auto
 from typing import Optional, cast
 from config_as_json import string_to_enum_best_match
@@ -72,6 +73,13 @@ def _strip_table(data: NumData, strip_col_names: bool,
     return data
 
 
+def _require_rows(data: NumData, filename: str) -> None:
+    """Stop with error report if the input table has no rows."""
+    if not data:
+        print(f'Input file {filename} has no rows.', file=sys.stderr)
+        sys.exit(1)
+
+
 def read_table_num(filename: str,
                    cfg: ConfigExcelListTransform[int] |
                    ConfigExcelListTransform[str]) -> NumData:
@@ -82,11 +90,11 @@ def read_table_num(filename: str,
         read_result = reader.read_table_listdata()
     data = _trim_table(cast(NumDataSeq, read_result.data),
                        max_column_read=cfg.max_column_read)
-    data = handle_empty_column_in_lst(data)
+    _require_rows(data=data, filename=filename)
     if _is_excel_input(cfg):
         data = _strip_table(data, cfg.in_excel_col_name_strip,
                             cfg.in_excel_values_strip)
-    return data
+    return handle_empty_column_in_lst(data)
 
 
 def read_table_named(filename: str,

@@ -10,11 +10,23 @@ from excel_list_transform.commontypes import NameData, NumData, \
     NumDataSeq, NumRow, num_row_to_str_list
 
 
+def _names_must_be_unique(names: list[str], filemsg: str) -> None:
+    """Stop with error report if a column name occurs more than once."""
+    seen: set[str] = set()
+    for name in names:
+        if name in seen:
+            print(f'Duplicate input column name "{name}"' + filemsg,
+                  file=sys.stderr)
+            sys.exit(1)
+        seen.add(name)
+
+
 def named_cols_from_num_cols(data: NumData | NumDataSeq,
                              filename: str) -> NameData:
     """Convert data with numbered columns to data with named columns.
 
     If rows have too few columns, pad as needed with None.
+    Column names (title row) must be present and unique.
     """
     filemsg = f' in file {filename}.'
     for i, name in enumerate(data[0]):
@@ -23,6 +35,7 @@ def named_cols_from_num_cols(data: NumData | NumDataSeq,
                   file=sys.stderr)
             sys.exit(1)
     names: list[str] = num_row_to_str_list(data[0])
+    _names_must_be_unique(names=names, filemsg=filemsg)
     num_cols = len(names)
     ret: NameData = []
     for row_in in data[1:]:

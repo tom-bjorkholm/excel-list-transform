@@ -62,13 +62,17 @@ COMMON_TEXTS: Descriptions = {
         '"not_separators".',
     ('s01_split_rows', '[', 'separators'):
         'List of texts (at least one) that separate the parts of the value, '
-        'for example " + ".',
+        'for example " + ". Where several separators match at the same '
+        'place, the longest one is used. Empty parts (from a separator at '
+        'the start or end, or from two adjacent separators) are kept.',
     ('s01_split_rows', '[', 'separators', '['):
-        'One text that separates two parts of the value.',
+        'One non-empty text that separates two parts of the value.',
     ('s01_split_rows', '[', 'not_separators'):
         'List of texts that are not separators even though they contain a '
         'separator, for example "\\ " when " " is a separator. Each of them '
-        'must contain a separator and must not be one. May be empty.',
+        'must contain a separator and must not be one. A not-separator '
+        'takes precedence over a separator at the same place. May be '
+        'empty.',
     ('s01_split_rows', '[', 'not_separators', '['):
         'One text that is not a separator.',
     ('s02_merge_rows',):
@@ -76,7 +80,8 @@ COMMON_TEXTS: Descriptions = {
         'Done after s01_split_rows. A list of rules with the keys "columns" '
         'and "separator". In every other column the different values of the '
         'merged rows are joined with "separator", and a value that is the '
-        'same in all of them is written once. An empty list merges no rows.',
+        'same in all of them is written once. Empty values are left out. '
+        'An empty list merges no rows.',
     ('s02_merge_rows', '['):
         'One row merge rule, with the keys "columns" and "separator".',
     ('s02_merge_rows', '[', 'separator'):
@@ -84,7 +89,7 @@ COMMON_TEXTS: Descriptions = {
         'merged, for example " + ".',
     ('s03_split_columns', '[', 'separator'):
         'Text at which the value is split, for example " " to split between '
-        'two words. The separator itself is not kept.',
+        'two words. The separator itself is not kept. Must not be empty.',
     ('s03_split_columns', '[', 'where'):
         'Where to split when the separator occurs more than once: LEFTMOST '
         '(at the first occurrence) or RIGHTMOST (at the last). Splitting '
@@ -174,7 +179,9 @@ NAME_TEXTS: Descriptions = {
     ('s07_rename_columns',):
         'Rename columns. Done after the splits and merges, so a column made '
         'by them can be renamed here. A list of rules with the keys "column" '
-        'and "name". Each column may be renamed only once.',
+        'and "name". Each column may be renamed only once. Renames are done '
+        'in the listed order, and a rename must not give a column the name '
+        'of an existing column.',
     ('s07_rename_columns', '[', 'column'):
         'Name of the column before it is renamed.',
     ('s08_insert_columns',):
@@ -198,7 +205,7 @@ NAME_TEXTS: Descriptions = {
         'Which columns the output file gets, and in which order: a list of '
         'column names as they are after all other steps. Columns that are '
         'not listed are left out of the output. Each name may be listed '
-        'only once.',
+        'only once, and must be the name of an existing column.',
     ('s10_column_order', '['):
         'Name of one output column. Its place in this list is its place in '
         'the output.'}

@@ -18,13 +18,16 @@ from excel_list_transform.config_excel_list_transform import \
     Column, SingleRuleRewrite
 
 
-def strip_value(value: str, chars: str | None,
+def strip_value(value: str, chars: Optional[str],
                 casehandle: CaseSensitivity) -> str:
-    """Strip off characters from beginning/end of value."""
-    if chars is None or chars == '':
+    """Strip off characters from beginning/end of value.
+
+    If chars is None or empty, whitespace is stripped.
+    """
+    if not chars:
         return value.strip()
     cha = chars
-    if casehandle == CaseSensitivity.IGNORE_CASE and len(chars) > 0:
+    if casehandle == CaseSensitivity.IGNORE_CASE:
         cha = chars.lower() + chars.upper()
     return value.strip(cha)
 
@@ -101,8 +104,7 @@ def rewrite_value(value: Optional[str], spec: SingleRuleRewrite[Column],
                                                    CaseSensitivity)
     if kind == RewriteKind.STRIP:
         chars1 = spec['chars']
-        if chars1 is not None:
-            assert isinstance(chars1, str)
+        assert chars1 is None or isinstance(chars1, str)
         return strip_value(value=ret, chars=chars1, casehandle=casehandle)
     if kind == RewriteKind.REMOVECHARS:
         chars: list[str] = get_checked_type(spec['chars'], list)

@@ -21,7 +21,7 @@ classifiers = [
     "Topic :: Office/Business",
     "Typing :: Typed"
 ]
-dynamic = ["dependencies", "version"]
+dynamic = ["dependencies", "version", "optional-dependencies"]
 
 [project.urls]
 "Source code" = "https://github.com/tom-bjorkholm/excel-list-transform"

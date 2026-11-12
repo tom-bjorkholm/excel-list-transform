@@ -1,5 +1,5 @@
 #! /usr/local/bin/python3
-"""Shared pytest fixtures for the notesmgr tests."""
+"""Shared pytest fixtures for the excel-list-transform tests."""
 
 # Copyright (c) 2026 Tom Björkholm
 # MIT License

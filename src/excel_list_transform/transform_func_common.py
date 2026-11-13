@@ -7,11 +7,12 @@
 
 import sys
 from copy import deepcopy
-from excel_list_transform.config_enums import SplitWhere
+from excel_list_transform.config_enums import SplitWhere, EndSeparators
 from excel_list_transform.config_excel_list_transform import Column, \
     Rule, RuleMerge, RuleRewrite, RuleSplit, SingleRuleSplit, \
     ConfigExcelListTransform
 from excel_list_transform.rewrite_value import rewrite_value
+from excel_list_transform.split_parts import strip_end_separators
 from excel_list_transform.commontypes import  \
     NumRow, NameRow, NumRowSeq, NameRowMap, Data, Row, Value
 
@@ -114,6 +115,33 @@ def pop_from_row(row: NumRow | NameRow, colref: Column) -> Value:
     return row.pop(colref)
 
 
+def split_col_value(inval: Value, colref: Column,
+                    rule: SingleRuleSplit[Column]) -> list[str]:
+    """Split one value according to a column split rule.
+
+    None gives no parts ([]). Other non-string values stop the program
+    with an error message. Before splitting, separators and empty parts
+    at the ends of the value are stripped according to "end_separators".
+    """
+    if inval is None:
+        return []
+    if not isinstance(inval, str):
+        msg = 's03_split_columns: '
+        msg += 'Can only split columns with string values.\n'
+        msg += f'Column "{colref}" has value of '
+        msg += f'type {type(inval).__name__}'
+        print(msg, file=sys.stderr)
+        sys.exit(1)
+    sep = rule['separator']
+    assert isinstance(sep, str)
+    ends = rule['end_separators']
+    assert isinstance(ends, EndSeparators)
+    value = strip_end_separators(value=inval, separator=sep, mode=ends)
+    if rule['where'] == SplitWhere.RIGHTMOST:
+        return value.rsplit(sep=sep, maxsplit=1)
+    return value.split(sep=sep, maxsplit=1)
+
+
 def split_columns(indata: Data[Row], cfg: ConfigExcelListTransform[Column],
                   tinfo: Column) -> Data[Row]:
     """Split columns in the in indata."""
@@ -126,23 +154,8 @@ def split_columns(indata: Data[Row], cfg: ConfigExcelListTransform[Column],
         for i in reversed(cfg.s03_split_columns):
             colref = i['column']
             assert isinstance(colref, type(tinfo))
-            sep = i['separator']
-            assert isinstance(sep, str)
             inval = pop_from_row(row=row, colref=colref)
-            val: list[str] = []
-            if inval is not None:
-                if not isinstance(inval, str):
-                    msg = 's03_split_columns: '
-                    msg += 'Can only split columns with string values.\n'
-                    msg += f'Column "{colref}" has value of '
-                    msg += f'type {type(inval).__name__}'
-                    print(msg, file=sys.stderr)
-                    sys.exit(1)
-                assert isinstance(inval, str)
-                if i['where'] == SplitWhere.RIGHTMOST:
-                    val = inval.rsplit(sep=sep, maxsplit=1)
-                else:
-                    val = inval.split(sep=sep, maxsplit=1)
+            val = split_col_value(inval=inval, colref=colref, rule=i)
             if isinstance(tinfo, str):
                 assert isinstance(row, dict)
                 assert isinstance(colref, str)

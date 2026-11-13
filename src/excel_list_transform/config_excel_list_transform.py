@@ -23,7 +23,7 @@ from tableio import CAP_IGNORABLE, CAP_NEEDED, Capabilities, FileAccess, \
     TableBorderStyle
 from tableio_cfg_json import TioJsonConfig
 from excel_list_transform.config_enums import SplitWhere, RewriteKind, \
-    CaseSensitivity, ColumnRef
+    CaseSensitivity, ColumnRef, EmptyParts, EndSeparators
 from excel_list_transform.config_read_old import ConfigReadOld
 from excel_list_transform.str_to_enum import string_to_enum_best_match
 from excel_list_transform.migrate_cfg_warn_hook import EltMigrateCfgWarnHook
@@ -32,7 +32,8 @@ from excel_list_transform.migrate_cfg_warn_hook import EltMigrateCfgWarnHook
 Column = TypeVar('Column', int, str)
 type SingleRule[Column] = dict[str, Optional[Column | str]]
 type Rule[Column] = list[SingleRule[Column]]
-type SingleRuleSplit[Column] = dict[str, Optional[Column | str | SplitWhere]]
+type SingleRuleSplit[Column] = dict[str, Optional[Column | str | SplitWhere |
+                                                  EndSeparators]]
 
 
 class SingleRuleRowSplit[Column](TypedDict):
@@ -41,6 +42,7 @@ class SingleRuleRowSplit[Column](TypedDict):
     column: Column
     separators: list[str]
     not_separators: list[str]
+    empty_parts: EmptyParts
 
 
 type RuleSplit[Column] = list[SingleRuleSplit[Column]]
@@ -232,7 +234,8 @@ class ConfigExcelListTransform(Config, Generic[Column]):
         self.s01_split_rows: RuleRowSplit[Column] = \
             [{'column': col2userow.pop(0),
               'separators': [' ', '+'],
-              'not_separators': ['\\ ', '\\+', ' + ']}]
+              'not_separators': ['\\ ', '\\+', ' + '],
+              'empty_parts': EmptyParts.DROP_TRAILING}]
         self.s02_merge_rows: RuleMerge[Column] = \
             [{'columns': [col2userow.pop(0), col2userow.pop(0)],
               'separator': ' + '}]
@@ -360,12 +363,14 @@ class ConfigExcelListTransform(Config, Generic[Column]):
                                  ListForEachValidator(
                                      element_validators=[_non_empty()])]),
             DictRule(keys=['not_separators'],
-                     validators=[ListValueTypeValidator(str)])])
+                     validators=[ListValueTypeValidator(str)]),
+            DictRule(keys=['empty_parts'],
+                     validators=[ValueTypeValidator(EmptyParts)])])
         validator = ListForEachValidator(
             element_validators=[
                 DictKeysValidator(
                     mandatory_keys=['column', 'separators',
-                                    'not_separators']),
+                                    'not_separators', 'empty_parts']),
                 values_validator,
                 SplitRowSepValidator()],
             element_type=dict)
@@ -390,13 +395,16 @@ class ConfigExcelListTransform(Config, Generic[Column]):
 
     def _split_columns_step(self) -> MemberValidationStep:
         """Return validation step for split-column rules."""
-        keys = ['column', 'separator', 'where', self._colinfo.split_last]
+        keys = ['column', 'separator', 'where', 'end_separators',
+                self._colinfo.split_last]
         values_validator = DictForEachValidator(rules=[
             DictRule(keys=['column'], validators=[self._column_validator()]),
             DictRule(keys=['separator'],
                      validators=[ValueTypeValidator(str), _non_empty()]),
             DictRule(keys=['where'],
                      validators=[ValueTypeValidator(SplitWhere)]),
+            DictRule(keys=['end_separators'],
+                     validators=[ValueTypeValidator(EndSeparators)]),
             self._split_last_rule()])
         validator = ListForEachValidator(
             element_validators=[
@@ -561,4 +569,6 @@ class ConfigExcelListTransform(Config, Generic[Column]):
                 'store_single': self.get_converter_dict(SplitWhere),
                 'kind': self.get_converter_dict(RewriteKind),
                 'case': self.get_converter_dict(CaseSensitivity),
-                'column_ref': self.get_converter_dict(ColumnRef)}
+                'column_ref': self.get_converter_dict(ColumnRef),
+                'empty_parts': self.get_converter_dict(EmptyParts),
+                'end_separators': self.get_converter_dict(EndSeparators)}

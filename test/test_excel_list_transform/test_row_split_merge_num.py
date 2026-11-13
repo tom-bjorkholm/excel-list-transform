@@ -12,6 +12,8 @@ from datetime import datetime
 import sys
 import pytest
 from pytest import CaptureFixture
+from test_excel_list_transform.split_cases import ROW_MODE_CASES, \
+    RowModeCase
 from excel_list_transform.row_split_merge import \
     one_split_one_row, one_split, \
     split_rows, split_rows_cfg, merge_strings, \
@@ -23,6 +25,7 @@ from excel_list_transform.config_xls_list_transf_num import \
 from excel_list_transform.config_excel_list_transform import RuleMerge, \
     RuleRowSplit, SingleRuleMerge
 from excel_list_transform.commontypes import NumData, NumRow, Value
+from excel_list_transform.config_enums import EmptyParts
 
 
 @pytest.mark.parametrize('inrow,col,seps,noseps,res',
@@ -52,9 +55,23 @@ def test_one_split_one_nu_ok1(capsys: CaptureFixture[str], inrow: NumRow,
     """Test OK cases of one_split_one_row num."""
     ret = one_split_one_row(inrow=deepcopy(inrow), column=deepcopy(col),
                             separators=deepcopy(seps),
-                            not_separators=deepcopy(noseps))
+                            not_separators=deepcopy(noseps),
+                            empty_parts=EmptyParts.KEEP_ALL)
     out, err = capsys.readouterr()
     assert ret == res
+    assert '' == out
+    assert '' == err
+
+
+@pytest.mark.parametrize('case', ROW_MODE_CASES)
+def test_one_split_mode_nu(capsys: CaptureFixture[str],
+                           case: RowModeCase) -> None:
+    """Test empty_parts modes when splitting one row (num)."""
+    inrow: NumRow = ['x', case.value, None]
+    ret = one_split_one_row(inrow=deepcopy(inrow), column=1, separators=[','],
+                            not_separators=[], empty_parts=case.mode)
+    out, err = capsys.readouterr()
+    assert ret == [['x', part, None] for part in case.parts]
     assert '' == out
     assert '' == err
 
@@ -87,7 +104,8 @@ def test_one_spl_one_nu_nok1(capsys: CaptureFixture[str], inrow: object,
     with pytest.raises(SystemExit):
         _ = one_split_one_row(inrow=cast(NumRow, deepcopy(inrow)),
                               column=deepcopy(col), separators=deepcopy(seps),
-                              not_separators=deepcopy(noseps))
+                              not_separators=deepcopy(noseps),
+                              empty_parts=EmptyParts.DROP_ALL)
     out, err = capsys.readouterr()
     assert '' == out
     for msg in msgs:
@@ -128,7 +146,8 @@ def test_one_split_num_ok1(capsys: CaptureFixture[str], indata: NumData,
                            res: NumData) -> None:
     """Test OK cases of one_split num."""
     ret = one_split(deepcopy(indata), cast(int, deepcopy(col)), deepcopy(seps),
-                    not_separators=deepcopy(noseps))
+                    not_separators=deepcopy(noseps),
+                    empty_parts=EmptyParts.KEEP_ALL)
     out, err = capsys.readouterr()
     assert ret == res
     assert '' == out
@@ -152,7 +171,8 @@ def test_one_split_num_nok1(capsys: CaptureFixture[str], indata: NumData,
     with pytest.raises(SystemExit):
         _ = one_split(indata=deepcopy(indata), column=deepcopy(col),
                       separators=deepcopy(seps),
-                      not_separators=deepcopy(noseps))
+                      not_separators=deepcopy(noseps),
+                      empty_parts=EmptyParts.KEEP_ALL)
     out, err = capsys.readouterr()
     assert '' == out
     for msg in msgs:
@@ -163,16 +183,20 @@ def test_one_split_num_nok1(capsys: CaptureFixture[str], indata: NumData,
                          [([], [], []),
                           ([], [{'column': 1,
                                  'separators': [' ', ';'],
-                                 'not_separators': ['\\;', '  ']}], []),
+                                 'not_separators': ['\\;', '  '],
+                                 'empty_parts': EmptyParts.KEEP_ALL}], []),
                           ([['b', 'd e', 'g'],
                             ['h+j', 'k', 'l;m'],
                             ['n', 'o', 'p']],
                            [{'column': 1, 'separators': [' ', 'x'],
-                             'not_separators': ['   ']},
+                             'not_separators': ['   '],
+                             'empty_parts': EmptyParts.KEEP_ALL},
                             {'column': 0, 'separators': ['+', 'x'],
-                             'not_separators': ['xx', 'xy']},
+                             'not_separators': ['xx', 'xy'],
+                             'empty_parts': EmptyParts.KEEP_ALL},
                             {'column': 2, 'separators': [';', 'x'],
-                             'not_separators': ['\\;']}],
+                             'not_separators': ['\\;'],
+                             'empty_parts': EmptyParts.KEEP_ALL}],
                            [['b', 'd', 'g'],
                             ['b', 'e', 'g'],
                             ['h', 'k', 'l'],
@@ -184,9 +208,11 @@ def test_one_split_num_nok1(capsys: CaptureFixture[str], indata: NumData,
                             [None, 'k', None],
                             ['n', 'o p', None]],
                            [{'column': 1, 'separators': [' '],
-                             'not_separators': []},
+                             'not_separators': [],
+                             'empty_parts': EmptyParts.KEEP_ALL},
                             {'column': 2, 'separators': [';'],
-                             'not_separators': []}],
+                             'not_separators': [],
+                             'empty_parts': EmptyParts.KEEP_ALL}],
                            [['b', None, 'g'],
                             ['b', None, 'h'],
                             [None, 'k', None],
@@ -202,6 +228,35 @@ def test_split_rows_num_ok1(capsys: CaptureFixture[str], indata: NumData,
     assert '' == err
 
 
+@pytest.mark.parametrize('mode_a,mode_c,a_parts,c_parts',
+                         [(EmptyParts.DROP_TRAILING, EmptyParts.DROP_ALL,
+                           ['p', 'q'], ['r', 's']),
+                          (EmptyParts.DROP_ALL, EmptyParts.DROP_TRAILING,
+                           ['p', 'q'], ['', 'r', '', 's']),
+                          (EmptyParts.KEEP_ALL, EmptyParts.DROP_ALL,
+                           ['p', 'q', ''], ['r', 's'])])
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_split_rows_mode_nu(capsys: CaptureFixture[str], mode_a: EmptyParts,
+                            mode_c: EmptyParts, a_parts: list[str],
+                            c_parts: list[str]) -> None:
+    """Test split_rows with different empty_parts modes per rule (num)."""
+    indata: NumData = [['p,q,', ',r,,s,'], [',', None]]
+    direc: RuleRowSplit[int] = [
+        {'column': 0, 'separators': [','], 'not_separators': [],
+         'empty_parts': mode_a},
+        {'column': 1, 'separators': [','], 'not_separators': [],
+         'empty_parts': mode_c}]
+    ret = split_rows(indata=deepcopy(indata), directives=direc)
+    out, err = capsys.readouterr()
+    res: NumData = [[a, c] for a in a_parts for c in c_parts]
+    if mode_a == EmptyParts.KEEP_ALL:
+        res.append(['', None])
+    res.append(['', None])
+    assert ret == res
+    assert '' == out
+    assert '' == err
+
+
 @pytest.mark.parametrize('direc,err,msg',
                          [(2, TypeError, 'object is not iterable'),
                           ('not list', TypeError,
@@ -209,23 +264,35 @@ def test_split_rows_num_ok1(capsys: CaptureFixture[str], indata: NumData,
                           (['not dict'], TypeError,
                            'string indices must be integers, not '),
                           ([{'colum': 1, 'separators': ['a', 'b'],
-                             'not_separators': ['aa', 'bb']}],
+                             'not_separators': ['aa', 'bb'],
+                             'empty_parts': EmptyParts.KEEP_ALL}],
                            KeyError, "KeyError('column')"),
                           ([{'column': 2, 'separator': ['a', 'b'],
-                             'not_separators': ['aa', 'bb']}],
+                             'not_separators': ['aa', 'bb'],
+                             'empty_parts': EmptyParts.KEEP_ALL}],
                            KeyError, "KeyError('separators')"),
                           ([{'column': 3, 'separators': ['a', 'b'],
                              'not_separator': ['aa', 'bb']}],
                            KeyError, "KeyError('not_separators')"),
-                          ([{'column': 'a', 'separators': ['a', 'b'],
+                          ([{'column': 1, 'separators': ['a', 'b'],
                              'not_separators': ['aa', 'bb']}],
+                           KeyError, "KeyError('empty_parts')"),
+                          ([{'column': 1, 'separators': ['a', 'b'],
+                             'not_separators': ['aa', 'bb'],
+                             'empty_parts': 'DROP_ALL'}],
+                           AssertionError, 'ExceptionInfo AssertionError'),
+                          ([{'column': 'a', 'separators': ['a', 'b'],
+                             'not_separators': ['aa', 'bb'],
+                             'empty_parts': EmptyParts.KEEP_ALL}],
                            AssertionError,
                            'ExceptionInfo AssertionError'),
                           ([{'column': 4, 'separators': ['a', 'b'],
-                             'not_separators': 'bb'}],
+                             'not_separators': 'bb',
+                             'empty_parts': EmptyParts.KEEP_ALL}],
                            AssertionError, 'ExceptionInfo AssertionError'),
                           ([{'column': 5, 'separators': 'a',
-                             'not_separators': ['aa', 'bb']}],
+                             'not_separators': ['aa', 'bb'],
+                             'empty_parts': EmptyParts.KEEP_ALL}],
                            AssertionError, 'ExceptionInfo AssertionError')])
 def test_split_rows_num_nok1(capsys: CaptureFixture[str], direc: object,
                              err: type[BaseException], msg: str) -> None:
@@ -245,16 +312,20 @@ def test_split_rows_num_nok1(capsys: CaptureFixture[str], direc: object,
                           ([['b', 'b']], [], [['b', 'b']]),
                           ([], [{'column': 1,
                                  'separators': [' ', ';'],
-                                 'not_separators': ['\\;', '  ']}], []),
+                                 'not_separators': ['\\;', '  '],
+                                 'empty_parts': EmptyParts.KEEP_ALL}], []),
                           ([['b', 'd e', 'g'],
                             ['h+j', 'k', 'l;m'],
                             ['n', 'o', 'p']],
                            [{'column': 1, 'separators': [' ', 'x'],
-                             'not_separators': ['   ']},
+                             'not_separators': ['   '],
+                             'empty_parts': EmptyParts.KEEP_ALL},
                             {'column': 0, 'separators': ['+', 'x'],
-                             'not_separators': ['xx', 'xy']},
+                             'not_separators': ['xx', 'xy'],
+                             'empty_parts': EmptyParts.KEEP_ALL},
                             {'column': 2, 'separators': [';', 'x'],
-                             'not_separators': ['\\;']}],
+                             'not_separators': ['\\;'],
+                             'empty_parts': EmptyParts.KEEP_ALL}],
                            [['b', 'd', 'g'],
                             ['b', 'e', 'g'],
                             ['h', 'k', 'l'],

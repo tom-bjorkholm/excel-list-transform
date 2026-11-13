@@ -53,18 +53,19 @@ COMMON_TEXTS: Descriptions = {
         'title row. Output formats that cannot do this ignore it.',
     ('s01_split_rows',):
         'Split one row into several rows. Done first of all steps. A list of '
-        'rules with the keys "column", "separators" and "not_separators". '
+        'rules with the keys "column", "separators", "not_separators" and '
+        '"empty_parts". '
         'The value of "column" is cut at every separator, and each part gets '
         'a row of its own. The other columns are copied to every new row. '
         'An empty list splits no rows.',
     ('s01_split_rows', '['):
-        'One row split rule, with the keys "column", "separators" and '
-        '"not_separators".',
+        'One row split rule, with the keys "column", "separators", '
+        '"not_separators" and "empty_parts".',
     ('s01_split_rows', '[', 'separators'):
         'List of texts (at least one) that separate the parts of the value, '
         'for example " + ". Where several separators match at the same '
-        'place, the longest one is used. Empty parts (from a separator at '
-        'the start or end, or from two adjacent separators) are kept.',
+        'place, the longest one is used. What happens to empty parts is '
+        'set by "empty_parts".',
     ('s01_split_rows', '[', 'separators', '['):
         'One non-empty text that separates two parts of the value.',
     ('s01_split_rows', '[', 'not_separators'):
@@ -75,6 +76,16 @@ COMMON_TEXTS: Descriptions = {
         'empty.',
     ('s01_split_rows', '[', 'not_separators', '['):
         'One text that is not a separator.',
+    ('s01_split_rows', '[', 'empty_parts'):
+        'What to do with empty parts (parts that are empty or only '
+        'whitespace, from a separator at the start or end, or from two '
+        'adjacent separators). One of:\n'
+        'KEEP_ALL: keep all of them. "a,,b," split at "," gives "a", "", '
+        '"b" and "".\n'
+        'DROP_ALL: drop all of them. "a,,b," gives "a" and "b".\n'
+        'DROP_TRAILING: drop only those at the end. "a,,b," gives "a", "" '
+        'and "b".\n'
+        'If all parts are dropped, the row is kept once with the value "".',
     ('s02_merge_rows',):
         'Merge rows that have equal values in some columns into one row. '
         'Done after s01_split_rows. A list of rules with the keys "columns" '
@@ -95,6 +106,15 @@ COMMON_TEXTS: Descriptions = {
         '(at the first occurrence) or RIGHTMOST (at the last). Splitting '
         '"Anna Maria Smith" at " " gives "Anna" and "Maria Smith" with '
         'LEFTMOST, and "Anna Maria" and "Smith" with RIGHTMOST.',
+    ('s03_split_columns', '[', 'end_separators'):
+        'Separators to remove at the ends of the value before it is split, '
+        'together with any whitespace between them. One of:\n'
+        'KEEP: keep the value as it is.\n'
+        'STRIP_LEADING: remove separators at the start.\n'
+        'STRIP_TRAILING: remove separators at the end. "a,b, ," split at '
+        '"," becomes "a,b" before the split.\n'
+        'STRIP_BOTH_ENDS: remove separators at the start and the end.\n'
+        'A value with only separators and whitespace becomes "".',
     ('s05_merge_columns', '['):
         'One column merge rule, with the keys "columns" and "separator".',
     ('s05_merge_columns', '[', 'separator'):
@@ -151,14 +171,14 @@ NAME_TEXTS: Descriptions = {
         'Name of one column that must hold equal values.',
     ('s03_split_columns',):
         'Split a column into two columns. A list of rules with the keys '
-        '"column", "separator", "where" and "right_name". The left part '
-        'stays in the column and the right part goes into a new column '
-        'named "right_name". A value without the separator stays whole in '
-        'the column, and the new column is left empty. An empty list splits '
-        'no columns.',
+        '"column", "separator", "where", "end_separators" and "right_name". '
+        'The left part stays in the column and the right part goes into a '
+        'new column named "right_name". A value without the separator stays '
+        'whole in the column, and the new column is left empty. An empty '
+        'list splits no columns.',
     ('s03_split_columns', '['):
         'One column split rule, with the keys "column", "separator", '
-        '"where" and "right_name".',
+        '"where", "end_separators" and "right_name".',
     ('s03_split_columns', '[', 'column'):
         'Name of the column to split. After the split it holds the left '
         'part.',
@@ -222,16 +242,16 @@ NUMBER_TEXTS: Descriptions = {
         'Number of one column that must hold equal values.',
     ('s03_split_columns',):
         'Split a column into two columns. A list of rules with the keys '
-        '"column", "separator", "where" and "store_single". The left part '
-        'replaces the column and the right part becomes a new column just '
-        'to the right of it, so every column further right gets a number '
-        'one higher. The column numbers of all rules are those of the input '
-        'file, as the rules are applied from the rightmost column to the '
-        'leftmost. Each column may be split only once. An empty list splits '
-        'no columns.',
+        '"column", "separator", "where", "end_separators" and '
+        '"store_single". The left part replaces the column and the right '
+        'part becomes a new column just to the right of it, so every column '
+        'further right gets a number one higher. The column numbers of all '
+        'rules are those of the input file, as the rules are applied from '
+        'the rightmost column to the leftmost. Each column may be split only '
+        'once. An empty list splits no columns.',
     ('s03_split_columns', '['):
         'One column split rule, with the keys "column", "separator", '
-        '"where" and "store_single".',
+        '"where", "end_separators" and "store_single".',
     ('s03_split_columns', '[', 'column'):
         'Number of the column to split. After the split it holds the left '
         'part, and the column after it holds the right part.',

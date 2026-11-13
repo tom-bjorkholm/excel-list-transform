@@ -9,6 +9,7 @@
 
 from collections.abc import Callable, Iterable
 from collections import namedtuple
+import json
 from tempfile import TemporaryDirectory
 from copy import deepcopy
 import pytest
@@ -19,7 +20,8 @@ from test_excel_list_transform.tableio_helpers import read_excel_num, \
     write_excel_num
 from excel_list_transform.generate_cfg import generate_examplecfg, \
     get_example_names
-from excel_list_transform.config_enums import ColumnRef
+from excel_list_transform.config_enums import ColumnRef, EmptyParts, \
+    EndSeparators
 from excel_list_transform.config_xls_list_transf_num import \
     ConfigXlsListTransfNum
 from excel_list_transform.handle_tableio import read_table_num
@@ -387,4 +389,33 @@ def test_example_txt_layout(capsys: CaptureFixture[str], cfgtype: str,
             _assert_txt_layout(file.read())
     out, err = capsys.readouterr()
     assert f'Wrote files {cfg} and {txt}' in out
+    assert '' == err
+
+
+@pytest.mark.parametrize('refcol', [ColumnRef.BY_NAME, ColumnRef.BY_NUMBER])
+@pytest.mark.parametrize('cfgtype, member, key, value',
+                         [('row_split_merge', 's01_split_rows', 'empty_parts',
+                           EmptyParts.DROP_TRAILING),
+                          ('sw_to_rrs', 's03_split_columns', 'end_separators',
+                           EndSeparators.STRIP_TRAILING),
+                          ('example', 's01_split_rows', 'empty_parts',
+                           EmptyParts.DROP_TRAILING),
+                          ('example', 's03_split_columns', 'end_separators',
+                           EndSeparators.STRIP_TRAILING)])
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_gen_split_modes(capsys: CaptureFixture[str], refcol: ColumnRef,
+                         cfgtype: str, member: str, key: str,
+                         value: EmptyParts | EndSeparators) -> None:
+    """Test that generated examples write empty_parts / end_separators."""
+    with TemporaryDirectory() as dname:
+        generate_examplecfg(cfgtype=cfgtype, filename=dname + '/a.cfg',
+                            colref=refcol)
+        with open(file=dname + '/a.cfg', mode='r', encoding='utf-8') as file:
+            data = json.load(file)
+        with open(file=dname + '/a.txt', mode='r', encoding='utf-8') as file:
+            txt = file.read()
+    out, err = capsys.readouterr()
+    assert data[member][0][key] == value.name
+    assert f'"{key}"' in txt
+    assert 'Wrote files' in out
     assert '' == err

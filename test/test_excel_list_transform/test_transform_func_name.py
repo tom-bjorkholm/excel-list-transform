@@ -28,7 +28,7 @@ from excel_list_transform.config_excel_list_transform import Rule, RuleMerge, \
     RuleRewrite, RuleSplit, SingleRuleSplit
 from excel_list_transform.commontypes import NameData, NameRow, NumData
 from excel_list_transform.config_enums import RewriteKind, CaseSensitivity, \
-    SplitWhere
+    SplitWhere, EndSeparators
 from excel_list_transform.transform_func_common import col_must_exist_name, \
     store_col_split_name, split_columns, merge_columns, rewrite_columns
 
@@ -115,9 +115,11 @@ def assert_data_is_equal(left: NameData, right: NameData) -> None:
                              'e': 'k+l+p', 'g h': 'm n'}],
                            [{'column': 'd e', 'separator': ' ',
                              'where': SplitWhere.RIGHTMOST,
+                             'end_separators': EndSeparators.KEEP,
                              'right_name': 'z y'},
                             {'column': 'e', 'separator': '+',
                              'where': SplitWhere.LEFTMOST,
+                             'end_separators': EndSeparators.KEEP,
                              'right_name': 'xx'}],
                            [{'abc': 'a b', 'd e': 'c d',
                              'z y': 'o', 'e': 'e', 'xx': 'f',
@@ -140,11 +142,32 @@ def assert_data_is_equal(left: NameData, right: NameData) -> None:
                              'e': 'k+l+p', 'g h': 'm n'}],
                            [{'column': 'abc', 'separator': ' ',
                              'where': SplitWhere.RIGHTMOST,
+                             'end_separators': EndSeparators.KEEP,
                              'right_name': 'added'}],
                            [{'abc': None, 'added': None, 'd e': 'c d o',
                              'e': 'e+f', 'g h': 'g'},
                             {'abc': 'h', 'added': 'i', 'd e': 'j',
-                             'e': 'k+l+p', 'g h': 'm n'}])])
+                             'e': 'k+l+p', 'g h': 'm n'}]),
+                          ([{'n': 'Anna Maria Smith '}, {'n': ' Bo '},
+                            {'n': '   '}, {'n': None}],
+                           [{'column': 'n', 'separator': ' ',
+                             'where': SplitWhere.RIGHTMOST,
+                             'end_separators': EndSeparators.STRIP_BOTH_ENDS,
+                             'right_name': 'last'}],
+                           [{'n': 'Anna Maria', 'last': 'Smith'},
+                            {'n': 'Bo', 'last': None},
+                            {'n': '', 'last': None},
+                            {'n': None, 'last': None}]),
+                          ([{'n': 'a,b,', 'm': ',a,b'}],
+                           [{'column': 'n', 'separator': ',',
+                             'where': SplitWhere.LEFTMOST,
+                             'end_separators': EndSeparators.STRIP_TRAILING,
+                             'right_name': 'n2'},
+                            {'column': 'm', 'separator': ',',
+                             'where': SplitWhere.LEFTMOST,
+                             'end_separators': EndSeparators.KEEP,
+                             'right_name': 'm2'}],
+                           [{'n': 'a', 'n2': 'b', 'm': '', 'm2': 'a,b'}])])
 def test_split_columns_name(capsys: CaptureFixture[str], ind: NameData,
                             split: RuleSplit[str], exp: NameData) -> None:
     """Test splitting of columns (column names)."""
@@ -162,12 +185,14 @@ def test_split_columns_name(capsys: CaptureFixture[str], ind: NameData,
                            {'x': 'h i', 'y': 'j', 'z': 'k+l+p', 'q': 'm n'}],
                            [{'column': 'foobar', 'separator': ' ',
                              'where': SplitWhere.RIGHTMOST,
+                             'end_separators': EndSeparators.KEEP,
                              'right_name': 'something'}],
                            'no column named "foobar" in data row'),
                           ([{'x': 'a b', 'y': 'c d o', 'z': 'e+f', 'q': 'g'},
                            {'x': 'h i', 'y': 'j', 'z': 8, 'q': 'm n'}],
                            [{'column': 'z', 'separator': '+',
                              'where': SplitWhere.RIGHTMOST,
+                             'end_separators': EndSeparators.KEEP,
                              'right_name': 'something'}],
                            'Column "z" has value of type int')])
 def test_spl_cols_nok_nam(capsys: CaptureFixture[str], ind: NameData,
@@ -582,6 +607,7 @@ def get_test_data_name(written_result: bool) -> DataToUseName:
                                 {'x': 'e', 'y': 'f', 'z': 'gÅÄÖåäö'}],
                         split_cols=[{'column': 'y', 'separator': ' ',
                                      'where': SplitWhere.RIGHTMOST,
+                                     'end_separators': EndSeparators.KEEP,
                                      'right_name': 'q'}],
                         merge_cols=[{'columns': ['x', 'y'], 'separator': ' '}],
                         first_cols=None,

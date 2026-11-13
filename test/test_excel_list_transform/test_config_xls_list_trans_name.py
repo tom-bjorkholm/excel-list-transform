@@ -18,7 +18,8 @@ from test_excel_list_transform.tableio_helpers import \
     configure_output_csv
 from excel_list_transform.config_xls_list_transf_name \
     import ConfigXlsListTransfName
-from excel_list_transform.config_enums import SplitWhere
+from excel_list_transform.config_enums import SplitWhere, EmptyParts, \
+    EndSeparators
 from excel_list_transform.config_excel_list_transform import RuleMerge, \
     RuleRowSplit
 from excel_list_transform.migrate_cfg_warn_hook import EltMigrateCfgWarnHook
@@ -124,6 +125,7 @@ def test_bak_cmpt_0_7_13_nam(capsys: CaptureFixture[str]) -> None:
     refcfg.output_table.csv = TioJsonCsvConfig(dialect=CsvDialect.EXCEL,
                                                delimiter=',', quotechar='"')
     refcfg.s01_split_rows = []
+    refcfg.s03_split_columns[0]['end_separators'] = EndSeparators.KEEP
     refcfg.s02_merge_rows = []
     refcfg.s03_split_columns[0]['right_name'] = 'Family Name'
     refcfg.s08_insert_columns[1]['column'] = 'Something Else'
@@ -142,11 +144,14 @@ def test_bak_cmpt_0_7_13_nam(capsys: CaptureFixture[str]) -> None:
 @pytest.mark.parametrize('splitr',
                          [[],
                           [{'column': 'foo', 'separators': [';'],
-                            'not_separators': ['\\;']}],
+                            'not_separators': ['\\;'],
+                            'empty_parts': EmptyParts.KEEP_ALL}],
                           [{'column': 'foo', 'separators': ['+'],
-                            'not_separators': [' + ']},
+                            'not_separators': [' + '],
+                            'empty_parts': EmptyParts.KEEP_ALL},
                            {'column': 'bar', 'separators': ['+', '-'],
-                            'not_separators': [' + ', '--']}]])
+                            'not_separators': [' + ', '--'],
+                            'empty_parts': EmptyParts.KEEP_ALL}]])
 @pytest.mark.parametrize('merger',
                          [[],
                           [{'columns': ['foo', 'bar'], 'separator': ' '}],
@@ -171,27 +176,33 @@ def test_row_spl_mrg_na_ok(capsys: CaptureFixture[str],
 
 @pytest.mark.parametrize('splitr, msgs',
                          [([{'column': 'foo', 'separators': [],
-                            'not_separators': []}],
+                             'not_separators': [],
+                             'empty_parts': EmptyParts.KEEP_ALL}],
                            ['s01_split_rows[0][separators]',
                             'less than minimum 1']),
                           ([{'column': 'foo', 'separators': [],
-                            'not_separators': [], 'start': 2}],
+                             'not_separators': [],
+                             'empty_parts': EmptyParts.KEEP_ALL, 'start': 2}],
                            ["Unknown key 'start' in s01_split_rows[0]"]),
                           ([{'column': 2, 'separators': [';'],
-                            'not_separators': [';;']}],
+                             'not_separators': [';;'],
+                             'empty_parts': EmptyParts.KEEP_ALL}],
                            ['s01_split_rows[0][column]',
                             'not of type str']),
                           ([{'separators': ['+'],
-                             'not_separators': [' + ']}],
+                             'not_separators': [' + '],
+                             'empty_parts': EmptyParts.KEEP_ALL}],
                            ["Mandatory key 'column' is missing",
                             's01_split_rows[0]']),
                           ([{'column': 'foo', 'separators': ['+'],
-                             'not_separators': ['+']}],
+                             'not_separators': ['+'],
+                             'empty_parts': EmptyParts.KEEP_ALL}],
                            ['s01_split_rows[0]',
                             'same string as a separator',
                             "not-separator: '+'."]),
                           ([{'column': 'bar', 'separators': ['+', '-'],
-                             'not_separators': [' + ', '--', '*']}],
+                             'not_separators': [' + ', '--', '*'],
+                             'empty_parts': EmptyParts.KEEP_ALL}],
                            ['s01_split_rows[0]',
                             "not-separator '*'",
                             'does not affect any separator'])])

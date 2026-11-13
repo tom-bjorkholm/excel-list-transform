@@ -4,17 +4,19 @@
 # Copyright (c) 2026 Tom Björkholm
 # MIT License
 
+from copy import deepcopy
 from io import StringIO
 import json
 import sys
 import pytest
 from pytest import CaptureFixture
-from config_as_json import InvalidConfiguration
+from config_as_json import ConfigBadJson, InvalidConfiguration
 from tableio import TableBorderStyle
 from test_excel_list_transform.tableio_helpers import \
     configure_input_csv, configure_output_csv
 import excel_list_transform.config_excel_list_transform as config_mod
-from excel_list_transform.config_enums import ColumnRef
+from excel_list_transform.config_enums import ColumnRef, EmptyParts, \
+    EndSeparators
 from excel_list_transform.config_read_old import ConfigReadOld
 from excel_list_transform.config_excel_list_transform import \
     ConfigExcelListTransform, ColInfo
@@ -245,3 +247,142 @@ def test_empty_separator_bad(capsys: CaptureFixture[str],
     out, err = capsys.readouterr()
     assert '' == out
     assert err.count(f'{path} has length 0') == 2
+
+
+SPLIT_CFG_CLASSES = [ConfigXlsListTransfName, ConfigXlsListTransfNum]
+SPLIT_MODE_KEYS = [('s01_split_rows', 'empty_parts'),
+                   ('s03_split_columns', 'end_separators')]
+
+
+def _split_mode_json(cls: type[ConfigXlsListTransfName] |
+                     type[ConfigXlsListTransfNum], member: str, key: str,
+                     value: object) -> str:
+    """Return default config JSON with key of first member rule replaced."""
+    data = json.loads(cls().as_json_string(stderr_file=sys.stderr))
+    data[member][0][key] = value
+    return json.dumps(data)
+
+
+@pytest.mark.parametrize('cls', SPLIT_CFG_CLASSES)
+def test_split_mode_defaults(cls: type[ConfigXlsListTransfName] |
+                             type[ConfigXlsListTransfNum]) -> None:
+    """Test the default values of empty_parts and end_separators."""
+    cfg = cls()
+    assert cfg.s01_split_rows[0]['empty_parts'] == EmptyParts.DROP_TRAILING
+    ends = cfg.s03_split_columns[0]['end_separators']
+    assert ends == EndSeparators.STRIP_TRAILING
+
+
+@pytest.mark.parametrize('cls', SPLIT_CFG_CLASSES)
+@pytest.mark.parametrize('member, key, text, expected',
+                         [('s01_split_rows', 'empty_parts', 'KEEP_ALL',
+                           EmptyParts.KEEP_ALL),
+                          ('s01_split_rows', 'empty_parts', 'drop_all',
+                           EmptyParts.DROP_ALL),
+                          ('s01_split_rows', 'empty_parts', 'DROP_T',
+                           EmptyParts.DROP_TRAILING),
+                          ('s01_split_rows', 'empty_parts', 'KEEP',
+                           EmptyParts.KEEP_ALL),
+                          ('s03_split_columns', 'end_separators', 'KEEP',
+                           EndSeparators.KEEP),
+                          ('s03_split_columns', 'end_separators',
+                           'strip_leading', EndSeparators.STRIP_LEADING),
+                          ('s03_split_columns', 'end_separators', 'STRIP_T',
+                           EndSeparators.STRIP_TRAILING),
+                          ('s03_split_columns', 'end_separators', 'Strip_B',
+                           EndSeparators.STRIP_BOTH_ENDS)])
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_split_mode_json_ok(capsys: CaptureFixture[str],
+                            cls: type[ConfigXlsListTransfName] |
+                            type[ConfigXlsListTransfNum],
+                            member: str, key: str, text: str,
+                            expected: EmptyParts | EndSeparators) -> None:
+    """Test reading empty_parts and end_separators (unique prefixes)."""
+    txt = _split_mode_json(cls, member, key, text)
+    cfg = cls(from_json_data_text=txt, stderr_file=sys.stderr)
+    assert getattr(cfg, member)[0][key] == expected
+    written = json.loads(cfg.as_json_string(stderr_file=sys.stderr))
+    assert written[member][0][key] == expected.name
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert '' == err
+
+
+@pytest.mark.parametrize('cls', SPLIT_CFG_CLASSES)
+@pytest.mark.parametrize('member, key, value, msg',
+                         [('s01_split_rows', 'empty_parts', 'DROP',
+                           'DROP is not one of: KEEP_ALL, DROP_ALL, '
+                           'DROP_TRAILING'),
+                          ('s01_split_rows', 'empty_parts', 'KEEP_SOME',
+                           'KEEP_SOME is not one of'),
+                          ('s01_split_rows', 'empty_parts', 2,
+                           'called with int not str'),
+                          ('s01_split_rows', 'empty_parts', None,
+                           'called with NoneType not str'),
+                          ('s03_split_columns', 'end_separators', 'STRIP',
+                           'STRIP is not one of: KEEP, STRIP_LEADING, '
+                           'STRIP_TRAILING, STRIP_BOTH_ENDS'),
+                          ('s03_split_columns', 'end_separators', '',
+                           ' is not one of'),
+                          ('s03_split_columns', 'end_separators', ['KEEP'],
+                           'called with list not str')])
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_split_mode_json_bad(capsys: CaptureFixture[str],
+                             cls: type[ConfigXlsListTransfName] |
+                             type[ConfigXlsListTransfNum],
+                             member: str, key: str, value: object,
+                             msg: str) -> None:
+    """Test that invalid empty_parts and end_separators are rejected."""
+    txt = _split_mode_json(cls, member, key, value)
+    with pytest.raises(ConfigBadJson):
+        _ = cls(from_json_data_text=txt, stderr_file=sys.stderr)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert msg in err
+
+
+@pytest.mark.parametrize('cls', SPLIT_CFG_CLASSES)
+@pytest.mark.parametrize('member, key', SPLIT_MODE_KEYS)
+@pytest.mark.parametrize('value', ['DROP_ALL', 'KEEP', None, 1])
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_split_mode_type_bad(capsys: CaptureFixture[str],
+                             cls: type[ConfigXlsListTransfName] |
+                             type[ConfigXlsListTransfNum],
+                             member: str, key: str, value: object) -> None:
+    """Test that a value that is not of the enum type is not written."""
+    cfg = cls()
+    getattr(cfg, member)[0][key] = value
+    with pytest.raises(InvalidConfiguration):
+        _ = cfg.as_json_string(stderr_file=sys.stderr)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert f'Value for {member}[0][{key}] is not of type' in err
+
+
+@pytest.mark.parametrize('cls', SPLIT_CFG_CLASSES)
+def test_split_mode_missing(capsys: CaptureFixture[str],
+                            cls: type[ConfigXlsListTransfName] |
+                            type[ConfigXlsListTransfNum]) -> None:
+    """Test that missing keys get the old behavior and a migrate warning."""
+    data = json.loads(cls().as_json_string(stderr_file=sys.stderr))
+    for member, key in SPLIT_MODE_KEYS:
+        for rule in data[member]:
+            del rule[key]
+    data['s01_split_rows'].append(deepcopy(data['s01_split_rows'][0]))
+    cfg = cls(from_json_data_text=json.dumps(data), stderr_file=sys.stderr)
+    assert [rule['empty_parts'] for rule in cfg.s01_split_rows] == \
+        [EmptyParts.KEEP_ALL, EmptyParts.KEEP_ALL]
+    ends = cfg.s03_split_columns[0]['end_separators']
+    assert ends == EndSeparators.KEEP
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert EltMigrateCfgWarnHook.migrate_warn_msg() == err
+
+
+def test_rocf_split_defaults() -> None:
+    """Test that old configurations get the old split behavior."""
+    missing = ConfigReadOld().get_missing_path_values()
+    empty_parts = missing[('s01_split_rows', '[', 'empty_parts')]
+    assert empty_parts == EmptyParts.KEEP_ALL
+    ends = missing[('s03_split_columns', '[', 'end_separators')]
+    assert ends == EndSeparators.KEEP

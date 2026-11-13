@@ -43,6 +43,10 @@ def test_generate_syntax_txt(capsys: CaptureFixture[str], txt_file: str,
     assert 'Explanation for example configuration file' in content
     assert cfg_file in content
     assert 's10_column_order' in content
+    for word in ['"empty_parts"', '"KEEP_ALL"', '"DROP_ALL"',
+                 '"DROP_TRAILING"', '"end_separators"', '"KEEP"',
+                 '"STRIP_LEADING"', '"STRIP_TRAILING"', '"STRIP_BOTH_ENDS"']:
+        assert word in content
     _assert_txt_layout(content)
     assert '' == out
     assert '' == err

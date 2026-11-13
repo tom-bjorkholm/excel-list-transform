@@ -36,3 +36,20 @@ class ColumnRef(Enum):
 
     BY_NUMBER = auto()
     BY_NAME = auto()
+
+
+class EmptyParts(Enum):
+    """Which empty parts to drop when splitting a row."""
+
+    KEEP_ALL = auto()
+    DROP_ALL = auto()
+    DROP_TRAILING = auto()
+
+
+class EndSeparators(Enum):
+    """Which ends of a value to strip of separators before column split."""
+
+    KEEP = auto()
+    STRIP_LEADING = auto()
+    STRIP_TRAILING = auto()
+    STRIP_BOTH_ENDS = auto()

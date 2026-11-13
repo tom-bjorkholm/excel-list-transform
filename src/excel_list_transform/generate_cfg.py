@@ -9,7 +9,7 @@ from tableio import CsvDialect
 from tableio_cfg_json import TioJsonCsvConfig
 from excel_list_transform.file_extension import fix_file_extension
 from excel_list_transform.config_enums import ColumnRef, RewriteKind, \
-    CaseSensitivity, SplitWhere
+    CaseSensitivity, SplitWhere, EmptyParts, EndSeparators
 from excel_list_transform.generate_txt import generate_syntax_txt
 from excel_list_transform.config_excel_list_transform import \
     Column, SingleRuleRewrite, RuleRewrite
@@ -155,6 +155,7 @@ def generate_syntax_sw2r_name(filename: str, colref: ColumnRef) -> None:
     cfg.s03_split_columns = [{'column': 'Name',
                               'separator': ' ',
                               'where': SplitWhere.RIGHTMOST,
+                              'end_separators': EndSeparators.STRIP_TRAILING,
                               'right_name': 'Last Name'}]
     cfg.s05_merge_columns = []
     cfg.s07_rename_columns = [{'column': 'Name', 'name': 'First Name'}]
@@ -236,6 +237,7 @@ def generate_syntax_sw2r_num(filename: str, colref: ColumnRef) -> None:
     cfg.s02_merge_rows = []
     cfg.s03_split_columns = [{'column': 5, 'separator': ' ',
                               'where': SplitWhere.RIGHTMOST,
+                              'end_separators': EndSeparators.STRIP_TRAILING,
                               'store_single': SplitWhere.RIGHTMOST}]
     cfg.s04_remove_columns = []
     cfg.s05_merge_columns = []
@@ -501,14 +503,16 @@ def generate_rowsplitmerge(filename: str, colref: ColumnRef) -> None:
     if colref == ColumnRef.BY_NUMBER:
         assert isinstance(cfg, ConfigXlsListTransfNum)
         cfg.s01_split_rows = [{'column': 2, 'separators': [' + '],
-                               'not_separators': []}]
+                               'not_separators': [],
+                               'empty_parts': EmptyParts.DROP_TRAILING}]
         cfg.s02_merge_rows = [{'columns': [2], 'separator': ' + '}]
         cfg.s04_remove_columns = []
         cfg.s06_place_columns_first = [2, 1]
     else:
         assert isinstance(cfg, ConfigXlsListTransfName)
         cfg.s01_split_rows = [{'column': 'To', 'separators': [' + '],
-                               'not_separators': []}]
+                               'not_separators': [],
+                               'empty_parts': EmptyParts.DROP_TRAILING}]
         cfg.s02_merge_rows = [{'columns': ['To'], 'separator': ' + '}]
         cfg.s10_column_order = ['To', 'What', 'From']
     cfg.write(to_json_filename=filename)

@@ -19,7 +19,7 @@ from test_excel_list_transform.tableio_helpers import \
 from excel_list_transform.config_xls_list_transf_num \
     import ConfigXlsListTransfNum
 from excel_list_transform.config_enums import SplitWhere, RewriteKind, \
-    CaseSensitivity
+    CaseSensitivity, EmptyParts, EndSeparators
 from excel_list_transform.config_excel_list_transform import RuleMerge, \
     RuleRowSplit
 from excel_list_transform.migrate_cfg_warn_hook import EltMigrateCfgWarnHook
@@ -119,6 +119,7 @@ def test_bak_cmpt_0_7_13_num(capsys: CaptureFixture[str]) -> None:
     refcfg.output_borders = False
     refcfg.output_filtered_table = False
     refcfg.s01_split_rows = []
+    refcfg.s03_split_columns[0]['end_separators'] = EndSeparators.KEEP
     refcfg.s02_merge_rows = []
     refcfg.s07_rename_columns[1]['name'] = 'Family Name'
     refcfg.s08_insert_columns[1]['name'] = 'Something else'
@@ -136,11 +137,14 @@ def test_bak_cmpt_0_7_13_num(capsys: CaptureFixture[str]) -> None:
 @pytest.mark.parametrize('splitr',
                          [[],
                           [{'column': 2, 'separators': [';'],
-                            'not_separators': ['\\;']}],
+                            'not_separators': ['\\;'],
+                            'empty_parts': EmptyParts.KEEP_ALL}],
                           [{'column': 3, 'separators': ['+'],
-                            'not_separators': [' + ']},
+                            'not_separators': [' + '],
+                            'empty_parts': EmptyParts.KEEP_ALL},
                            {'column': 4, 'separators': ['+', '-'],
-                            'not_separators': [' + ', '--']}]])
+                            'not_separators': [' + ', '--'],
+                            'empty_parts': EmptyParts.KEEP_ALL}]])
 @pytest.mark.parametrize('merger',
                          [[],
                           [{'columns': [1, 2], 'separator': ' '}],
@@ -165,27 +169,33 @@ def test_row_spl_mrg_nu_ok(capsys: CaptureFixture[str],
 
 @pytest.mark.parametrize('splitr, msgs',
                          [([{'column': 2, 'separators': [],
-                            'not_separators': []}],
+                             'not_separators': [],
+                             'empty_parts': EmptyParts.KEEP_ALL}],
                            ['s01_split_rows[0][separators]',
                             'less than minimum 1']),
                           ([{'column': 3, 'separators': [],
-                            'not_separators': [], 'start': 2}],
+                             'not_separators': [],
+                             'empty_parts': EmptyParts.KEEP_ALL, 'start': 2}],
                            ["Unknown key 'start' in s01_split_rows[0]"]),
                           ([{'column': 'foo', 'separators': [';'],
-                           'not_separators': [';;']}],
+                             'not_separators': [';;'],
+                             'empty_parts': EmptyParts.KEEP_ALL}],
                            ['s01_split_rows[0][column]',
                             'not of type int']),
                           ([{'separators': ['+'],
-                             'not_separators': [' + ']}],
+                             'not_separators': [' + '],
+                             'empty_parts': EmptyParts.KEEP_ALL}],
                            ["Mandatory key 'column' is missing",
                             's01_split_rows[0]']),
                           ([{'column': 2, 'separators': ['+'],
-                             'not_separators': ['+']}],
+                             'not_separators': ['+'],
+                             'empty_parts': EmptyParts.KEEP_ALL}],
                            ['s01_split_rows[0]',
                             'same string as a separator',
                             "not-separator: '+'."]),
                           ([{'column': 4, 'separators': ['+', '-'],
-                             'not_separators': [' + ', '--', '*']}],
+                             'not_separators': [' + ', '--', '*'],
+                             'empty_parts': EmptyParts.KEEP_ALL}],
                            ['s01_split_rows[0]',
                             "not-separator '*'",
                             'does not affect any separator'])])
@@ -239,7 +249,8 @@ def test_row_merge_cfg_na_nok(capsys: CaptureFixture[str], merger: object,
 @pytest.mark.parametrize('member_name,value,msgs',
                          [('s01_split_rows',
                            [{'column': True, 'separators': [';'],
-                             'not_separators': []}],
+                             'not_separators': [],
+                             'empty_parts': EmptyParts.KEEP_ALL}],
                            ['s01_split_rows[0][column]',
                             'must not be of type bool']),
                           ('s02_merge_rows',
@@ -249,6 +260,7 @@ def test_row_merge_cfg_na_nok(capsys: CaptureFixture[str], merger: object,
                           ('s03_split_columns',
                            [{'column': True, 'separator': ' ',
                              'where': SplitWhere.RIGHTMOST,
+                             'end_separators': EndSeparators.KEEP,
                              'store_single': SplitWhere.LEFTMOST}],
                            ['s03_split_columns[0][column]',
                             'must not be of type bool']),

@@ -10,8 +10,10 @@ from typing import overload
 from copy import deepcopy
 from excel_list_transform.commontypes import Value, \
     Row, NumRow, NameRow, Data
+from excel_list_transform.config_enums import EmptyParts
 from excel_list_transform.config_excel_list_transform import RuleRowSplit, \
     SingleRuleMerge, RuleMerge, Column
+from excel_list_transform.split_parts import drop_empty_parts
 from excel_list_transform.config_xls_list_transf_name import \
     ConfigXlsListTransfName
 from excel_list_transform.config_xls_list_transf_num import \
@@ -51,21 +53,25 @@ def split_one_str(instr: str, separators: list[str],
 
 @overload
 def one_split_one_row(inrow: NumRow, column: int, separators: list[str],
-                      not_separators: list[str]) -> Data[NumRow]: ...
+                      not_separators: list[str],
+                      empty_parts: EmptyParts) -> Data[NumRow]: ...
 
 
 @overload
 def one_split_one_row(inrow: NameRow, column: str, separators: list[str],
-                      not_separators: list[str]) -> Data[NameRow]: ...
+                      not_separators: list[str],
+                      empty_parts: EmptyParts) -> Data[NameRow]: ...
 
 
 def one_split_one_row(inrow: Row, column: Column, separators: list[str],
-                      not_separators: list[str]) -> Data[Row]:
+                      not_separators: list[str],
+                      empty_parts: EmptyParts) -> Data[Row]:
     """Handle one split row directive for one row.
 
-    An empty cell (None) is treated like '' and the row is returned
-    unchanged (the cell stays None). Other non-string values stop the
-    program with an error message.
+    An empty cell (None) is returned unchanged (the cell stays None).
+    Other non-string values stop the program with an error message.
+    Empty parts are dropped according to empty_parts. If all parts are
+    dropped, one row is kept with the value ''.
     """
     assert (isinstance(inrow, list) and isinstance(column, int)) or \
         (isinstance(inrow, dict) and isinstance(column, str))
@@ -81,10 +87,8 @@ def one_split_one_row(inrow: Row, column: Column, separators: list[str],
     assert isinstance(instr, str)
     splitted: list[str] = split_one_str(instr=instr, separators=separators,
                                         not_separators=not_separators)
-    if len(splitted) <= 1:
-        return [inrow]
     result: Data[Row] = []
-    for part in splitted:
+    for part in drop_empty_parts(parts=splitted, mode=empty_parts):
         row: Row = deepcopy(inrow)
         row[column] = part
         result.append(row)
@@ -114,16 +118,18 @@ def column_in_row(col: Column, row: Row) -> bool:
 
 @overload
 def one_split(indata: Data[NameRow], column: str, separators: list[str],
-              not_separators: list[str]) -> Data[NameRow]: ...
+              not_separators: list[str],
+              empty_parts: EmptyParts) -> Data[NameRow]: ...
 
 
 @overload
 def one_split(indata: Data[NumRow], column: int, separators: list[str],
-              not_separators: list[str]) -> Data[NumRow]: ...
+              not_separators: list[str],
+              empty_parts: EmptyParts) -> Data[NumRow]: ...
 
 
 def one_split(indata: Data[Row], column: Column, separators: list[str],
-              not_separators: list[str]) -> Data[Row]:
+              not_separators: list[str], empty_parts: EmptyParts) -> Data[Row]:
     """Handle one of the split row directives."""
     if not indata:
         return indata
@@ -138,7 +144,8 @@ def one_split(indata: Data[Row], column: Column, separators: list[str],
     for row in indata:
         result += one_split_one_row(inrow=row, column=column,
                                     separators=separators,
-                                    not_separators=not_separators)
+                                    not_separators=not_separators,
+                                    empty_parts=empty_parts)
     return result
 
 
@@ -167,8 +174,10 @@ def split_rows(indata: Data[Row],
         assert isinstance(sep, list)
         notsep = directive['not_separators']
         assert isinstance(notsep, list)
+        empty = directive['empty_parts']
+        assert isinstance(empty, EmptyParts)
         result = one_split(indata=data, column=col, separators=sep,
-                           not_separators=notsep)
+                           not_separators=notsep, empty_parts=empty)
         data = result
     return result
 

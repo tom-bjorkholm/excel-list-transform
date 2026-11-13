@@ -9,7 +9,8 @@ import sys
 from typing import Optional, TextIO, override
 from config_as_json import ConfigAutoChangeHook, MemberValidationStep, \
     PathOrStr
-from excel_list_transform.config_enums import SplitWhere, ColumnRef
+from excel_list_transform.config_enums import SplitWhere, ColumnRef, \
+    EndSeparators
 from excel_list_transform.config_excel_list_transform \
     import ConfigExcelListTransform, RulePlace, RuleRemove, \
     SingleRuleMerge, SingleRuleSplit, SingleRule, ColInfo
@@ -48,6 +49,7 @@ class ConfigXlsListTransfNum(ConfigExcelListTransform[int]):
             ColInfo[int]('store_single', 'name',
                          [{'column': 15, 'separator': ' ',
                            'where': SplitWhere.RIGHTMOST,
+                           'end_separators': EndSeparators.STRIP_TRAILING,
                            'store_single': SplitWhere.LEFTMOST}],
                          [{'column': 1, 'name': 'Division', 'value': None},
                           {'column': 7, 'name': 'Other',

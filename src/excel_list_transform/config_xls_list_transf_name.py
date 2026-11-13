@@ -9,7 +9,8 @@ import sys
 from typing import Optional, TextIO, override
 from config_as_json import ConfigAutoChangeHook, MemberValidationStep, \
     PathOrStr
-from excel_list_transform.config_enums import SplitWhere, ColumnRef
+from excel_list_transform.config_enums import SplitWhere, ColumnRef, \
+    EndSeparators
 from excel_list_transform.config_excel_list_transform import \
     ConfigExcelListTransform, RuleOrder, ColInfo
 
@@ -32,6 +33,8 @@ class ConfigXlsListTransfName(ConfigExcelListTransform[str]):
                                s03=[{'column': 'name',
                                      'separator': ' ',
                                      'where': SplitWhere.RIGHTMOST,
+                                     'end_separators':
+                                     EndSeparators.STRIP_TRAILING,
                                      'right_name': 'last name'}],
                                s08=[{'column': 'Division', 'value': None},
                                     {'column': 'Other', 'value': 'some text'}],

@@ -9,6 +9,7 @@ from typing import Optional, override
 from config_as_json import ConfigPath, ReadOldConfiguration, RocfKeyMove, \
     RocfKeyRename
 from tableio import CsvDialect
+from excel_list_transform.config_enums import EmptyParts, EndSeparators
 
 
 def _old_value_name(value: object) -> str:
@@ -82,6 +83,9 @@ class ConfigReadOld(ReadOldConfiguration):
                 ('in_excel_values_strip',): False,
                 ('s01_split_rows',): [],
                 ('s02_merge_rows',): [],
+                ('s01_split_rows', '[', 'empty_parts'): EmptyParts.KEEP_ALL,
+                ('s03_split_columns', '[', 'end_separators'):
+                EndSeparators.KEEP,
                 ('output_borders',): False,
                 ('output_filtered_table',): False}
 

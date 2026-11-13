@@ -11,11 +11,13 @@ from typing import cast
 from copy import deepcopy
 import pytest
 from pytest import CaptureFixture
-from excel_list_transform.config_excel_list_transform import Rule, RuleMerge
+from excel_list_transform.config_enums import SplitWhere, EndSeparators
+from excel_list_transform.config_excel_list_transform import Rule, \
+    RuleMerge, SingleRuleSplit
 from excel_list_transform.commontypes import NameRow, NumRow, Value
 from excel_list_transform.transform_func_common import col_must_exist, \
     cols_must_exist_lst, cols_must_exist_dict, cols_must_exist_multi, \
-    pop_from_row, insert_into_row
+    pop_from_row, insert_into_row, split_col_value
 
 
 type TestColumn = int | str
@@ -315,3 +317,81 @@ def test_insert_into_row_nok(capsys: CaptureFixture[str], inrow: TestRow,
     out, err = capsys.readouterr()
     assert '' == out
     assert '' == err
+
+
+LEFT = SplitWhere.LEFTMOST
+RIGHT = SplitWhere.RIGHTMOST
+
+
+@pytest.mark.parametrize('inval, sep, where, ends, res',
+                         [('a,b,', ',', RIGHT, EndSeparators.KEEP,
+                           ['a,b', '']),
+                          ('a,b,', ',', LEFT, EndSeparators.KEEP,
+                           ['a', 'b,']),
+                          ('a,b,', ',', RIGHT, EndSeparators.STRIP_TRAILING,
+                           ['a', 'b']),
+                          ('a,b,', ',', LEFT, EndSeparators.STRIP_TRAILING,
+                           ['a', 'b']),
+                          ('a,b, ,', ',', RIGHT,
+                           EndSeparators.STRIP_TRAILING, ['a', 'b']),
+                          ('a,b,', ',', RIGHT, EndSeparators.STRIP_LEADING,
+                           ['a,b', '']),
+                          (',a,b', ',', LEFT, EndSeparators.STRIP_LEADING,
+                           ['a', 'b']),
+                          (',a,b', ',', LEFT, EndSeparators.STRIP_TRAILING,
+                           ['', 'a,b']),
+                          (',a,b,', ',', RIGHT,
+                           EndSeparators.STRIP_BOTH_ENDS, ['a', 'b']),
+                          ('Anna Maria Smith  ', ' ', RIGHT,
+                           EndSeparators.STRIP_TRAILING,
+                           ['Anna Maria', 'Smith']),
+                          ('a', ',', RIGHT, EndSeparators.STRIP_BOTH_ENDS,
+                           ['a']),
+                          (',', ',', RIGHT, EndSeparators.KEEP, ['', '']),
+                          (',', ',', RIGHT, EndSeparators.STRIP_TRAILING,
+                           ['']),
+                          (', ,', ',', LEFT, EndSeparators.STRIP_BOTH_ENDS,
+                           ['']),
+                          ('   ', ',', LEFT, EndSeparators.STRIP_LEADING,
+                           ['']),
+                          ('', ',', LEFT, EndSeparators.KEEP, ['']),
+                          (None, ',', RIGHT, EndSeparators.STRIP_BOTH_ENDS,
+                           [])])
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
+def test_split_col_value(capsys: CaptureFixture[str], inval: Value, sep: str,
+                         where: SplitWhere, ends: EndSeparators,
+                         res: list[str]) -> None:
+    """Test splitting one value according to a column split rule."""
+    rule: SingleRuleSplit[str] = {'column': 'c', 'separator': sep,
+                                  'where': where, 'end_separators': ends,
+                                  'right_name': 'd'}
+    assert split_col_value(inval=inval, colref='c', rule=rule) == res
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert '' == err
+
+
+@pytest.mark.parametrize('rule, exc',
+                         [({'column': 'c', 'separator': ',',
+                            'where': RIGHT, 'right_name': 'd'}, KeyError),
+                          ({'column': 'c', 'separator': ',', 'where': RIGHT,
+                            'end_separators': 'KEEP', 'right_name': 'd'},
+                           AssertionError)])
+def test_split_col_value_nok(rule: SingleRuleSplit[str],
+                             exc: type[BaseException]) -> None:
+    """Test that a missing or unparsed end_separators is detected."""
+    with pytest.raises(exc):
+        _ = split_col_value(inval='a,b', colref='c', rule=rule)
+
+
+def test_split_col_value_int(capsys: CaptureFixture[str]) -> None:
+    """Test that a non-string value stops with an error message."""
+    rule: SingleRuleSplit[int] = {'column': 3, 'separator': ',',
+                                  'where': RIGHT,
+                                  'end_separators': EndSeparators.KEEP,
+                                  'store_single': LEFT}
+    with pytest.raises(SystemExit):
+        _ = split_col_value(inval=2.5, colref=3, rule=rule)
+    out, err = capsys.readouterr()
+    assert '' == out
+    assert 'Column "3" has value of type float' in err

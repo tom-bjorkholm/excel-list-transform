@@ -279,7 +279,8 @@ referenced by number.
 The first operation is to split rows based on column values.
 This operation is configured using the **"s01_split_rows"** record,
 that has an array of splits to be done. Each row split has the
-following keys: **"column"**, **"separators"** and **"not_separators"**.
+following keys: **"column"**, **"separators"**, **"not_separators"**
+and **"empty_parts"**.
 
 The **"column"** keyword is used to identify the column that is
 split into several rows. This is a column number in the case of
@@ -297,9 +298,6 @@ into different rows.
 
 Separators must not be empty strings. If more than one
 separator matches at the same position, the longest one is used.
-Empty parts (from a separator at the start or end of the value,
-or from two adjacent separators) are kept, and give rows where
-the column is empty.
 
 **"not_separators"** take as argument a list of strings. These strings
 are not regarded as separators even if they include the strings
@@ -309,6 +307,25 @@ a separator.)
 The column value is scanned from the start. At each position a
 not-separator takes precedence over a separator, so a separator
 that is part of a not-separator never splits the value.
+
+**"empty_parts"** decides what happens to empty parts. A part is the
+text between two separators, or between a separator and the start
+or end of the value. A part is empty if it is "" or only whitespace.
+Empty parts come from a separator at the start or end of the value,
+or from two adjacent separators. **"empty_parts"** can have the values:
+
+- *"KEEP_ALL"*: keep all empty parts. They give rows where the column
+  is empty. "a,,b," split at "," gives "a", "", "b" and "".
+- *"DROP_ALL"*: drop all empty parts. "a,,b," gives "a" and "b".
+- *"DROP_TRAILING"*: drop only the empty parts at the end. "a,,b,"
+  gives "a", "" and "b", and "a,b,," gives "a" and "b". This is
+  useful when a separator is written after every element of a list,
+  also after the last one.
+
+If all parts are dropped (for instance the value "," with *"DROP_ALL"*),
+the row is kept once with the value "" in the column. An empty cell
+is not split. Configuration files without **"empty_parts"** (from older
+versions) get *"KEEP_ALL"*, which is how older versions worked.
 
 ### "s02_merge_rows"
 
@@ -365,10 +382,10 @@ the least confusion is to split columns to the right before
 columns to the left. Named references also helps to avoid
 confusion.)
 
-Each split has the following keys: **"column"**, **"separator"** and
-**"where"**. In the case of number column references there is
-also the key **"store_single"**. In the case of named column references
-there is instead the key **"right_name"**.
+Each split has the following keys: **"column"**, **"separator"**,
+**"where"** and **"end_separators"**. In the case of number column
+references there is also the key **"store_single"**. In the case of
+named column references there is instead the key **"right_name"**.
 
 **"column"** takes as argument the column to be split. This is a
 column number in the case of *"BY_NUMBER"*, and a column name/title
@@ -384,6 +401,25 @@ The separator must not be an empty string.
 more than once in the column value to split. The split is then
 done at the leftmost or rightmost occurrence according to the
 value of **"where"**.
+
+**"end_separators"** decides what happens to separators at the start
+or end of the value, before the split is done. Without removing them,
+"a,b," split at the rightmost "," gives "a,b" and "", and split at
+the leftmost "," gives "a" and "b,". **"end_separators"** can have the
+values:
+
+- *"KEEP"*: keep the value as it is.
+- *"STRIP_LEADING"*: remove separators at the start of the value.
+- *"STRIP_TRAILING"*: remove separators at the end of the value.
+- *"STRIP_BOTH_ENDS"*: remove separators at both the start and the end
+  of the value.
+
+All consecutive separators at a stripped end are removed, together
+with any whitespace between them. For instance "a,b, ," with
+*"STRIP_TRAILING"* becomes "a,b" before it is split. A value that
+consists only of separators and whitespace becomes "".
+Configuration files without **"end_separators"** (from older versions)
+get *"KEEP"*, which is how older versions worked.
 
 **"right_name"** is only used if column references are *"BY_NAME"*.
 After the split the left column uses the original column name,
@@ -535,7 +571,7 @@ Source code and tests are available at [https://github.com/tom-bjorkholm/excel-l
 
 ## Test summary
 
-- Test result: 1471 passed in 71s (0:01:11)
+- Test result: 1693 passed in 86s (0:01:26)
 - No flake8 warnings.
 - No mypy errors found.
 - No pylint warnings.

@@ -16,6 +16,7 @@ from tableio_cfg_json import TioJsonCsvConfig
 from test_excel_list_transform.tableio_helpers import \
     configure_output_csv
 from excel_list_transform.migrate_cfg import migrate_cfg
+from excel_list_transform.config_enums import EndSeparators
 from excel_list_transform.migrate_cfg_warn_hook import EltMigrateCfgWarnHook
 from excel_list_transform.config_match import MATCH_CONFIGS
 from excel_list_transform.config_xls_list_transf_name import \
@@ -31,7 +32,7 @@ LEGACY_RRS_ORDER = ['Class', 'Division', 'Nationality', 'Sail Number',
 
 def configure_old_io(cfg: ConfigXlsListTransfName |
                      ConfigXlsListTransfNum) -> None:
-    """Set expected TableIO settings from old migration fixtures."""
+    """Set expected TableIO settings and split defaults of old fixtures."""
     configure_output_csv(cfg)
     cfg.input_table.character_encoding = 'utf_8_sig'
     cfg.output_table.character_encoding = 'utf-8'
@@ -39,6 +40,7 @@ def configure_old_io(cfg: ConfigXlsListTransfName |
                                            delimiter=',', quotechar='"')
     cfg.output_table.csv = TioJsonCsvConfig(dialect=CsvDialect.EXCEL,
                                             delimiter=',', quotechar='"')
+    cfg.s03_split_columns[0]['end_separators'] = EndSeparators.KEEP
 
 
 def assert_new_config_file(filename: str) -> None:

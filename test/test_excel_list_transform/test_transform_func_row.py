@@ -15,7 +15,7 @@ from pytest import CaptureFixture
 from test_excel_list_transform.tableio_helpers import \
     configure_input_csv, configure_input_excel, configure_output_csv, \
     configure_output_excel, read_excel_num, write_csv_num, write_excel_num
-from excel_list_transform.config_enums import ColumnRef
+from excel_list_transform.config_enums import ColumnRef, EmptyParts
 from excel_list_transform.commontypes import NumData
 from excel_list_transform.transform_func import transform_named_files
 from excel_list_transform.handle_tableio import read_table_num
@@ -92,10 +92,14 @@ ex1 = {'in': [['a', 'b', 'c', 'd'],
                [5, 'h', 'i', 3],
                [5, 'h', 'j', 3],
                [6, 'k', 'l', 4]],
-       'snum': [{'column': 1, 'separators': [' '], 'not_separators': []},
-                {'column': 2, 'separators': ['+'], 'not_separators': []}],
-       'sname': [{'column': 'b', 'separators': [' '], 'not_separators': []},
-                 {'column': 'c', 'separators': ['+'], 'not_separators': []}],
+       'snum': [{'column': 1, 'separators': [' '], 'not_separators': [],
+                 'empty_parts': EmptyParts.KEEP_ALL},
+                {'column': 2, 'separators': ['+'], 'not_separators': [],
+                 'empty_parts': EmptyParts.KEEP_ALL}],
+       'sname': [{'column': 'b', 'separators': [' '], 'not_separators': [],
+                  'empty_parts': EmptyParts.KEEP_ALL},
+                 {'column': 'c', 'separators': ['+'], 'not_separators': [],
+                  'empty_parts': EmptyParts.KEEP_ALL}],
        'mnum': [],
        'mname': [],
        'order': ['a', 'b', 'c', 'd']}
@@ -121,10 +125,31 @@ ex3 = {'in': [['a', 'b', 'c', 'd'],
        'out': [['a', 'b', 'c', 'd'],
                ['4;6', 'e;m', 'g', '2;4'],
                ['4;5', 'e;j', 'h', '2;3']],
-       'snum': [{'column': 2, 'separators': ['+'], 'not_separators': []}],
-       'sname': [{'column': 'c', 'separators': ['+'], 'not_separators': []}],
+       'snum': [{'column': 2, 'separators': ['+'], 'not_separators': [],
+                 'empty_parts': EmptyParts.KEEP_ALL}],
+       'sname': [{'column': 'c', 'separators': ['+'], 'not_separators': [],
+                  'empty_parts': EmptyParts.KEEP_ALL}],
        'mnum': [{'columns': [2], 'separator': ';'}],
        'mname': [{'columns': ['c'], 'separator': ';'}],
+       'order': ['a', 'b', 'c', 'd']}
+ex4 = {'in': [['a', 'b', 'c', 'd'],
+              [4, 'e;f;', 'g', 2],
+              [5, 'h', 'i;;j;', 3]],
+       'out': [['a', 'b', 'c', 'd'],
+               [4, 'e', 'g', 2],
+               [4, 'f', 'g', 2],
+               [5, 'h', 'i', 3],
+               [5, 'h', 'j', 3]],
+       'snum': [{'column': 1, 'separators': [';'], 'not_separators': [],
+                 'empty_parts': EmptyParts.DROP_TRAILING},
+                {'column': 2, 'separators': [';'], 'not_separators': [],
+                 'empty_parts': EmptyParts.DROP_ALL}],
+       'sname': [{'column': 'b', 'separators': [';'], 'not_separators': [],
+                  'empty_parts': EmptyParts.DROP_TRAILING},
+                 {'column': 'c', 'separators': [';'], 'not_separators': [],
+                  'empty_parts': EmptyParts.DROP_ALL}],
+       'mnum': [],
+       'mname': [],
        'order': ['a', 'b', 'c', 'd']}
 
 
@@ -145,7 +170,7 @@ def make_row_cfg(exa: RowExample, ref: ColumnRef) -> \
     return num_cfg
 
 
-@pytest.mark.parametrize('exa', [ex1, ex2, ex3])
+@pytest.mark.parametrize('exa', [ex1, ex2, ex3, ex4])
 @pytest.mark.parametrize('ref', list(ColumnRef))
 @pytest.mark.parametrize('intyp', ['Excel', 'CSV'])
 @pytest.mark.parametrize('outtyp', ['Excel', 'CSV'])

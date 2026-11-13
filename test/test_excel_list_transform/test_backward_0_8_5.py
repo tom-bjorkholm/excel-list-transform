@@ -13,7 +13,7 @@ from config_as_json import config_factory_from_json
 from tableio import CsvDialect
 from tableio_cfg_json import TioJsonCsvConfig
 from excel_list_transform.config_enums import ColumnRef, RewriteKind, \
-    SplitWhere
+    SplitWhere, EmptyParts, EndSeparators
 from excel_list_transform.config_match import MATCH_CONFIGS
 from excel_list_transform.config_xls_list_transf_name import \
     ConfigXlsListTransfName
@@ -224,6 +224,7 @@ def _assert_rule_values(cfg: ConfigXlsListTransfName |
     """Assert distinctive migrated transform values for one config."""
     if expected.row_split_column is not None:
         assert cfg.s01_split_rows[0]['column'] == expected.row_split_column
+        assert cfg.s01_split_rows[0]['empty_parts'] == EmptyParts.KEEP_ALL
     if expected.row_merge_columns:
         assert cfg.s02_merge_rows[0]['columns'] == \
             list(expected.row_merge_columns)
@@ -249,6 +250,7 @@ def _assert_split_rule(cfg: ConfigXlsListTransfName |
     split_rule = cfg.s03_split_columns[0]
     assert split_rule['column'] == expected.split_column
     assert split_rule['where'] == SplitWhere.RIGHTMOST
+    assert split_rule['end_separators'] == EndSeparators.KEEP
     if expected.split_right_name is not None:
         assert split_rule['right_name'] == expected.split_right_name
     if expected.split_store_single is not None:

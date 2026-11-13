@@ -98,11 +98,3 @@ Both enums need entries in `parse_converters()`, validation in
 `_split_rows_step()` / `_split_columns_step()`, descriptions in
 `edit_descriptions.py`, and updates in `generate_cfg.py` /
 `generate_txt.py`.
-
-## Row splitting of a cell with value `None` (separate fix)
-
-`one_split_one_row` in `row_split_merge.py` stops the program when the
-cell value is not a string, also when it is `None` (an empty cell).
-Column splitting accepts `None`. Row splitting should probably treat
-`None` like `""` and keep the row unchanged. The error message also has
-a typo ("onbly").

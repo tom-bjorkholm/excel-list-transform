@@ -61,14 +61,21 @@ def one_split_one_row(inrow: NameRow, column: str, separators: list[str],
 
 def one_split_one_row(inrow: Row, column: Column, separators: list[str],
                       not_separators: list[str]) -> Data[Row]:
-    """Handle one split row directive for one row."""
+    """Handle one split row directive for one row.
+
+    An empty cell (None) is treated like '' and the row is returned
+    unchanged (the cell stays None). Other non-string values stop the
+    program with an error message.
+    """
     assert (isinstance(inrow, list) and isinstance(column, int)) or \
         (isinstance(inrow, dict) and isinstance(column, str))
     instr = inrow[column]
+    if instr is None:
+        return [inrow]
     if not isinstance(instr, str):
         print(f'Trying to split rows based on column "{column}".\n' +
-              f'But that column has value of type {type(instr).__name__}:' +
-              str(instr) + '\nCan onbly split strings\n',
+              f'But that column has value of type {type(instr).__name__}: ' +
+              str(instr) + '\nCan only split strings\n',
               file=sys.stderr)
         sys.exit(1)
     assert isinstance(instr, str)

@@ -535,7 +535,7 @@ Source code and tests are available at [https://github.com/tom-bjorkholm/excel-l
 
 ## Test summary
 
-- Test result: 1456 passed in 71s (0:01:11)
+- Test result: 1471 passed in 71s (0:01:11)
 - No flake8 warnings.
 - No mypy errors found.
 - No pylint warnings.

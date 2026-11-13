@@ -4,4 +4,5 @@
 # MIT License
 #
 set -v
-./venv/bin/python ./test/test_excel_list_transform/measure_speed.py
+cd test
+../venv/bin/python -m test_excel_list_transform.measure_speed

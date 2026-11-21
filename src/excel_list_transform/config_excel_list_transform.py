@@ -75,25 +75,29 @@ def output_capabilities() -> Capabilities:
 def input_table_factory(*, from_json_data_text: Optional[str] = None,
                         from_json_filename: Optional[PathOrStr] = None,
                         stderr_file: TextIO = sys.stderr,
-                        member_name: Optional[str] = None) -> TioJsonConfig:
+                        member_name: Optional[str] = None,
+                        ok_to_use_defaults: bool = False) -> TioJsonConfig:
     """Create JSON-backed TableIO configuration for input files."""
     return TioJsonConfig(capabilities=input_capabilities(),
                          file_access=FileAccess.READ,
                          from_json_data_text=from_json_data_text,
                          from_json_filename=from_json_filename,
-                         stderr_file=stderr_file, member_name=member_name)
+                         stderr_file=stderr_file, member_name=member_name,
+                         ok_to_use_defaults=ok_to_use_defaults)
 
 
 def output_table_factory(*, from_json_data_text: Optional[str] = None,
                          from_json_filename: Optional[PathOrStr] = None,
                          stderr_file: TextIO = sys.stderr,
-                         member_name: Optional[str] = None) -> TioJsonConfig:
+                         member_name: Optional[str] = None,
+                         ok_to_use_defaults: bool = False) -> TioJsonConfig:
     """Create JSON-backed TableIO configuration for output files."""
     return TioJsonConfig(capabilities=output_capabilities(),
                          file_access=FileAccess.CREATE,
                          from_json_data_text=from_json_data_text,
                          from_json_filename=from_json_filename,
-                         stderr_file=stderr_file, member_name=member_name)
+                         stderr_file=stderr_file, member_name=member_name,
+                         ok_to_use_defaults=ok_to_use_defaults)
 
 
 def _invalid_projection(member_name: str, message: str,
@@ -210,7 +214,8 @@ class ConfigExcelListTransform(Config, Generic[Column]):
                  from_json_filename: Optional[PathOrStr] = None,
                  auto_ch_hook: Optional[ConfigAutoChangeHook] = None,
                  stderr_file: TextIO = sys.stderr,
-                 member_name: Optional[str] = None) -> None:
+                 member_name: Optional[str] = None,
+                 ok_to_use_defaults: bool = False) -> None:
         """Construct configuration for excel list transform."""
         assert isinstance(colinfo.tinfo, type(tinfo))
         hook = EltMigrateCfgWarnHook() if auto_ch_hook is None \
@@ -271,7 +276,8 @@ class ConfigExcelListTransform(Config, Generic[Column]):
         super().__init__(from_json_data_text=from_json_data_text,
                          from_json_filename=from_json_filename,
                          auto_ch_hook=hook, stderr_file=stderr_file,
-                         member_name=member_name)
+                         member_name=member_name,
+                         ok_to_use_defaults=ok_to_use_defaults)
 
     @override
     def nested_configs(self) -> NestedConfigs:

@@ -19,11 +19,13 @@ from excel_list_transform.config_excel_list_transform import \
 class ConfigXlsListTransfName(ConfigExcelListTransform[str]):
     """Configuration of excel-list-transform referencing columns by name."""
 
+    # pylint: disable-next=too-many-arguments
     def __init__(self, from_json_data_text: Optional[str] = None,
                  from_json_filename: Optional[PathOrStr] = None,
                  auto_ch_hook: Optional[ConfigAutoChangeHook] = None,
                  stderr_file: TextIO = sys.stderr, *,
-                 member_name: Optional[str] = None) -> None:
+                 member_name: Optional[str] = None,
+                 ok_to_use_defaults: bool = False) -> None:
         """Construct configuration for excel list transform."""
         col_to_use = ['street', 'street number', 'name', 'last name',
                       'Phone', 'Phone', 'Phone', 'Phone', 'Phone',
@@ -44,11 +46,15 @@ class ConfigXlsListTransfName(ConfigExcelListTransform[str]):
             ['Class', 'Division', 'Nationality', 'MNA No.', 'Sail Number',
              'Boat Name', 'First Name', 'Last Name', 'Club Name', 'Email',
              'Phone', 'Whats App Number']
+        # Both leaf classes forward the same Config constructor contract.
+        # pylint: disable=duplicate-code
         super().__init__(col_ref=ColumnRef.BY_NAME, colinfo=colinfo, tinfo='a',
                          from_json_data_text=from_json_data_text,
                          from_json_filename=from_json_filename,
                          auto_ch_hook=auto_ch_hook, stderr_file=stderr_file,
-                         member_name=member_name)
+                         member_name=member_name,
+                         ok_to_use_defaults=ok_to_use_defaults)
+        # pylint: enable=duplicate-code
 
     @override
     def get_column_val_steps(self) -> list[MemberValidationStep]:

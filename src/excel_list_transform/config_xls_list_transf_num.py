@@ -35,11 +35,13 @@ def get_merge_first_column(rule: SingleRuleMerge[int]) -> int:
 class ConfigXlsListTransfNum(ConfigExcelListTransform[int]):
     """Configuration of excel-list-transform referencing columns by number."""
 
+    # pylint: disable-next=too-many-arguments
     def __init__(self, from_json_data_text: Optional[str] = None,
                  from_json_filename: Optional[PathOrStr] = None,
                  auto_ch_hook: Optional[ConfigAutoChangeHook] = None,
                  stderr_file: TextIO = sys.stderr, *,
-                 member_name: Optional[str] = None) -> None:
+                 member_name: Optional[str] = None,
+                 ok_to_use_defaults: bool = False) -> None:
         """Construct configuration for excel list transform."""
         self.s04_remove_columns: RuleRemove = [1, 2, 3]
         self.s06_place_columns_first: RulePlace = [7, 3, 6]
@@ -55,11 +57,15 @@ class ConfigXlsListTransfNum(ConfigExcelListTransform[int]):
                           {'column': 7, 'name': 'Other',
                            'value': 'some text'}],
                          col_to_use, col_to_use_row, 2)
+        # Both leaf classes forward the same Config constructor contract.
+        # pylint: disable=duplicate-code
         super().__init__(col_ref=ColumnRef.BY_NUMBER, colinfo=colinfo, tinfo=2,
                          from_json_data_text=from_json_data_text,
                          from_json_filename=from_json_filename,
                          auto_ch_hook=auto_ch_hook, stderr_file=stderr_file,
-                         member_name=member_name)
+                         member_name=member_name,
+                         ok_to_use_defaults=ok_to_use_defaults)
+        # pylint: enable=duplicate-code
 
     @override
     def column_shape_steps(self) -> list[MemberValidationStep]:

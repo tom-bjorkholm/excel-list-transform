@@ -12,7 +12,7 @@ from typing import Optional, TextIO
 import sys
 from config_as_json import Config, PathOrStr
 from edit_cfg_json import ConfigLoadError, NoEditorError, Settings, \
-    derived_loader, edit_in_ui, load_settings
+    edit_in_ui, load_settings
 from excel_list_transform.config_match import MATCH_CONFIGS
 from excel_list_transform.config_xls_list_transf_name import \
     ConfigXlsListTransfName
@@ -87,11 +87,11 @@ def cfg_loader(*, from_json_data_text: Optional[str] = None,
     Returns:
         A configuration that references columns by name or by number.
     """
-    loader = derived_loader(chosen_class(from_json_data_text))
-    return loader(from_json_data_text=from_json_data_text,
-                  from_json_filename=from_json_filename,
-                  ok_to_use_defaults=ok_to_use_defaults,
-                  stderr_file=stderr_file)
+    config_class = chosen_class(from_json_data_text)
+    return config_class(from_json_data_text=from_json_data_text,
+                        from_json_filename=from_json_filename,
+                        stderr_file=stderr_file,
+                        ok_to_use_defaults=ok_to_use_defaults)
 
 
 def editor_settings() -> Settings:

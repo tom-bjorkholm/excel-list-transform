@@ -11,7 +11,9 @@ from copy import deepcopy
 import sys
 import pytest
 from pytest import CaptureFixture
-from config_as_json import InvalidConfiguration, assert_dict_equal
+from config_as_json import ConfigNotDict, ConfigUnexpectedDict, \
+    ConfigUnknownKey, ConfigWrongShape, InvalidConfiguration, \
+    assert_dict_equal
 from tableio import CsvDialect
 from tableio_cfg_json import TioJsonCsvConfig
 from test_excel_list_transform.tableio_helpers import \
@@ -84,29 +86,28 @@ def test_xls_rfmt_rd_inc3(capsys: CaptureFixture[str], t: str,
 def test_xls_rfmt_rd_inc4(capsys: CaptureFixture[str], t: str) -> None:
     """Test ConfigXlsListRefmtName read incomplete 4."""
     cfg = ConfigXlsListTransfName()
-    with pytest.raises(KeyError) as exc_info:
+    with pytest.raises(ConfigUnknownKey):
         cfg.parse_json(t, ok_to_use_defaults=True, stderr_file=sys.stderr)
-    assert exc_info.type is KeyError
     out, err = capsys.readouterr()
     assert out == ''
     assert 'Unexpected' in err
 
 
-@pytest.mark.parametrize('t, errtxt',
+@pytest.mark.parametrize('t, errtxt, exc_type',
                          [('{'
                            '"input_table": {'
                            '"format_name": "CSV", "csv": "B"}}',
                            'Nested Config member input_table.csv '
-                           'must be a JSON object'),
+                           'must be a JSON object', ConfigNotDict),
                           ('{"s10_column_order": {"delimiter" : ";"}}',
-                           'Unexpected dictionary for')])
-def test_cfg_xls_lst_rfmt_rd(capsys: CaptureFixture[str], t: str,
-                             errtxt: str) -> None:
+                           'Unexpected dictionary for',
+                           ConfigUnexpectedDict)])
+def test_cfg_xls_lst_rfmt_rd(capsys: CaptureFixture[str], t: str, errtxt: str,
+                             exc_type: type[ConfigWrongShape]) -> None:
     """Test ConfigXlsListRefmtName read dict mismatch."""
     cfg = ConfigXlsListTransfName()
-    with pytest.raises(KeyError) as exc_info:
+    with pytest.raises(exc_type):
         cfg.parse_json(t, ok_to_use_defaults=True, stderr_file=sys.stderr)
-    assert exc_info.type is KeyError
     out, err = capsys.readouterr()
     assert out == ''
     assert errtxt in err

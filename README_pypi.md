@@ -576,5 +576,5 @@ Source code and tests are available at [https://github.com/tom-bjorkholm/excel-l
 - No mypy errors found.
 - No pylint warnings.
 - No python layout warnings.
-- Built version(s): 1.3.1
+- Built version(s): 1.4
 - Build and test using Python 3.15.2
